@@ -29,7 +29,7 @@ sub DB_Main {
 	my $Host = 'localhost';
 	my $DB = 'Management';
 	my $User = 'Management';
-	my $Password = 'hpinvent!';
+	my $Password = 'MocatadWasHere';
 
 	my $DB_Main = DBI->connect ("DBI:mysql:database=$DB:host=$Host",
 		$User,

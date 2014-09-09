@@ -218,18 +218,21 @@ while ( my @Search = $Search_DB->fetchrow_array() ) {
 
 ### Commands
 
-	my $Search_DB = $DB_Sudoers->prepare("SELECT `id`, `command_alias`, `active`
+	my $Search_DB = $DB_Sudoers->prepare("SELECT `id`, `command_alias`, `command`, `active`
 		FROM `commands`
 		WHERE `id` LIKE ?
 		OR `command_alias` LIKE ?
+		OR `command` LIKE ?
 	");
 	
-	$Search_DB->execute("%$Search%", "%$Search%");
+	$Search_DB->execute("%$Search%", "%$Search%", "%$Search%");
 
 while ( my @Search = $Search_DB->fetchrow_array() ) {
 	my $ID = $Search[0];
 	my $Name = $Search[1];
 		$Name =~ s/(.*)($Search)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
+	my $Command = $Search[2];
+		$Command =~ s/(.*)($Search)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
 	my $Active = $Search[2];
 
 	if ($Active) {$Active = "Active"} else {$Active = "<span style='color: #FF0000'>Inactive</span>"}
@@ -239,7 +242,7 @@ while ( my @Search = $Search_DB->fetchrow_array() ) {
 	$Table->addRow(
 	"$Counter",
 	"Command",
-	"$Name",
+	"$Name ($Command)",
 	"$Active",
 	"<a href='sudoers-commands.cgi?ID_Filter=$ID'><img src=\"resources/imgs/forward.png\" alt=\"View $Name\" ></a>"
 	);

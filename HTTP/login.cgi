@@ -204,15 +204,15 @@ sub html_output {
 print <<ENDHTML;
 <html>
 <head>
-  <title>NZDF Sudoers Build System</title>
-  <link rel="stylesheet" type="text/css" href="format.css" media= "screen,print" title ="NZDF - Default"/>
+  <title> Sudoers Build System</title>
+  <link rel="stylesheet" type="text/css" href="format.css" media= "screen,print" title =" - Default"/>
   
 </head>
 
 <body style="background-color: #575757;">
 <div id="login">
 <div id="loginform">
-<h3>NZDF Sudoers Build System</h3>
+<h3> Sudoers Build System</h3>
 <form action='login.cgi' method='post' >
 <div style="text-align: center;">
 

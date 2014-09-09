@@ -42,7 +42,7 @@ sub change_password {
 
 	while ( (my $ID, my $User_Name, my $Password, my $Email) = $Select_User_Name->fetchrow_array( ) )
 	{
-		
+
 		if (($Submit ne '') && ($Password ne $Old_Password)) {
 			$Message_Red="Old password does not match.";
 		}
@@ -53,7 +53,10 @@ sub change_password {
 		
 			$Message_Green="Password successfully changed.";
 		
-			my $Change_Password = $DB_Main->do("UPDATE `credentials` SET `password` = ?, `modified_by` = ? WHERE `id` = ?");
+			my $Change_Password = $DB_Main->prepare("UPDATE `credentials` SET
+			`password` = ?,
+			`modified_by` = ?
+			WHERE `id` = ?");
 				$Change_Password->execute($New_Password, $User_Name, $ID);
 
 		}
@@ -82,7 +85,7 @@ print <<ENDHTML;
 
 <table align = "center">
 	<tr>
-		<td style="text-align: right;">User_Name:</td>
+		<td style="text-align: right;">User Name:</td>
 		<td align = "left"><label> $User_Name</label></td>
 	</tr>
 	<tr>
@@ -109,9 +112,6 @@ print <<ENDHTML;
 </div> <!-- singlecenterblock -->
 
 </div> <!-- body -->
-</body>
-</html>
-
 
 ENDHTML
 

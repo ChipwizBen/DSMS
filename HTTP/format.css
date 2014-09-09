@@ -132,7 +132,8 @@ textarea:focus {
 
 #loginlink {
 	position: relative;
-	padding-right: 30px;
+	padding-top: 5px;
+	padding-right: 10px;
 	text-align: right;
 	color: #FFFFFF;
 	background-color: #293E77;
@@ -140,7 +141,6 @@ textarea:focus {
 
 #loginlink input {
 	width: 150px;
-	margin-right: 20px;
 	background-color: #FEFF9F;
 	border:1px solid #A2DFFF;		
 	border-radius:10px;
@@ -164,7 +164,7 @@ textarea:focus {
 	
 #loginlinkleft {
 	float: left;
-	padding-left: 30px;
+	padding-left: 10px;
 	}
 
 #strip {

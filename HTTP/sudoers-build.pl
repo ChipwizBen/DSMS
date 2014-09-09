@@ -37,7 +37,7 @@ sub write_environmentals {
 	print FILE "## AUTO GENERATED SCRIPT\n";
 	print FILE "## Please do not edit by hand\n";
 	print FILE "## This file is part of a wider system and is automatically overwritten often\n";
-	print FILE "## V1.0 26/08/2014 bensch\@, benjamin.schofield\@nzdf.mil.nz\n";
+	print FILE "## V1.0 26/08/2014 bensch\@\n";
 	print FILE "## File Created: $Date_Time\n";
 	print FILE "##\n";
 	print FILE "## Changelog\n";

@@ -769,33 +769,65 @@ sub add_rule {
 	my $Approved;
 	if (!$User_Requires_Approval && $User_Approver) {
 		$Approved = 1;
+
+		my $Rule_Insert = $DB_Sudoers->prepare("INSERT INTO `rules` (
+			`id`,
+			`name`,
+			`run_as`,
+			`nopasswd`,
+			`noexec`,
+			`active`,
+			`approved`,
+			`last_approved`,
+			`approved_by`,
+			`modified_by`
+		)
+		VALUES (
+			NULL,
+			?,
+			?,
+			?,
+			?,
+			?,
+			?,
+			NOW(),
+			?,
+			?
+		)");
+	
+		$Rule_Insert->execute($Rule_Name_Add, $Run_As_Add, $NOPASSWD_Add, $NOEXEC_Add, $Active_Add, $Approved, $User_Name, $User_Name);
+
+
 	}
 	else {
 		$Approved = 0;
+
+		my $Rule_Insert = $DB_Sudoers->prepare("INSERT INTO `rules` (
+			`id`,
+			`name`,
+			`run_as`,
+			`nopasswd`,
+			`noexec`,
+			`active`,
+			`approved`,
+			`modified_by`
+		)
+		VALUES (
+			NULL,
+			?,
+			?,
+			?,
+			?,
+			?,
+			?,
+			?
+		)");
+	
+		$Rule_Insert->execute($Rule_Name_Add, $Run_As_Add, $NOPASSWD_Add, $NOEXEC_Add, $Active_Add, $Approved, $User_Name);
+
 	}
 
-	my $Rule_Insert = $DB_Sudoers->prepare("INSERT INTO `rules` (
-		`id`,
-		`name`,
-		`run_as`,
-		`nopasswd`,
-		`noexec`,
-		`active`,
-		`approved`,
-		`modified_by`
-	)
-	VALUES (
-		NULL,
-		?,
-		?,
-		?,
-		?,
-		?,
-		?,
-		?
-	)");
 
-	$Rule_Insert->execute($Rule_Name_Add, $Run_As_Add, $NOPASSWD_Add, $NOEXEC_Add, $Active_Add, $Approved, $User_Name);
 
 	my $Rule_Insert_ID = $DB_Sudoers->{mysql_insertid};
 

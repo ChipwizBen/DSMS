@@ -161,7 +161,7 @@ sub add_host {
 			$Existing_ID = @Select_Host_Names[0];
 			$Existing_IP = @Select_Host_Names[1];
 		}
-		my $Message_Red="Host_Name: $Host_Name_Add already exists as ID: $Existing_ID, IP: $Existing_IP";
+		my $Message_Red="Host Name: $Host_Name_Add already exists as ID: $Existing_ID, IP: $Existing_IP";
 		$Session->param('Message_Red', $Message_Red); #Posting Message_Red session var
 		print "Location: sudoers-hosts.cgi\n\n";
 		exit(0);
@@ -306,7 +306,7 @@ sub edit_host {
 			$Existing_ID = @Select_Host_Names[0];
 			$Existing_IP = @Select_Host_Names[1];
 		}
-		my $Message_Red="Host_Name: $Host_Name_Edit already exists as ID: $Existing_ID, IP: $Existing_IP";
+		my $Message_Red="Host Name: $Host_Name_Edit already exists as ID: $Existing_ID, IP: $Existing_IP";
 		$Session->param('Message_Red', $Message_Red); #Posting Message_Red session var
 		print "Location: sudoers-hosts.cgi\n\n";
 		exit(0);
@@ -683,7 +683,7 @@ print <<ENDHTML;
 					<td colspan="2" align="center"><span style="font-size: 18px; color: #FFC600;">Edit Host</span></td>
 				</tr>
 				<tr>
-					<td style="text-align: right;"><input type=submit name='Edit_Host' value='Edit Host'></td>
+					<td style="text-align: right;"><input type=submit name='Edit Host' value='Edit Host'></td>
 					<td align="center">
 						<select name='Edit_Host' style="width: 150px">
 ENDHTML

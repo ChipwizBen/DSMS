@@ -24,7 +24,7 @@ sub html_output {
 my $Sudoers_Not_Found;
 open(SUDOERS, $Sudoers_Location) or $Sudoers_Not_Found = "Sudoers file not found at $Sudoers_Location (or the HTTP server does not have permission to read the file).
 Consider setting the sudoers file location in 'common.pl' or generating a sudoers file by running 'sudoers-build.pl'.
-If this is your first time running this system, first create some Hosts, Users and Commands and then attach those to Rules. Further assistance can be found in the Quick Start Guide.";
+If this is your first time running this system, first create some Hosts, Users and Commands and then attach those to Rules.";
 
 print <<ENDHTML;
 
