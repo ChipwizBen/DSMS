@@ -1,0 +1,192 @@
+#!/usr/bin/perl
+
+use strict;
+use POSIX;
+
+require 'common.pl';
+my $DB_Main = DB_Main();
+my ($CGI, $Session, $Cookie) = CGI();
+my $Server_Hostname = Server_Hostname();
+
+my $Username = $Session->param("User_Name"); #Accessing User_Name session var
+my $User_Admin = $Session->param("User_Admin"); #Accessing User_Admin session var
+
+#`echo "Header" | /usr/lib/sendmail -F ben\@\`hostname\` -t ben\@nwk1.com`;
+
+#<!--[if IE]>
+#<META HTTP-EQUIV=REFRESH CONTENT="0; URL=http://getfirefox.com">
+#<![endif]-->
+
+if (!$Username) {
+	print "Location: logout.cgi\n\n";
+	exit(0);
+}
+
+my $Message_Green = $Session->param("Message_Green");
+my $Message_Orange = $Session->param("Message_Orange");
+my $Message_Red = $Session->param("Message_Red");
+
+&access_post;
+&html_header;
+&reset_variables;
+
+sub access_post {
+
+	$DB_Main->do("UPDATE `credentials` SET `last_active` = NOW() WHERE `username` = '$Username'");
+	
+	my $Access_Time = strftime "%Y-%m-%d %H:%M:%S", localtime;
+	my $HTTPS=$ENV{HTTPS};
+		if (!$HTTPS) {$HTTPS='off';}
+	
+	
+	$DB_Main->do("INSERT INTO `access_log` (
+		`id`,
+		`ip`,
+		`hostname`,
+		`user_agent`,
+		`script`,
+		`referer`,
+		`query`,
+		`request_method`,
+		`https`,
+		`server_name`,
+		`server_port`,
+		`username`,
+		`time`
+	)
+	VALUES (
+		NULL,
+		'$ENV{REMOTE_ADDR}',
+		'$ENV{REMOTE_HOST}',
+		'$ENV{HTTP_USER_AGENT}',
+		'$ENV{SCRIPT_NAME}',
+		'$ENV{HTTP_REFERER}',
+		'$ENV{QUERY_STRING}',
+		'$ENV{REQUEST_METHOD}',
+		'$HTTPS',
+		'$ENV{SERVER_NAME}',
+		'$ENV{SERVER_PORT}',
+		'$Username',
+		'$Access_Time'
+	)");
+
+} # sub access_post
+
+sub html_header {
+
+#my $Expires = strftime "%a, %d %b %Y %H:%M:%S", localtime(time+604800);
+#my $Expires = strftime "%a, %d %b %Y %H:%M:%S NZDT", localtime(time-43200);
+
+# print $CGI->header(-cookie=>$Cookie,
+	# -expires => 'now',
+	# -Last_Modified => strftime('%a, %d %b %Y %H:%M:%S NZDT', localtime(time-43200)),
+	# -Pragma => 'no-cache',
+	# -Cache_Control => join(', ',
+		# qw(
+			# private
+			# no-cache
+			# no-store
+			# must-revalidate
+			# max-age=0
+			# pre-check=0
+			# post-check=0
+		# )
+	# )
+# );
+
+print $CGI->header(-cookie=>$Cookie);
+
+
+print <<ENDHTML;
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Sudoers Build System</title>
+	<link rel="stylesheet" type="text/css" href="format.css" media= "screen" title ="Default CSS"/>
+</head>
+<body>
+	<!-- Strip/Buttons/White BKG -->
+<div id="strip">
+
+	<div id="loginlink">
+
+		<div id="loginlinkleft">
+			Connected to <span style="color: #00FF00;">$Server_Hostname</span> | Welcome <a href="password-change.cgi">$Username</a> <span id="logoutlink"><a href="logout.cgi">[ Logout ]</a></span>
+		</div> <!-- loginlinkleft -->
+
+			<form action='search.cgi' method='post' >
+				<input name="Search" type="search" results="5" placeholder="Search">
+			</form>
+
+	</div> <!-- loginlink -->
+
+	<div id="strip-image"></div>
+
+	<div id="buttons">
+		<ul id="navigation">
+			<li><a href="index.cgi"><span>&nbsp; Home</span></a>
+				<ul>
+					<li><a href="password-change.cgi">Change Password</a></li>
+					<li><a href="#">Management <b style="float:right;">></b></a>
+						<ul>
+							<li><a href="user-management.cgi">User Management</a></li>
+							<li><a href="access-log.cgi">Access Log</a></li>
+						</ul>
+					</li>
+				</ul>
+			</li>
+			<li><a href="#"><span>&nbsp; Groups</span></a>
+				<ul>
+					<li><a href="sudoers-host-groups.cgi">Host Groups</a></li>
+					<li><a href="sudoers-user-groups.cgi">User Groups</a></li>
+					<li><a href="sudoers-command-groups.cgi">Command Groups</a></li>
+				</ul>
+			</li>
+			<li><a href="sudoers-hosts.cgi"><span>&nbsp; Hosts</span></a>
+
+			</li>
+			<li><a href="sudoers-users.cgi"><span>&nbsp; Sudo Users</span></a>
+			
+			</li>
+			<li><a href="sudoers-commands.cgi"><span>&nbsp; Commands</span></a>
+			
+			</li>
+			<li><a href="sudoers-rules.cgi"><span>&nbsp; Rules</span></a>
+
+			</li>
+		</ul>
+	</div> <!-- buttons -->
+<br/>
+
+<div id="body">
+
+<div id ="tbmessagegreen">
+	$Message_Green
+</div> <!-- tbmessagegreen -->
+
+<div id ="tbmessageorange">
+	$Message_Orange
+</div> <!-- tbmessageorange -->
+
+<div id ="tbmessagered">
+	$Message_Red
+</div> <!-- tbmessagered -->
+
+ENDHTML
+
+} #sub html_header end
+
+sub reset_variables {
+
+	$Message_Green = undef;
+		$Session->param('Message_Green', $Message_Green);
+	$Message_Orange = undef;
+		$Session->param('Message_Orange', $Message_Orange);
+	$Message_Red = undef;
+		$Session->param('Message_Red', $Message_Red);
+
+	$Session->clear(["Message_Green", "Message_Orange", "Message_Red"]);
+
+}
+
+1;
