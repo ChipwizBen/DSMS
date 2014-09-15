@@ -2,6 +2,8 @@
 
 use strict;
 use HTML::Table;
+use Date::Parse;
+use POSIX;
 
 require 'common.pl';
 my $DB_Sudoers = DB_Sudoers();
@@ -102,7 +104,10 @@ else {
 
 sub html_add_host {
 
+my $Date = strftime "%Y-%m-%d", gmtime(time+172800);
+
 print <<ENDHTML;
+
 <div id="small-popup-box">
 <a href="sudoers-hosts.cgi">
 <div id="blockclosebutton">
@@ -111,7 +116,23 @@ print <<ENDHTML;
 
 <h3 align="center">Add New Host</h3>
 
-<form action='sudoers-hosts.cgi' method='post' >
+
+<SCRIPT LANGUAGE="JavaScript"><!--
+function Expire_Toggle() {
+	if(document.Add_Hosts.Expires_Add_Toggle.checked)
+	{
+		document.Add_Hosts.Expires_Add_Date.disabled=false;
+	}
+	else
+	{
+		document.Add_Hosts.Expires_Add_Date.disabled=true;
+	}
+}
+
+//-->
+</SCRIPT>
+
+<form action='sudoers-hosts.cgi' name='Add_Hosts' method='post' >
 
 <table align = "center">
 	<tr>
@@ -122,8 +143,17 @@ print <<ENDHTML;
 		<td style="text-align: right;">IP:</td>
 		<td colspan="2"><input type='text' name='IP_Add' size='15' maxlength='15' placeholder="IP Address" required></td>
 	</tr>
+	
+
+
+
 	<tr>
-		<td style="text-align: right;">Active?:</td>
+		<td style="text-align: right;">Expires:</td>
+		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Add_Toggle"></td>
+		<td><input type="text" size="10" name="Expires_Add_Date" value="$Date" placeholder="YYYY-MM-DD" disabled></td>
+	</tr>
+	<tr>
+		<td style="text-align: right;">Active:</td>
 		<td style="text-align: right;"><input type="radio" name="Active_Add" value="1" checked> Yes</td>
 		<td style="text-align: right;"><input type="radio" name="Active_Add" value="0"> No</td>
 	</tr>
@@ -132,6 +162,7 @@ print <<ENDHTML;
 <ul style='text-align: left; display: inline-block;'>
 <li>Host Names and IPs must be unique.</li>
 <li>Do not use spaces in Host Names or IPs - they will be stripped.</li>
+<li>Hosts with an expiry set are automatically removed from sudoers at 23:59:59 (or the next sudoers refresh thereafter) on the day of expiry. The date entry format is YYYY-MM-DD.</li>
 <li>Active hosts are eligible for sudoers inclusion.</li>
 </ul>
 
@@ -249,7 +280,7 @@ print <<ENDHTML;
 		<td colspan="2"><input type='text' name='IP_Edit' value='$IP_Extract' size='15' maxlength='15' placeholder="$IP_Extract" required></td>
 	</tr>
 	<tr>
-		<td style="text-align: right;">Active?:</td>
+		<td style="text-align: right;">Active:</td>
 ENDHTML
 
 if ($Active_Extract == 1) {
@@ -586,13 +617,20 @@ sub html_output {
 		my $IP = @Select_Hosts[2];
 			$IP =~ s/(.*)($Filter)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
 		my $Expires = @Select_Hosts[3];
+			my $Expires_Clean = $Expires;
+			$Expires =~ s/(.*)($Filter)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
 		my $Active = @Select_Hosts[4];
 			if ($Active == 1) {$Active = "Yes"} else {$Active = "No"};
 		my $Last_Modified = @Select_Hosts[5];
 		my $Modified_By = @Select_Hosts[6];
 
-		if ($Expires =~ /^0000-00-00$/) {
+		my $Expires_Epoch;
+		my $Today_Epoch = time;
+		if ($Expires_Clean =~ /^0000-00-00$/) {
 			$Expires = 'Never';
+		}
+		else {
+			$Expires_Epoch = str2time("$Expires_Clean"."T23:59:59");
 		}
 
 		$Table->addRow(
@@ -616,13 +654,16 @@ sub html_output {
 			$Table->setCellClass ($Host_Row_Count, 5, 'tbrowerror');
 		}
 
+		if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+			$Table->setCellClass ($Host_Row_Count, 4, 'tbrowdisabled');
+		}
+
 	}
 
 	$Table->setColWidth(1, '1px');
-	$Table->setColWidth(4, '1px');
-	$Table->setColWidth(5, '110px');
+	$Table->setColWidth(5, '1px');
 	$Table->setColWidth(6, '110px');
-	$Table->setColWidth(7, '1px');
+	$Table->setColWidth(7, '110px');
 	$Table->setColWidth(8, '1px');
 	$Table->setColWidth(9, '1px');
 	$Table->setColWidth(10, '1px');
