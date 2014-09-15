@@ -530,15 +530,15 @@ ENDHTML
 sub html_output {
 
 	my $Table = new HTML::Table(
-		-cols=>9,
-                -align=>'center',
-                -border=>0,
-                -rules=>'cols',
-                -evenrowclass=>'tbeven',
-                -oddrowclass=>'tbodd',
-                -width=>'100%',
-                -spacing=>0,
-                -padding=>1
+		-cols=>10,
+		-align=>'center',
+		-border=>0,
+		-rules=>'cols',
+		-evenrowclass=>'tbeven',
+		-oddrowclass=>'tbodd',
+		-width=>'100%',
+		-spacing=>0,
+		-padding=>1
 	);
 
 
@@ -547,25 +547,26 @@ sub html_output {
 		my $Total_Rows = $Select_Host_Count->rows();
 
 
-	my $Select_Hosts = $DB_Sudoers->prepare("SELECT `id`, `hostname`, `ip`, `active`, `last_modified`, `modified_by`
+	my $Select_Hosts = $DB_Sudoers->prepare("SELECT `id`, `hostname`, `ip`, `expires`, `active`, `last_modified`, `modified_by`
 		FROM `hosts`
 			WHERE `id` LIKE ?
 			OR `hostname` LIKE ?
 			OR `ip` LIKE ?
+			OR `expires` LIKE ?
 		ORDER BY `hostname` ASC
 		LIMIT 0 , $Rows_Returned"
 	);
 
 	if ($ID_Filter) {
-		$Select_Hosts->execute($ID_Filter, '', '');
+		$Select_Hosts->execute($ID_Filter, '', '', '');
 	}
 	else {
-		$Select_Hosts->execute("%$Filter%", "%$Filter%", "%$Filter%");
+		$Select_Hosts->execute("%$Filter%", "%$Filter%", "%$Filter%", "%$Filter%");
 	}
 
 	my $Rows = $Select_Hosts->rows();
 
-	$Table->addRow( "ID", "Host Name", "IP Address", "Active", "Last Modified", "Modified By", "Show Links", "Edit", "Delete" );
+	$Table->addRow( "ID", "Host Name", "IP Address", "Expires", "Active", "Last Modified", "Modified By", "Show Links", "Edit", "Delete" );
 	$Table->setRowClass (1, 'tbrow1');
 
 	my $Host_Row_Count=1;
@@ -584,16 +585,21 @@ sub html_output {
 			$Host_Name =~ s/(.*)($Filter)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
 		my $IP = @Select_Hosts[2];
 			$IP =~ s/(.*)($Filter)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
-		my $Active = @Select_Hosts[3];
+		my $Expires = @Select_Hosts[3];
+		my $Active = @Select_Hosts[4];
 			if ($Active == 1) {$Active = "Yes"} else {$Active = "No"};
-		my $Last_Modified = @Select_Hosts[4];
-		my $Modified_By = @Select_Hosts[5];
+		my $Last_Modified = @Select_Hosts[5];
+		my $Modified_By = @Select_Hosts[6];
 
+		if ($Expires =~ /^0000-00-00$/) {
+			$Expires = 'Never';
+		}
 
 		$Table->addRow(
 			"$DBID",
 			"$Host_Name",
 			"$IP",
+			"$Expires",
 			"$Active",
 			"$Last_Modified",
 			"$Modified_By",
@@ -604,10 +610,10 @@ sub html_output {
 
 
 		if ($Active eq 'Yes') {
-			$Table->setCellClass ($Host_Row_Count, 4, 'tbrowgreen');
+			$Table->setCellClass ($Host_Row_Count, 5, 'tbrowgreen');
 		}
 		else {
-			$Table->setCellClass ($Host_Row_Count, 4, 'tbrowerror');
+			$Table->setCellClass ($Host_Row_Count, 5, 'tbrowerror');
 		}
 
 	}
@@ -619,14 +625,13 @@ sub html_output {
 	$Table->setColWidth(7, '1px');
 	$Table->setColWidth(8, '1px');
 	$Table->setColWidth(9, '1px');
+	$Table->setColWidth(10, '1px');
 
 	$Table->setColAlign(1, 'center');
-	$Table->setColAlign(4, 'center');
-	$Table->setColAlign(5, 'center');
-	$Table->setColAlign(6, 'center');
-	$Table->setColAlign(7, 'center');
-	$Table->setColAlign(8, 'center');
-	$Table->setColAlign(9, 'center');
+	for (4..10) {
+		$Table->setColAlign($_, 'center');
+	}
+
 
 
 print <<ENDHTML;

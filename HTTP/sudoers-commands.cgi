@@ -328,7 +328,7 @@ sub edit_command {
 			$Existing_ID = $Select_Command_Aliass[0];
 			$Existing_Command = $Select_Command_Aliass[1];
 		}
-		my $Message_Red="Command_Alias: $Command_Alias_Edit already exists as ID: $Existing_ID, Command: $Existing_Command";
+		my $Message_Red="Command Alias: $Command_Alias_Edit already exists as ID: $Existing_ID, Command: $Existing_Command";
 		$Session->param('Message_Red', $Message_Red); #Posting Message_Red session var
 		print "Location: sudoers-commands.cgi\n\n";
 		exit(0);

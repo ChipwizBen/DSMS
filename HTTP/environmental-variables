@@ -1,0 +1,22 @@
+### This is where you should set your environmental variables.
+### Formatting is exactly the same as the environmental section
+### of a typical sudoers file. Some examples are provided below.
+### Lines which are preceded by three hashes (###) are
+### comments for this file (like this text); lines which are
+### preceded by a single hash (#) become comments in the final
+### sudoers file. Do not rename  or move this file.
+
+# This default enforces a tty for sudo logins
+Defaults	requiretty
+
+# This default removes the warning text when a user first types sudo
+# Defaults	!lecture
+
+# This default prevents the tty from displaying typed characters (as in ***)
+Defaults	!visiblepw
+
+# This default removes the enforced tty requirement for the user apache 
+Defaults:apache	!requiretty
+
+# Defaults:tomcat	!requiretty
+### Defaults:nagios	!requiretty

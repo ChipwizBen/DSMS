@@ -3,7 +3,7 @@
 use strict;
 use POSIX qw(strftime);
 
-require '/var/www/html/common.pl';
+require 'common.pl';
 my $DB_Sudoers = DB_Sudoers();
 
 my $Date_Time = strftime "%Y-%m-%d %H:%M:%S", localtime;
@@ -16,7 +16,7 @@ my $Sudoers_Location = Sudoers_Location(); # Set the path in common.pl
 &write_commands;
 &write_rules;
 
-my $Sudoers_Check = `visudo -c -f $Sudoers_Location`;
+my $Sudoers_Check = `/usr/sbin/visudo -c -f $Sudoers_Location`;
 
 if ($Sudoers_Check =~ m/$Sudoers_Location:\sparsed\sOK/) {
 	$Sudoers_Check = "Sudoers check passed!\n";
@@ -44,8 +44,25 @@ sub write_environmentals {
 	print FILE "## 1.0 - Initial Version\n";
 	print FILE "#########################################################################\n";
 	print FILE "\n\n";
+
+	# Environmental variable inclusion starts here
+
 	print FILE "### Environmental Variables ###\n\n";
-	print FILE "Defaults	requiretty\n";
+
+	open( ENVIRONMENTALS, "environmental-variables" ) or die "Can't open environmental-variables file.";
+
+	LINE: foreach my $Line (<ENVIRONMENTALS>) {
+
+		if ($Line =~ /^###/) {next LINE};
+		print FILE "$Line";
+
+	}
+
+	close ENVIRONMENTALS;
+
+	# Environmental variable inclusion ends here
+
+
 	print FILE "\n";
 	close FILE;
 

@@ -36,6 +36,7 @@ ENDHTML
 	foreach my $Line (<SUDOERS>) {
 
 		$Line =~ s/\t/&nbsp;&nbsp;&nbsp;&nbsp;/g;
+		$Line =~ s/^\s*(Defaults.*)/<span style='color: #00FF00;'>$1<\/span>/g; # Environmental highlighting
 		$Line =~ s/(.*)(HOST_RULE_GROUP_\d*)(.*)/$1<span style='color: #FF8A00;'>$2<\/span>$3/g; # Host rule group highlighting
 		$Line =~ s/^(USER_RULE_GROUP_\d*)(.*)/<span style='color: #FC44FF;'>$1<\/span>$2/g; # User rule group highlighting
 		$Line =~ s/(.*)=\s\((root)\)(.*)/$1= (<span style='color: #FF0000;'>$2<\/span>)$3/g; # Run_AS root highlighting
