@@ -2,6 +2,8 @@
 
 use strict;
 use HTML::Table;
+use Date::Parse;
+use POSIX;
 
 require 'common.pl';
 my $DB_Sudoers = DB_Sudoers();
@@ -12,11 +14,15 @@ my $Edit_User = $CGI->param("Edit_User");
 
 my $User_Name_Add = $CGI->param("User_Name_Add");
 	$User_Name_Add =~ s/\W//g;
+my $Expires_Toggle_Add = $CGI->param("Expires_Toggle_Add");
+my $Expires_Date_Add = $CGI->param("Expires_Date_Add");
 my $Active_Add = $CGI->param("Active_Add");
 
 my $Edit_User_Post = $CGI->param("Edit_User_Post");
 my $User_Name_Edit = $CGI->param("User_Name_Edit");
 	$User_Name_Edit =~ s/\W//g;
+my $Expires_Toggle_Edit = $CGI->param("Expires_Toggle_Edit");
+my $Expires_Date_Edit = $CGI->param("Expires_Date_Edit");
 my $Active_Edit = $CGI->param("Active_Edit");
 
 my $Delete_User = $CGI->param("Delete_User");
@@ -98,6 +104,8 @@ else {
 
 sub html_add_user {
 
+my $Date = strftime "%Y-%m-%d", localtime;
+
 print <<ENDHTML;
 <div id="small-popup-box">
 <a href="sudoers-users.cgi">
@@ -107,7 +115,21 @@ print <<ENDHTML;
 
 <h3 align="center">Add New User</h3>
 
-<form action='sudoers-users.cgi' method='post' >
+<SCRIPT LANGUAGE="JavaScript"><!--
+function Expire_Toggle() {
+	if(document.Add_Users.Expires_Toggle_Add.checked)
+	{
+		document.Add_Users.Expires_Date_Add.disabled=false;
+	}
+	else
+	{
+		document.Add_Users.Expires_Date_Add.disabled=true;
+	}
+}
+//-->
+</SCRIPT>
+
+<form action='sudoers-users.cgi' name='Add_Users' method='post' >
 
 <table align = "center">
 	<tr>
@@ -115,7 +137,12 @@ print <<ENDHTML;
 		<td colspan="2"><input type='text' name='User_Name_Add' size='15' maxlength='128' placeholder="User Name" required autofocus></td>
 	</tr>
 	<tr>
-		<td style="text-align: right;">Active?:</td>
+		<td style="text-align: right;">Expires:</td>
+		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Add"></td>
+		<td><input type="text" size="10" name="Expires_Date_Add" value="$Date" placeholder="YYYY-MM-DD" disabled></td>
+	</tr>
+	<tr>
+		<td style="text-align: right;">Active:</td>
 		<td style="text-align: right;"><input type="radio" name="Active_Add" value="1" checked> Yes</td>
 		<td style="text-align: right;"><input type="radio" name="Active_Add" value="0"> No</td>
 	</tr>
@@ -124,6 +151,9 @@ print <<ENDHTML;
 <ul style='text-align: left; display: inline-block;'>
 <li>User Names must be unique.</li>
 <li>Do not use spaces in the User Name - they will be stripped.</li>
+<li>Users with an expiry set are automatically removed from sudoers at 23:59:59
+(or the next sudoers refresh thereafter) on the day of expiry. Expired entries are functionally
+equivalent to inactive entries. The date entry format is YYYY-MM-DD.</li>
 <li>Active users are eligible for sudoers inclusion.</li>
 </ul>
 
@@ -158,10 +188,14 @@ sub add_user {
 	}
 	### / Existing User_Name Check
 
+	if ($Expires_Toggle_Add ne 'on') {
+		$Expires_Date_Add = '0000-00-00';
+	}
 
 	my $User_Insert = $DB_Sudoers->prepare("INSERT INTO `users` (
 		`id`,
 		`username`,
+		`expires`,
 		`active`,
 		`modified_by`
 	)
@@ -169,10 +203,11 @@ sub add_user {
 		NULL,
 		?,
 		?,
+		?,
 		?
 	)");
 
-	$User_Insert->execute($User_Name_Add, $Active_Add, $User_Name);
+	$User_Insert->execute($User_Name_Add, $Expires_Date_Add, $Active_Add, $User_Name);
 
 	my $User_Insert_ID = $DB_Sudoers->{mysql_insertid};
 
@@ -182,7 +217,7 @@ sub add_user {
 
 sub html_edit_user {
 
-	my $Select_User = $DB_Sudoers->prepare("SELECT `username`, `active`
+	my $Select_User = $DB_Sudoers->prepare("SELECT `username`, `expires`, `active`
 	FROM `users`
 	WHERE `id` = ?");
 	$Select_User->execute($Edit_User);
@@ -191,7 +226,20 @@ sub html_edit_user {
 	{
 	
 		my $User_Name_Extract = $DB_User[0];
-		my $Active_Extract = $DB_User[1];
+		my $Expires_Extract = $DB_User[1];
+		my $Active_Extract = $DB_User[2];
+
+		my $Checked;
+		my $Disabled;
+		if ($Expires_Extract eq '0000-00-00') {
+			$Checked = '';
+			$Disabled = 'disabled';
+			$Expires_Extract = strftime "%Y-%m-%d", localtime;
+		}
+		else {
+			$Checked = 'checked';
+			$Disabled = '';
+		}
 
 print <<ENDHTML;
 <div id="small-popup-box">
@@ -202,7 +250,21 @@ print <<ENDHTML;
 
 <h3 align="center">Edit User</h3>
 
-<form action='sudoers-users.cgi' method='post' >
+<SCRIPT LANGUAGE="JavaScript"><!--
+function Expire_Toggle() {
+	if(document.Edit_Users.Expires_Toggle_Edit.checked)
+	{
+		document.Edit_Users.Expires_Date_Edit.disabled=false;
+	}
+	else
+	{
+		document.Edit_Users.Expires_Date_Edit.disabled=true;
+	}
+}
+//-->
+</SCRIPT>
+
+<form action='sudoers-users.cgi' name='Edit_Users' method='post' >
 
 <table align = "center">
 	<tr>
@@ -210,7 +272,12 @@ print <<ENDHTML;
 		<td colspan="2"><input type='text' name='User_Name_Edit' value='$User_Name_Extract' size='15' maxlength='128' placeholder="$User_Name_Extract" required autofocus></td>
 	</tr>
 	<tr>
-		<td style="text-align: right;">Active?:</td>
+		<td style="text-align: right;">Expires:</td>
+		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Edit" $Checked></td>
+		<td><input type="text" size="10" name="Expires_Date_Edit" value="$Expires_Extract" placeholder="$Expires_Extract" $Disabled></td>
+	</tr>
+	<tr>
+		<td style="text-align: right;">Active:</td>
 ENDHTML
 
 if ($Active_Extract == 1) {
@@ -235,7 +302,11 @@ print <<ENDHTML;
 <ul style='text-align: left; display: inline-block;'>
 <li>User Names must be unique.</li>
 <li>Do not use spaces in the User Name - they will be stripped.</li>
-<li>You can only activate a modified user if you are an Approver. If you are not an Approver and you modify this entry, it will automatically be set to Inactive.</li>
+<li>You can only activate a modified user if you are an Approver.
+If you are not an Approver and you modify this entry, it will automatically be set to Inactive.</li>
+<li>Users with an expiry set are automatically removed from sudoers at 23:59:59
+(or the next sudoers refresh thereafter) on the day of expiry. Expired entries are functionally
+equivalent to inactive entries. The date entry format is YYYY-MM-DD.</li>
 <li>Active users are eligible for sudoers inclusion.</li>
 </ul>
 
@@ -273,14 +344,18 @@ sub edit_user {
 	### / Existing User_Name Check
 
 	if (!$User_Approver) {$Active_Edit = 0};
+	if ($Expires_Toggle_Edit ne 'on') {
+		$Expires_Date_Edit = '0000-00-00';
+	}
 
 	my $Update_User = $DB_Sudoers->prepare("UPDATE `users` SET
 		`username` = ?,
+		`expires` = ?,
 		`active` = ?,
 		`modified_by` = ?
 		WHERE `id` = ?");
 		
-	$Update_User->execute($User_Name_Edit, $Active_Edit, $User_Name, $Edit_User_Post);
+	$Update_User->execute($User_Name_Edit, $Expires_Date_Edit, $Active_Edit, $User_Name, $Edit_User_Post);
 
 } # sub edit_user
 
@@ -460,15 +535,15 @@ ENDHTML
 sub html_output {
 
 	my $Table = new HTML::Table(
-		-cols=>8,
-                -align=>'center',
-                -border=>0,
-                -rules=>'cols',
-                -evenrowclass=>'tbeven',
-                -oddrowclass=>'tbodd',
-                -width=>'100%',
-                -spacing=>0,
-                -padding=>1
+		-cols=>9,
+		-align=>'center',
+		-border=>0,
+		-rules=>'cols',
+		-evenrowclass=>'tbeven',
+		-oddrowclass=>'tbodd',
+		-width=>'100%',
+		-spacing=>0,
+		-padding=>1
 	);
 
 
@@ -477,24 +552,25 @@ sub html_output {
 		my $Total_Rows = $Select_User_Count->rows();
 
 
-	my $Select_Users = $DB_Sudoers->prepare("SELECT `id`, `username`, `active`, `last_modified`, `modified_by`
+	my $Select_Users = $DB_Sudoers->prepare("SELECT `id`, `username`, `expires`, `active`, `last_modified`, `modified_by`
 		FROM `users`
 			WHERE `id` LIKE ?
 			OR `username` LIKE ?
+			OR `expires` LIKE ?
 		ORDER BY `username` ASC
 		LIMIT 0 , $Rows_Returned"
 	);
 
 	if ($ID_Filter) {
-		$Select_Users->execute($ID_Filter, '');
+		$Select_Users->execute($ID_Filter, '', '');
 	}
 	else {
-		$Select_Users->execute("%$Filter%", "%$Filter%");
+		$Select_Users->execute("%$Filter%", "%$Filter%", "%$Filter%");
 	}
 
 	my $Rows = $Select_Users->rows();
 
-	$Table->addRow( "ID", "User Name", "Active", "Last Modified", "Modified By", "Show Links", "Edit", "Delete" );
+	$Table->addRow( "ID", "User Name", "Expires", "Active", "Last Modified", "Modified By", "Show Links", "Edit", "Delete" );
 	$Table->setRowClass (1, 'tbrow1');
 
 	my $User_Row_Count=1;
@@ -511,15 +587,27 @@ sub html_output {
 		my $DB_User_Name = @Select_Users[1];
 			my $DB_User_Name_Clean = $DB_User_Name;
 			$DB_User_Name =~ s/(.*)($Filter)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
-		my $Active = @Select_Users[2];
+		my $Expires = @Select_Users[2];
+			my $Expires_Clean = $Expires;
+			$Expires =~ s/(.*)($Filter)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
+		my $Active = @Select_Users[3];
 			if ($Active == 1) {$Active = "Yes"} else {$Active = "No"};
-		my $Last_Modified = @Select_Users[3];
-		my $Modified_By = @Select_Users[4];
+		my $Last_Modified = @Select_Users[4];
+		my $Modified_By = @Select_Users[5];
 
+		my $Expires_Epoch;
+		my $Today_Epoch = time;
+		if ($Expires_Clean =~ /^0000-00-00$/) {
+			$Expires = 'Never';
+		}
+		else {
+			$Expires_Epoch = str2time("$Expires_Clean"."T23:59:59");
+		}
 
 		$Table->addRow(
 			"$DBID",
 			"$DB_User_Name",
+			"$Expires",
 			"$Active",
 			"$Last_Modified",
 			"$Modified_By",
@@ -530,30 +618,31 @@ sub html_output {
 
 
 		if ($Active eq 'Yes') {
-			$Table->setCellClass ($User_Row_Count, 3, 'tbrowgreen');
+			$Table->setCellClass ($User_Row_Count, 4, 'tbrowgreen');
 		}
 		else {
-			$Table->setCellClass ($User_Row_Count, 3, 'tbrowerror');
+			$Table->setCellClass ($User_Row_Count, 4, 'tbrowerror');
+		}
+
+		if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+			$Table->setCellClass ($User_Row_Count, 3, 'tbrowdisabled');
 		}
 
 	}
 
 	$Table->setColWidth(1, '1px');
 	$Table->setColWidth(3, '1px');
-	$Table->setColWidth(4, '110px');
+	$Table->setColWidth(4, '1px');
 	$Table->setColWidth(5, '110px');
-	$Table->setColWidth(6, '1px');
+	$Table->setColWidth(6, '110px');
 	$Table->setColWidth(7, '1px');
 	$Table->setColWidth(8, '1px');
+	$Table->setColWidth(9, '1px');
 
 	$Table->setColAlign(1, 'center');
-	$Table->setColAlign(3, 'center');
-	$Table->setColAlign(4, 'center');
-	$Table->setColAlign(5, 'center');
-	$Table->setColAlign(6, 'center');
-	$Table->setColAlign(7, 'center');
-	$Table->setColAlign(8, 'center');
-
+	for (3..9) {
+		$Table->setColAlign($_, 'center');
+	}
 
 print <<ENDHTML;
 <table style="width:100%; border: solid 2px; border-color:#293E77; background-color:#808080;">

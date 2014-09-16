@@ -2,7 +2,8 @@
 
 use strict;
 use HTML::Table;
-#use warnings;
+use Date::Parse;
+use POSIX;
 
 require 'common.pl';
 my $DB_Main = DB_Main();
@@ -2196,15 +2197,15 @@ sub approve_rule {
 sub html_output {
 
 	my $Table = new HTML::Table(
-		-cols=>17,
-                -align=>'center',
-                -border=>0,
-                -rules=>'cols',
-                -evenrowclass=>'tbeven',
-                -oddrowclass=>'tbodd',
-                -width=>'100%',
-                -spacing=>0,
-                -padding=>1
+		-cols=>18,
+		-align=>'center',
+		-border=>0,
+		-rules=>'cols',
+		-evenrowclass=>'tbeven',
+		-oddrowclass=>'tbodd',
+		-width=>'100%',
+		-spacing=>0,
+		-padding=>1
 	);
 
 
@@ -2213,25 +2214,26 @@ sub html_output {
 		my $Total_Rows = $Select_Rule_Count->rows();
 
 
-	my $Select_Rules = $DB_Sudoers->prepare("SELECT `id`, `name`, `run_as`, `nopasswd`, `noexec`, `active`, `approved`, `last_approved`, `approved_by`, `last_modified`, `modified_by`
+	my $Select_Rules = $DB_Sudoers->prepare("SELECT `id`, `name`, `run_as`, `nopasswd`, `noexec`, `expires`, `active`, `approved`, `last_approved`, `approved_by`, `last_modified`, `modified_by`
 		FROM `rules`
 			WHERE `id` LIKE ?
 			OR `name` LIKE ?
 			OR `run_as` LIKE ?
+			OR `expires` LIKE ?
 		ORDER BY `name` ASC
 		LIMIT 0 , $Rows_Returned"
 	);
 
 	if ($ID_Filter) {
-		$Select_Rules->execute($ID_Filter, '', '');
+		$Select_Rules->execute($ID_Filter, '', '', '');
 	}
 	else {
-		$Select_Rules->execute("%$Filter%", "%$Filter%", "%$Filter%");
+		$Select_Rules->execute("%$Filter%", "%$Filter%", "%$Filter%", "%$Filter%");
 	}
 	my $Rows = $Select_Rules->rows();
 
 	$Table->addRow( "ID", "Rule Name", "Attached Host Groups", "Attached Hosts", "Attached User Groups",
-	"Attached Users", "Attached Command Groups", "Attached Commands", "Run As", "Tags", "Active", "Approved", "Last Modified<br /><span style='color: #B6B600'>Last Approved</span>",
+	"Attached Users", "Attached Command Groups", "Attached Commands", "Run As", "Tags", "Expires", "Active", "Approved", "Last Modified<br /><span style='color: #B6B600'>Last Approved</span>",
 	"Modified By<br /><span style='color: #B6B600'>Approved By</span>", "Approve", "Edit", "Delete" );
 	$Table->setRowClass (1, 'tbrow1');
 	$Table->autoGrow ('false');
@@ -2257,16 +2259,19 @@ sub html_output {
 			if ($NOPASSWD == 1) {$NOPASSWD = "<span style='color: #FF6100'>NOPASSWD</span>"} else {$NOPASSWD = "PASSWD"};
 		my $NOEXEC = $Select_Rules[4];
 			if ($NOEXEC == 1) {$NOEXEC = "NOEXEC"} else {$NOEXEC = "<span style='color: #FF6100'>EXEC</span>"};
-		my $Active = $Select_Rules[5];
-			if ($Active == 1) {$Active = "Yes"} else {$Active = "No"};
-		my $Approved = $Select_Rules[6];
+		my $Rule_Expires = $Select_Rules[5];
+			my $Rule_Expires_Clean = $Rule_Expires;
+			$Rule_Expires =~ s/(.*)($Filter)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
+		my $Rule_Active = $Select_Rules[6];
+			if ($Rule_Active == 1) {$Rule_Active = "Yes"} else {$Rule_Active = "No"};
+		my $Approved = $Select_Rules[7];
 			if ($Approved == 1) {$Approved = "Yes"} else {$Approved = "No"};
-		my $Last_Approved = $Select_Rules[7];
+		my $Last_Approved = $Select_Rules[8];
 			if ($Last_Approved eq '0000-00-00 00:00:00') {$Last_Approved = "<span style='color: #FF0000'>Unapproved</span>"} else {$Last_Approved = "<span style='color: #B6B600'>$Last_Approved</span>"};
-		my $Approved_By = $Select_Rules[8];
+		my $Approved_By = $Select_Rules[9];
 			if ($Approved_By eq undef) {$Approved_By = "<span style='color: #FF0000'>Unapproved</span>"} else {$Approved_By = "<span style='color: #B6B600'>$Approved_By</span>"};
-		my $Last_Modified = $Select_Rules[9];
-		my $Modified_By = $Select_Rules[10];
+		my $Last_Modified = $Select_Rules[10];
+		my $Modified_By = $Select_Rules[11];
 
 #######################################################################################################
 
@@ -2284,7 +2289,7 @@ sub html_output {
 			
 			my $Group_ID = $Select_Links[0];
 
-			my $Select_Groups = $DB_Sudoers->prepare("SELECT `groupname`, `active`
+			my $Select_Groups = $DB_Sudoers->prepare("SELECT `groupname`, `expires`, `active`
 				FROM `host_groups`
 				WHERE `id` = ?"
 			);
@@ -2293,7 +2298,8 @@ sub html_output {
 			while ( my @Select_Groups = $Select_Groups->fetchrow_array() )
 			{
 				my $Group = $Select_Groups[0];
-				my $Active = $Select_Groups[1];
+				my $Group_Expires = $Select_Groups[1];
+				my $Group_Active = $Select_Groups[2];
 
 
 				### Discover Hosts Within Group
@@ -2310,7 +2316,7 @@ sub html_output {
 					
 					my $Host_ID = $Select_Links[0];
 
-					my $Select_Hosts = $DB_Sudoers->prepare("SELECT `hostname`, `ip`, `active`
+					my $Select_Hosts = $DB_Sudoers->prepare("SELECT `hostname`, `ip`, `expires`, `active`
 						FROM `hosts`
 						WHERE `id` = ?"
 					);
@@ -2321,9 +2327,23 @@ sub html_output {
 
 						my $Host = $Select_Hosts[0];
 						my $IP = $Select_Hosts[1];
-						my $Host_Active = $Select_Hosts[2];
+						my $Host_Expires = $Select_Hosts[2];
+						my $Host_Active = $Select_Hosts[3];
 
-						if ($Host_Active == 1) {
+						my $Expires_Epoch;
+						my $Today_Epoch = time;
+						if ($Host_Expires =~ /^0000-00-00$/) {
+							$Host_Expires = 'Never';
+						}
+						else {
+							$Expires_Epoch = str2time("$Host_Expires"."T23:59:59");
+						}
+
+						if ($Host_Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+							$Host = "$Host ($IP) [Expired]
+"
+						}
+						elsif ($Host_Active) {
 							$Host = "$Host ($IP)
 "
 						}
@@ -2336,8 +2356,21 @@ sub html_output {
 				}
 
 				### / Discover Hosts Within Group
+						
+				my $Expires_Epoch;
+				my $Today_Epoch = time;
+				if ($Group_Expires =~ /^0000-00-00$/) {
+					$Group_Expires = 'Never';
+				}
+				else {
+					$Expires_Epoch = str2time("$Group_Expires"."T23:59:59");
+				}
 
-				if ($Active == 1) {
+				if ($Group_Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+					$Group = "<a href='sudoers-host-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Hosts in this group:\n$Attached_Hosts\"><span style='color: #B1B1B1';>$Group</span></a>
+					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+				}
+				elsif ($Group_Active) {
 					$Group = "<a href='sudoers-host-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Hosts in this group:\n$Attached_Hosts\"><span style='color: #00FF00';>$Group</span></a>
 					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 					}
@@ -2367,7 +2400,7 @@ sub html_output {
 			
 			my $Host_ID = $Select_Links[0];
 
-			my $Select_Hosts = $DB_Sudoers->prepare("SELECT `hostname`, `ip`, `active`
+			my $Select_Hosts = $DB_Sudoers->prepare("SELECT `hostname`, `ip`, `expires`, `active`
 				FROM `hosts`
 				WHERE `id` = ?"
 			);
@@ -2377,14 +2410,28 @@ sub html_output {
 			{
 				my $Host = $Select_Hosts[0];
 				my $IP = $Select_Hosts[1];
-				my $Active = $Select_Hosts[2];
+				my $Expires = $Select_Hosts[2];
+				my $Active = $Select_Hosts[3];
 
-				if ($Active == 1) {
-					$Host = "<a href='sudoers-hosts.cgi?ID_Filter=$Host_ID'><span style='color: #00FF00'>$Host ($IP)</span></a>
+				my $Expires_Epoch;
+				my $Today_Epoch = time;
+				if ($Expires =~ /^0000-00-00$/) {
+					$Expires = 'Never';
+				}
+				else {
+					$Expires_Epoch = str2time("$Expires"."T23:59:59");
+				}
+
+				if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+					$Host = "<a href='sudoers-hosts.cgi?ID_Filter=$Host_ID' class='tooltip' text=\"$IP\"><span style='color: #B1B1B1'>$Host</span></a>
+					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_ID=$Host_ID' class='tooltip' text=\"Remove $Host from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+				}
+				elsif ($Active) {
+					$Host = "<a href='sudoers-hosts.cgi?ID_Filter=$Host_ID' class='tooltip' text=\"$IP\"><span style='color: #00FF00'>$Host</span></a>
 					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_ID=$Host_ID' class='tooltip' text=\"Remove $Host from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 				}
 				else {
-					$Host = "<a href='sudoers-hosts.cgi?ID_Filter=$Host_ID'><span style='color: #FF0000'>$Host ($IP)</span></a>
+					$Host = "<a href='sudoers-hosts.cgi?ID_Filter=$Host_ID' class='tooltip' text=\"$IP\"><span style='color: #FF0000'>$Host</span></a>
 					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_ID=$Host_ID' class='tooltip' text=\"Remove $Host from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 				};
 				$Attached_Hosts = $Attached_Hosts . $Host  . "<br />";
@@ -2409,7 +2456,7 @@ sub html_output {
 			
 			my $Group_ID = $Select_Links[0];
 
-			my $Select_Groups = $DB_Sudoers->prepare("SELECT `groupname`, `active`
+			my $Select_Groups = $DB_Sudoers->prepare("SELECT `groupname`, `expires`, `active`
 				FROM `user_groups`
 				WHERE `id` = ?"
 			);
@@ -2418,7 +2465,8 @@ sub html_output {
 			while ( my @Select_Groups = $Select_Groups->fetchrow_array() )
 			{
 				my $Group = $Select_Groups[0];
-				my $Active = $Select_Groups[1];
+				my $Group_Expires = $Select_Groups[1];
+				my $Group_Active = $Select_Groups[2];
 
 
 				### Discover Users Within Group
@@ -2435,7 +2483,7 @@ sub html_output {
 					
 					my $User_ID = $Select_Links[0];
 
-					my $Select_Users = $DB_Sudoers->prepare("SELECT `username`, `active`
+					my $Select_Users = $DB_Sudoers->prepare("SELECT `username`, `expires`, `active`
 						FROM `users`
 						WHERE `id` = ?"
 					);
@@ -2445,9 +2493,23 @@ sub html_output {
 					{
 
 						my $User = $Select_Users[0];
-						my $User_Active = $Select_Users[1];
+						my $User_Expires = $Select_Users[1];
+						my $User_Active = $Select_Users[2];
 
-						if ($User_Active == 1) {
+						my $Expires_Epoch;
+						my $Today_Epoch = time;
+						if ($User_Expires =~ /^0000-00-00$/) {
+							$User_Expires = 'Never';
+						}
+						else {
+							$Expires_Epoch = str2time("$User_Expires"."T23:59:59");
+						}
+
+						if ($User_Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+							$User = "$User [Expired]
+"
+						}
+						elsif ($User_Active) {
 							$User = "$User
 "
 						}
@@ -2461,7 +2523,20 @@ sub html_output {
 
 				### / Discover Users Within Group
 
-				if ($Active == 1) {
+				my $Expires_Epoch;
+				my $Today_Epoch = time;
+				if ($Group_Expires =~ /^0000-00-00$/) {
+					$Group_Expires = 'Never';
+				}
+				else {
+					$Expires_Epoch = str2time("$Group_Expires"."T23:59:59");
+				}
+
+				if ($Group_Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+					$Group = "<a href='sudoers-user-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Users in this group:\n$Attached_Users\"><span style='color: #B1B1B1';>$Group</span></a>
+					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_User_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+				}
+				elsif ($Group_Active) {
 					$Group = "<a href='sudoers-user-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Users in this group:\n$Attached_Users\"><span style='color: #00FF00';>$Group</span></a>
 					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_User_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 				}
@@ -2491,7 +2566,7 @@ sub html_output {
 			
 			my $User_ID = $Select_Links[0];
 
-			my $Select_Users = $DB_Sudoers->prepare("SELECT `username`, `active`
+			my $Select_Users = $DB_Sudoers->prepare("SELECT `username`, `expires`, `active`
 				FROM `users`
 				WHERE `id` = ?"
 			);
@@ -2500,9 +2575,23 @@ sub html_output {
 			while ( my @Select_Users = $Select_Users->fetchrow_array() )
 			{
 				my $User = $Select_Users[0];
-				my $Active = $Select_Users[1];
+				my $Expires = $Select_Users[1];
+				my $Active = $Select_Users[2];
 
-				if ($Active == 1) {
+				my $Expires_Epoch;
+				my $Today_Epoch = time;
+				if ($Expires =~ /^0000-00-00$/) {
+					$Expires = 'Never';
+				}
+				else {
+					$Expires_Epoch = str2time("$Expires"."T23:59:59");
+				}
+
+				if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+					$User = "<a href='sudoers-users.cgi?ID_Filter=$User_ID'><span style='color: #B1B1B1'>$User</span></a>
+					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_User_ID=$User_ID' class='tooltip' text=\"Remove $User from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+				}
+				elsif ($Active) {
 					$User = "<a href='sudoers-users.cgi?ID_Filter=$User_ID'><span style='color: #00FF00'>$User</span></a>
 					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_User_ID=$User_ID' class='tooltip' text=\"Remove $User from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 				}
@@ -2532,7 +2621,7 @@ sub html_output {
 			
 			my $Group_ID = $Select_Links[0];
 
-			my $Select_Groups = $DB_Sudoers->prepare("SELECT `groupname`, `active`
+			my $Select_Groups = $DB_Sudoers->prepare("SELECT `groupname`, `expires`, `active`
 				FROM `command_groups`
 				WHERE `id` = ?"
 			);
@@ -2541,7 +2630,8 @@ sub html_output {
 			while ( my @Select_Groups = $Select_Groups->fetchrow_array() )
 			{
 				my $Group = $Select_Groups[0];
-				my $Active = $Select_Groups[1];
+				my $Group_Expires = $Select_Groups[1];
+				my $Group_Active = $Select_Groups[2];
 
 
 				### Discover Commands Within Group
@@ -2558,7 +2648,7 @@ sub html_output {
 					
 					my $Command_ID = $Select_Links[0];
 
-					my $Select_Commands = $DB_Sudoers->prepare("SELECT `command_alias`, `command`, `active`
+					my $Select_Commands = $DB_Sudoers->prepare("SELECT `command_alias`, `command`, `expires`, `active`
 						FROM `commands`
 						WHERE `id` = ?"
 					);
@@ -2569,9 +2659,23 @@ sub html_output {
 
 						my $Command_Alias = $Select_Commands[0];
 						my $Command = $Select_Commands[1];
-						my $Command_Active = $Select_Commands[2];
+						my $Command_Expires = $Select_Commands[2];
+						my $Command_Active = $Select_Commands[3];
 
-						if ($Command_Active == 1) {
+						my $Expires_Epoch;
+						my $Today_Epoch = time;
+						if ($Command_Expires =~ /^0000-00-00$/) {
+							$Command_Expires = 'Never';
+						}
+						else {
+							$Expires_Epoch = str2time("$Command_Expires"."T23:59:59");
+						}
+
+						if ($Command_Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+							$Command_Alias = "$Command_Alias ($Command) [Expired]
+"
+						}
+						elsif ($Command_Active) {
 							$Command_Alias = "$Command_Alias ($Command)
 "
 						}
@@ -2585,7 +2689,20 @@ sub html_output {
 
 				### / Discover Commands Within Group
 
-				if ($Active == 1) {
+				my $Expires_Epoch;
+				my $Today_Epoch = time;
+				if ($Group_Expires =~ /^0000-00-00$/) {
+					$Group_Expires = 'Never';
+				}
+				else {
+					$Expires_Epoch = str2time("$Group_Expires"."T23:59:59");
+				}
+
+				if ($Group_Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+					$Group = "<a href='sudoers-command-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Commands in this group:\n$Attached_Commands\"><span style='color: #B1B1B1';>$Group</span></a>
+					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Command_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+				}
+				elsif ($Group_Active) {
 					$Group = "<a href='sudoers-command-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Commands in this group:\n$Attached_Commands\"><span style='color: #00FF00';>$Group</span></a>
 					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Command_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 				}
@@ -2615,7 +2732,7 @@ sub html_output {
 			
 			my $Command_ID = $Select_Links[0];
 
-			my $Select_Commands = $DB_Sudoers->prepare("SELECT `command_alias`, `command`, `active`
+			my $Select_Commands = $DB_Sudoers->prepare("SELECT `command_alias`, `command`, `expires`, `active`
 				FROM `commands`
 				WHERE `id` = ?"
 			);
@@ -2625,9 +2742,23 @@ sub html_output {
 			{
 				my $Command_Alias = $Select_Commands[0];
 				my $Command = $Select_Commands[1];
-				my $Active = $Select_Commands[2];
+				my $Command_Expires = $Select_Commands[2];
+				my $Command_Active = $Select_Commands[3];
 
-				if ($Active == 1) {
+				my $Expires_Epoch;
+				my $Today_Epoch = time;
+				if ($Command_Expires =~ /^0000-00-00$/) {
+					$Command_Expires = 'Never';
+				}
+				else {
+					$Expires_Epoch = str2time("$Command_Expires"."T23:59:59");
+				}
+
+				if ($Command_Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+					$Command_Alias = "<a href='sudoers-commands.cgi?ID_Filter=$Command_ID' class='tooltip' text=\"$Command\"><span style='color: #B1B1B1'>$Command_Alias</span></a>
+					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Command_ID=$Command_ID' class='tooltip' text=\"Remove $Command_Alias from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+				}
+				elsif ($Command_Active) {
 					$Command_Alias = "<a href='sudoers-commands.cgi?ID_Filter=$Command_ID' class='tooltip' text=\"$Command\"><span style='color: #00FF00'>$Command_Alias</span></a>
 					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Command_ID=$Command_ID' class='tooltip' text=\"Remove $Command_Alias from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 				}
@@ -2656,7 +2787,8 @@ sub html_output {
 				"$Attached_Commands",
 				"$Run_As",
 				"$NOPASSWD, $NOEXEC",
-				"$Active",
+				"$Rule_Expires",
+				"$Rule_Active",
 				"$Approved",
 				"$Last_Modified<br />$Last_Approved",
 				"$Modified_By<br />$Approved_By",
@@ -2677,7 +2809,8 @@ sub html_output {
 				"$Attached_Commands",
 				"$Run_As",
 				"$NOPASSWD, $NOEXEC",
-				"$Active",
+				"$Rule_Expires",
+				"$Rule_Active",
 				"$Approved",
 				"$Last_Modified<br />$Last_Approved",
 				"$Modified_By<br />$Approved_By",
@@ -2691,18 +2824,31 @@ sub html_output {
 			$Table->setCellClass ($Rule_Row_Count, 9, 'tbroworange');
 		}
 
-		if ($Active eq 'Yes') {
-			$Table->setCellClass ($Rule_Row_Count, 11, 'tbrowgreen');
+		my $Expires_Epoch;
+		my $Today_Epoch = time;
+		if ($Rule_Expires_Clean =~ /^0000-00-00$/) {
+			$Rule_Expires = 'Never';
 		}
 		else {
-			$Table->setCellClass ($Rule_Row_Count, 11, 'tbrowerror');
+			$Expires_Epoch = str2time("$Rule_Expires_Clean"."T23:59:59");
 		}
 
-		if ($Approved eq 'Yes') {
+		if ($Rule_Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+			$Table->setCellClass ($Rule_Row_Count, 11, 'tbrowdisabled');
+		}
+
+		if ($Rule_Active eq 'Yes') {
 			$Table->setCellClass ($Rule_Row_Count, 12, 'tbrowgreen');
 		}
 		else {
 			$Table->setCellClass ($Rule_Row_Count, 12, 'tbrowerror');
+		}
+
+		if ($Approved eq 'Yes') {
+			$Table->setCellClass ($Rule_Row_Count, 13, 'tbrowgreen');
+		}
+		else {
+			$Table->setCellClass ($Rule_Row_Count, 13, 'tbrowerror');
 		}
 
 	}
@@ -2712,14 +2858,15 @@ sub html_output {
 	$Table->setColWidth(10, '1px');
 	$Table->setColWidth(11, '1px');
 	$Table->setColWidth(12, '1px');
-	$Table->setColWidth(13, '110px');
+	$Table->setColWidth(13, '1px');
 	$Table->setColWidth(14, '110px');
-	$Table->setColWidth(15, '1px');
+	$Table->setColWidth(15, '110px');
 	$Table->setColWidth(16, '1px');
 	$Table->setColWidth(17, '1px');
+	$Table->setColWidth(18, '1px');
 
 	$Table->setColAlign(1, 'center');
-	for (9 .. 17) {
+	for (9 .. 18) {
 		$Table->setColAlign($_, 'center');
 	}
 

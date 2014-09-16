@@ -4,6 +4,7 @@ use strict;
 use POSIX;
 
 require 'common.pl';
+my $Version = Version();
 my $DB_Main = DB_Main();
 my ($CGI, $Session, $Cookie) = CGI();
 my $Server_Hostname = Server_Hostname();
@@ -111,7 +112,7 @@ print <<ENDHTML;
 	<div id="loginlink">
 
 		<div id="loginlinkleft">
-			Connected to <span style="color: #00FF00;">$Server_Hostname</span> | Welcome <a href="password-change.cgi">$Username</a> <span id="logoutlink"><a href="logout.cgi">[ Logout ]</a></span>
+			DSMS version <span style="color: #00FF00;">$Version</span> on <span style="color: #00FF00;">$Server_Hostname</span> | Welcome <a href="password-change.cgi">$Username</a> <span id="logoutlink"><a href="logout.cgi">[ Logout ]</a></span>
 		</div> <!-- loginlinkleft -->
 
 			<form action='search.cgi' method='post' >

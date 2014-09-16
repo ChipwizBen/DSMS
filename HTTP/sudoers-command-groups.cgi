@@ -2,6 +2,8 @@
 
 use strict;
 use HTML::Table;
+use Date::Parse;
+use POSIX;
 
 require 'common.pl';
 my $DB_Sudoers = DB_Sudoers();
@@ -13,6 +15,8 @@ my $Add_Command_Temp_New = $CGI->param("Add_Command_Temp_New");
 my $Add_Command_Temp_Existing = $CGI->param("Add_Command_Temp_Existing");
 my $Group_Name_Add = $CGI->param("Group_Name_Add");
 	$Group_Name_Add =~ s/\W//g;
+my $Expires_Toggle_Add = $CGI->param("Expires_Toggle_Add");
+my $Expires_Date_Add = $CGI->param("Expires_Date_Add");
 my $Active_Add = $CGI->param("Active_Add");
 
 my $Edit_Group = $CGI->param("Edit_Group");
@@ -21,6 +25,8 @@ my $Edit_Command_Temp_New = $CGI->param("Edit_Command_Temp_New");
 my $Edit_Command_Temp_Existing = $CGI->param("Edit_Command_Temp_Existing");
 my $Group_Name_Edit = $CGI->param("Group_Name_Edit");
 	$Group_Name_Edit =~ s/\W//g;
+my $Expires_Toggle_Edit = $CGI->param("Expires_Toggle_Edit");
+my $Expires_Date_Edit = $CGI->param("Expires_Date_Edit");
 my $Active_Edit = $CGI->param("Active_Edit");
 
 my $Delete_Group = $CGI->param("Delete_Group");
@@ -59,8 +65,8 @@ if ($Add_Group && !$Add_Group_Final) {
 	&html_add_group;
 }
 elsif ($Add_Group_Final) {
-	my ($Group_ID, $Command_Count) = &add_group;
-	my $Message_Green="$Group_Name_Add added successfully as ID $Group_ID with $Command_Count attached hosts";
+	my ($Group_ID, $Command_Alias_Count) = &add_group;
+	my $Message_Green="$Group_Name_Add added successfully as ID $Group_ID with $Command_Alias_Count attached commands";
 	$Session->param('Message_Green', $Message_Green); #Posting Message_Green session var
 	print "Location: sudoers-command-groups.cgi\n\n";
 	exit(0);
@@ -72,8 +78,8 @@ elsif ($Edit_Group && !$Edit_Group_Final) {
 	&html_edit_group;
 }
 elsif ($Edit_Group_Final) {
-	my ($Command_Count) = &edit_group;
-	my $Message_Green="$Group_Name_Edit edited successfully with $Command_Count newly attached hosts";
+	my ($Command_Alias_Count) = &edit_group;
+	my $Message_Green="$Group_Name_Edit edited successfully with $Command_Alias_Count newly attached commands";
 	$Session->param('Message_Green', $Message_Green); #Posting Message_Green session var
 	print "Location: sudoers-command-groups.cgi\n\n";
 	exit(0);
@@ -92,7 +98,7 @@ elsif ($Delete_Group_Confirm) {
 	exit(0);
 }
 elsif ($Delete_Command_ID && $Delete_Command_From_Group_ID) {
-	&delete_host;
+	&delete_command;
 	my $Message_Green="$Delete_Command_Name removed from $Delete_Command_From_Group_Name successfully";
 	$Session->param('Message_Green', $Message_Green); #Posting Message_Green session var
 	print "Location: sudoers-command-groups.cgi\n\n";
@@ -125,27 +131,40 @@ if ($Add_Command_Temp_New) {
 my $Commands;
 my @Commands = split(',', $Add_Command_Temp_Existing);
 
-foreach my $Command (@Commands) {
+foreach my $Command_Alias (@Commands) {
 
-	my $Command_Query = $DB_Sudoers->prepare("SELECT `command_alias`, `command`, `active`
+	my $Command_Alias_Query = $DB_Sudoers->prepare("SELECT `command_alias`, `command`, `expires`, `active`
 		FROM `commands`
 		WHERE `id` = ? ");
-	$Command_Query->execute($Command);
-		
-	while ( (my $Command_Name, my $Command, my $Active) = my @Command_Query = $Command_Query->fetchrow_array() )
+	$Command_Alias_Query->execute($Command_Alias);
+
+	while ( (my $Command_Alias, my $Command, my $Expires, my $Active) = my @Command_Query = $Command_Alias_Query->fetchrow_array() )
 	{
-		if ($Active) {
-			$Commands = $Commands . "<tr><td align='left' style='color: #00FF00'>$Command_Name</td> <td align='left' style='color: #00FF00'>$Command</td></tr>";
+
+		my $Expires_Epoch;
+		my $Today_Epoch = time;
+		if ($Expires =~ /^0000-00-00$/) {
+			$Expires = 'Never';
 		}
 		else {
-			$Commands = $Commands . "<tr><td align='left' style='color: #FF0000'>$Command_Name</td> <td align='left' style='color: #FF0000'>$Command</td></tr>";
+			$Expires_Epoch = str2time("$Expires"."T23:59:59");
+		}
+
+		if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+			$Commands = $Commands . "<tr><td align='left' style='color: #B1B1B1'>$Command_Alias</td> <td align='left' style='color: #B1B1B1'>$Command</td></tr>";
+		}
+		elsif ($Active) {
+			$Commands = $Commands . "<tr><td align='left' style='color: #00FF00'>$Command_Alias</td> <td align='left' style='color: #00FF00'>$Command</td></tr>";
+		}
+		else {
+			$Commands = $Commands . "<tr><td align='left' style='color: #FF0000'>$Command_Alias</td> <td align='left' style='color: #FF0000'>$Command</td></tr>";
 		}
 		
 	}
 
 }
 
-
+my $Date = strftime "%Y-%m-%d", localtime;
 
 print <<ENDHTML;
 <div id="wide-popup-box">
@@ -156,7 +175,21 @@ print <<ENDHTML;
 
 <h3 align="center">Add New Group</h3>
 
-<form action='sudoers-command-groups.cgi' method='post' >
+<SCRIPT LANGUAGE="JavaScript"><!--
+function Expire_Toggle() {
+	if(document.Add_Group.Expires_Toggle_Add.checked)
+	{
+		document.Add_Group.Expires_Date_Add.disabled=false;
+	}
+	else
+	{
+		document.Add_Group.Expires_Date_Add.disabled=true;
+	}
+}
+//-->
+</SCRIPT>
+
+<form action='sudoers-command-groups.cgi' name='Add_Group' method='post' >
 
 <table align = "center">
 	<tr>
@@ -169,22 +202,34 @@ print <<ENDHTML;
 			<select name='Add_Command_Temp_New' onchange='this.form.submit()' style="width: 300px">
 ENDHTML
 
-				my $Command_List_Query = $DB_Sudoers->prepare("SELECT `id`, `command_alias`, `command`, `active`
+				my $Command_Alias_List_Query = $DB_Sudoers->prepare("SELECT `id`, `command_alias`, `command`, `expires`, `active`
 				FROM `commands`
 				ORDER BY `command_alias` ASC");
-				$Command_List_Query->execute( );
-
+				$Command_Alias_List_Query->execute( );
+				
 				print "<option value='' selected>--Select a Command--</option>";
-
-				while ( (my $ID, my $Command_Name, my $Command, my $Active) = my @Command_List_Query = $Command_List_Query->fetchrow_array() )
+				
+				while ( (my $ID, my $Command_Alias, my $Command, my $Expires, my $Active) = my @Command_List_Query = $Command_Alias_List_Query->fetchrow_array() )
 				{
-					if ($Active) {
-						print "<option value='$ID'>$Command_Name ($Command)</option>";
+					my $Expires_Epoch;
+					my $Today_Epoch = time;
+					if ($Expires =~ /^0000-00-00$/) {
+						$Expires = 'Never';
 					}
 					else {
-						print "<option style='color: #FF0000;' value='$ID'>$Command_Name ($Command) [Inactive]</option>";
+						$Expires_Epoch = str2time("$Expires"."T23:59:59");
 					}
 
+					if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+						print "<option style='color: #B1B1B1;' value='$ID'>$Command_Alias ($Command) [Expired]</option>";
+					}
+					elsif ($Active) {
+						print "<option value='$ID'>$Command_Alias ($Command)</option>";
+					}
+					else {
+						print "<option style='color: #FF0000;' value='$ID'>$Command_Alias ($Command) [Inactive]</option>";
+					}
+					
 				}
 
 print <<ENDHTML;
@@ -201,7 +246,7 @@ print <<ENDHTML;
 			<table>
 				<tr>
 					<td>Command Name</td>
-					<td>Command</td>
+					<td>IP Address</td>
 				</tr>
 				$Commands
 			</table>
@@ -216,7 +261,12 @@ print <<ENDHTML;
 		</td>
 	</tr>
 	<tr>
-		<td style="text-align: right;">Active?:</td>
+		<td style="text-align: right;">Expires:</td>
+		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Add"></td>
+		<td><input type="text" style="width: 100%" name="Expires_Date_Add" value="$Date" placeholder="YYYY-MM-DD" disabled></td>
+	</tr>
+	<tr>
+		<td style="text-align: right;">Active:</td>
 		<td style="text-align: right;"><input type="radio" name="Active_Add" value="1" checked> Yes</td>
 		<td style="text-align: right;"><input type="radio" name="Active_Add" value="0"> No</td>
 	</tr>
@@ -225,6 +275,9 @@ print <<ENDHTML;
 <ul style='text-align: left; display: inline-block;'>
 <li>Group Names must be unique.</li>
 <li>Do not use spaces in Group Names - they will be stripped.</li>
+<li>Groups with an expiry set are automatically removed from sudoers at 23:59:59
+(or the next sudoers refresh thereafter) on the day of expiry. Expired entries are functionally
+equivalent to inactive entries. The date entry format is YYYY-MM-DD.</li>
 <li>Active Groups are eligible for sudoers inclusion.</li>
 </ul>
 
@@ -262,9 +315,14 @@ sub add_group {
 	}
 	### / Existing Group_Name Check
 
+	if ($Expires_Toggle_Add ne 'on') {
+		$Expires_Date_Add = '0000-00-00';
+	}
+
 	my $Group_Insert = $DB_Sudoers->prepare("INSERT INTO `command_groups` (
 		`id`,
 		`groupname`,
+		`expires`,
 		`active`,
 		`modified_by`
 	)
@@ -272,22 +330,23 @@ sub add_group {
 		NULL,
 		?,
 		?,
+		?,
 		?
 	)");
 
-	$Group_Insert->execute($Group_Name_Add, $Active_Add, $User_Name);
+	$Group_Insert->execute($Group_Name_Add, $Expires_Date_Add, $Active_Add, $User_Name);
 
 	my $Group_Insert_ID = $DB_Sudoers->{mysql_insertid};
 
 	$Add_Command_Temp_Existing =~ s/,$//;
 	my @Commands = split(',', $Add_Command_Temp_Existing);
-	my $Command_Count=0;
+	my $Command_Alias_Count=0;
 
-	foreach my $Command (@Commands) {
+	foreach my $Command_Alias (@Commands) {
 
-		$Command_Count++;
+		$Command_Alias_Count++;
 
-		my $Command_Insert = $DB_Sudoers->prepare("INSERT INTO `lnk_command_groups_to_commands` (
+		my $Command_Alias_Insert = $DB_Sudoers->prepare("INSERT INTO `lnk_command_groups_to_commands` (
 			`id`,
 			`group`,
 			`command`
@@ -298,11 +357,11 @@ sub add_group {
 			?
 		)");
 		
-		$Command_Insert->execute($Group_Insert_ID, $Command);
+		$Command_Alias_Insert->execute($Group_Insert_ID, $Command_Alias);
 
 	}
 
-	return($Group_Insert_ID, $Command_Count);
+	return($Group_Insert_ID, $Command_Alias_Count);
 
 } # sub add_group
 
@@ -321,22 +380,33 @@ while ( my @Select_Links = $Select_Links->fetchrow_array() )
 {
 	my $Link = @Select_Links[0];
 
-	my $Command_Query = $DB_Sudoers->prepare("SELECT `command_alias`, `command`, `active`
+	my $Command_Alias_Query = $DB_Sudoers->prepare("SELECT `command_alias`, `command`, `expires`, `active`
 		FROM `commands`
 		WHERE `id` = ? ");
-	$Command_Query->execute($Link);
+	$Command_Alias_Query->execute($Link);
 		
-	while ( (my $Command_Name, my $Command, my $Active) = my @Command_Query = $Command_Query->fetchrow_array() )
+	while ( (my $Command_Alias, my $Command, my $Expires, my $Active) = my @Command_Query = $Command_Alias_Query->fetchrow_array() )
 	{
-		if ($Active) {
-			$Commands = $Commands . "<tr><td align='left' style='color: #00FF00'>$Command_Name</td> <td align='left' style='color: #00FF00'>$Command</td></tr>";
+
+		my $Expires_Epoch;
+		my $Today_Epoch = time;
+		if ($Expires =~ /^0000-00-00$/) {
+			$Expires = 'Never';
 		}
 		else {
-			$Commands = $Commands . "<tr><td align='left' style='color: #FF0000'>$Command_Name</td> <td align='left' style='color: #FF0000'>$Command</td></tr>";
+			$Expires_Epoch = str2time("$Expires"."T23:59:59");
 		}
-		
-	}
 
+		if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+			$Commands = $Commands . "<tr><td align='left' style='color: #B1B1B1'>$Command_Alias</td> <td align='left' style='color: #B1B1B1'>$Command</td></tr>";
+		}
+		elsif ($Active) {
+			$Commands = $Commands . "<tr><td align='left' style='color: #00FF00'>$Command_Alias</td> <td align='left' style='color: #00FF00'>$Command</td></tr>";
+		}
+		else {
+			$Commands = $Commands . "<tr><td align='left' style='color: #FF0000'>$Command_Alias</td> <td align='left' style='color: #FF0000'>$Command</td></tr>";
+		}
+	}
 }
 
 ### / Currently Attached Commands Retrieval and Conversion
@@ -356,35 +426,47 @@ if ($Edit_Command_Temp_New) {
 			AND `group` = ? "
 		);
 		$Select_Links->execute($Edit_Command_Temp_New, $Edit_Group);
+
 		my $Matched_Rows = $Select_Links->rows();
 
-			if ($Matched_Rows == 0) {
-				$Edit_Command_Temp_Existing = $Edit_Command_Temp_Existing . $Edit_Command_Temp_New . ",";
-			}
+		if ($Matched_Rows == 0) {
+			$Edit_Command_Temp_Existing = $Edit_Command_Temp_Existing . $Edit_Command_Temp_New . ",";
 		}
+	}
 }
 
 my $Commands_New;
 my @Commands = split(',', $Edit_Command_Temp_Existing);
 
-foreach my $Command (@Commands) {
+foreach my $Command_Alias (@Commands) {
 
-	my $Command_Query = $DB_Sudoers->prepare("SELECT `command_alias`, `command`, `active`
+	my $Command_Alias_Query = $DB_Sudoers->prepare("SELECT `command_alias`, `command`, `expires`, `active`
 		FROM `commands`
 		WHERE `id` = ? ");
-	$Command_Query->execute($Command);
+	$Command_Alias_Query->execute($Command_Alias);
 		
-	while ( (my $Command_Name, my $Command, my $Active) = my @Command_Query = $Command_Query->fetchrow_array() )
+	while ( (my $Command_Alias, my $Command, my $Expires, my $Active) = my @Command_Query = $Command_Alias_Query->fetchrow_array() )
 	{
-		if ($Active) {
-			$Commands_New = $Commands_New . "<tr><td align='left' style='color: #00FF00'>$Command_Name</td> <td align='left' style='color: #00FF00'>$Command</td></tr>";
+
+		my $Expires_Epoch;
+		my $Today_Epoch = time;
+		if ($Expires =~ /^0000-00-00$/) {
+			$Expires = 'Never';
 		}
 		else {
-			$Commands_New = $Commands_New . "<tr><td align='left' style='color: #FF0000'>$Command_Name</td> <td align='left' style='color: #FF0000'>$Command</td></tr>";
+			$Expires_Epoch = str2time("$Expires"."T23:59:59");
 		}
-		
-	}
 
+		if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+			$Commands_New = $Commands_New . "<tr><td align='left' style='color: #B1B1B1'>$Command_Alias</td> <td align='left' style='color: #B1B1B1'>$Command</td></tr>";
+		}
+		elsif ($Active) {
+			$Commands_New = $Commands_New . "<tr><td align='left' style='color: #00FF00'>$Command_Alias</td> <td align='left' style='color: #00FF00'>$Command</td></tr>";
+		}
+		else {
+			$Commands_New = $Commands_New . "<tr><td align='left' style='color: #FF0000'>$Command_Alias</td> <td align='left' style='color: #FF0000'>$Command</td></tr>";
+		}
+	}
 }
 
 ### / Newly Attached Commands Retrieval and Conversion
@@ -392,7 +474,7 @@ foreach my $Command (@Commands) {
 ### Group Details Retrieval
 
 if (!$Group_Name_Edit) {
-	my $Select_Group_Details = $DB_Sudoers->prepare("SELECT `groupname`, `active`
+	my $Select_Group_Details = $DB_Sudoers->prepare("SELECT `groupname`, `expires`, `active`
 		FROM `command_groups`
 		WHERE `id` = ? "
 	);
@@ -401,9 +483,22 @@ if (!$Group_Name_Edit) {
 	while ( my @Select_Details = $Select_Group_Details->fetchrow_array() )
 	{
 		$Group_Name_Edit = @Select_Details[0];
-		$Active_Edit = @Select_Details[1];
+		$Expires_Date_Edit = @Select_Details[1];
+		$Active_Edit = @Select_Details[2];
 	}
 }
+
+	my $Checked;
+	my $Disabled;
+	if ($Expires_Date_Edit eq '0000-00-00' || !$Expires_Date_Edit) {
+		$Checked = '';
+		$Disabled = 'disabled';
+		$Expires_Date_Edit = strftime "%Y-%m-%d", localtime;
+	}
+	else {
+		$Checked = 'checked';
+		$Disabled = '';
+	}
 
 ### / Group Details Retrieval
 
@@ -416,7 +511,21 @@ print <<ENDHTML;
 
 <h3 align="center">Edit Group</h3>
 
-<form action='sudoers-command-groups.cgi' method='post' >
+<SCRIPT LANGUAGE="JavaScript"><!--
+function Expire_Toggle() {
+	if(document.Edit_Group.Expires_Toggle_Edit.checked)
+	{
+		document.Edit_Group.Expires_Date_Edit.disabled=false;
+	}
+	else
+	{
+		document.Edit_Group.Expires_Date_Edit.disabled=true;
+	}
+}
+//-->
+</SCRIPT>
+
+<form action='sudoers-command-groups.cgi' name='Edit_Group' method='post' >
 
 <table align = "center">
 	<tr>
@@ -429,20 +538,32 @@ print <<ENDHTML;
 			<select name='Edit_Command_Temp_New' onchange='this.form.submit()' style="width: 300px">
 ENDHTML
 
-				my $Command_List_Query = $DB_Sudoers->prepare("SELECT `id`, `command_alias`, `command`, `active`
+				my $Command_Alias_List_Query = $DB_Sudoers->prepare("SELECT `id`, `command_alias`, `command`, `expires`, `active`
 				FROM `commands`
 				ORDER BY `command_alias` ASC");
-				$Command_List_Query->execute( );
+				$Command_Alias_List_Query->execute( );
 				
 				print "<option value='' selected>--Select a Command--</option>";
 				
-				while ( (my $ID, my $Command_Name, my $Command, my $Active) = my @Command_List_Query = $Command_List_Query->fetchrow_array() )
+				while ( (my $ID, my $Command_Alias, my $Command, my $Expires, my $Active) = my @Command_List_Query = $Command_Alias_List_Query->fetchrow_array() )
 				{
-					if ($Active) {
-						print "<option value='$ID'>$Command_Name ($Command)</option>";
+					my $Expires_Epoch;
+					my $Today_Epoch = time;
+					if ($Expires =~ /^0000-00-00$/) {
+						$Expires = 'Never';
 					}
 					else {
-						print "<option style='color: #FF0000;' value='$ID'>$Command_Name ($Command) [Inactive]</option>";
+						$Expires_Epoch = str2time("$Expires"."T23:59:59");
+					}
+			
+					if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+						print "<option style='color: #B1B1B1;' value='$ID'>$Command_Alias ($Command) [Expired]</option>";
+					}
+					elsif ($Active) {
+						print "<option value='$ID'>$Command_Alias ($Command)</option>";
+					}
+					else {
+						print "<option style='color: #FF0000;' value='$ID'>$Command_Alias ($Command) [Inactive]</option>";
 					}
 					
 				}
@@ -461,7 +582,7 @@ print <<ENDHTML;
 			<table>
 				<tr>
 					<td>Command Name</td>
-					<td>Command</td>
+					<td>IP Address</td>
 				</tr>
 				$Commands
 			</table>
@@ -485,7 +606,7 @@ print <<ENDHTML;
 			<table>
 				<tr>
 					<td>Command Name</td>
-					<td>Command</td>
+					<td>IP Address</td>
 				</tr>
 				$Commands_New
 			</table>
@@ -500,7 +621,12 @@ print <<ENDHTML;
 		</td>
 	</tr>
 	<tr>
-		<td style="text-align: right;">Active?:</td>
+		<td style="text-align: right;">Expires:</td>
+		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Edit" $Checked></td>
+		<td><input type="text" style="width: 100%" name="Expires_Date_Edit" value="$Expires_Date_Edit" placeholder="$Expires_Date_Edit" $Disabled></td>
+	</tr>
+	<tr>
+		<td style="text-align: right;">Active:</td>
 ENDHTML
 
 if ($Active_Edit == 1) {
@@ -523,7 +649,11 @@ print <<ENDHTML;
 <ul style='text-align: left; display: inline-block;'>
 <li>Group Names must be unique.</li>
 <li>Do not use spaces in Group Names - they will be stripped.</li>
-<li>You can only activate a modified command if you are an Approver. If you are not an Approver and you modify this entry, it will automatically be set to Inactive.</li>
+<li>You can only activate a modified command if you are an Approver.
+If you are not an Approver and you modify this entry, it will automatically be set to Inactive.</li>
+<li>Groups with an expiry set are automatically removed from sudoers at 23:59:59
+(or the next sudoers refresh thereafter) on the day of expiry. Expired entries are functionally
+equivalent to inactive entries. The date entry format is YYYY-MM-DD.</li>
 <li>Active Groups are eligible for sudoers inclusion.</li>
 </ul>
 
@@ -563,23 +693,27 @@ sub edit_group {
 	### / Existing Group_Name Check
 
 	if (!$User_Approver) {$Active_Edit = 0};
+	if ($Expires_Toggle_Edit ne 'on') {
+		$Expires_Date_Edit = '0000-00-00';
+	}
 
 	my $Update_Group = $DB_Sudoers->prepare("UPDATE `command_groups` SET
 		`groupname` = ?,
+		`expires` = ?,
 		`active` = ?,
 		`modified_by` = ?
 		WHERE `id` = ?");
-	$Update_Group->execute($Group_Name_Edit, $Active_Edit, $User_Name, $Edit_Group);
+	$Update_Group->execute($Group_Name_Edit, $Expires_Date_Edit, $Active_Edit, $User_Name, $Edit_Group);
 
 	$Edit_Command_Temp_Existing =~ s/,$//;
 	my @Commands = split(',', $Edit_Command_Temp_Existing);
-	my $Command_Count=0;
+	my $Command_Alias_Count=0;
 
-	foreach my $Command (@Commands) {
+	foreach my $Command_Alias (@Commands) {
 
-		$Command_Count++;
+		$Command_Alias_Count++;
 
-		my $Command_Insert = $DB_Sudoers->prepare("INSERT INTO `lnk_command_groups_to_commands` (
+		my $Command_Alias_Insert = $DB_Sudoers->prepare("INSERT INTO `lnk_command_groups_to_commands` (
 			`id`,
 			`group`,
 			`command`
@@ -590,11 +724,11 @@ sub edit_group {
 			?
 		)");
 		
-		$Command_Insert->execute($Edit_Group, $Command);
+		$Command_Alias_Insert->execute($Edit_Group, $Command_Alias);
 
 	}
 
-	return($Command_Count);
+	return($Command_Alias_Count);
 
 } # sub edit_group
 
@@ -656,7 +790,7 @@ sub delete_group {
 
 } # sub delete_group
 
-sub delete_host {
+sub delete_command {
  
  	my $Delete_Command = $DB_Sudoers->prepare("DELETE from `lnk_command_groups_to_commands`
 		WHERE `group` = ?
@@ -696,19 +830,20 @@ sub html_show_links {
 	while ( my @Select_Links = $Select_Links->fetchrow_array() )
 	{
 		
-		my $Command_ID = @Select_Links[0];
+		my $Command_Alias_ID = @Select_Links[0];
 
-		my $Select_Commands = $DB_Sudoers->prepare("SELECT `command_alias`, `active`
+		my $Select_Commands = $DB_Sudoers->prepare("SELECT `command_alias`, `command`, `active`
 			FROM `commands`
 			WHERE `id` = ?"
 		);
-		$Select_Commands->execute($Command_ID);
+		$Select_Commands->execute($Command_Alias_ID);
 
 		while ( my @Select_Command_Array = $Select_Commands->fetchrow_array() )
 		{
 
-			my $Command = $Select_Command_Array[0];
-			my $Active = $Select_Command_Array[1];
+			my $Command_Alias = $Select_Command_Array[0];
+			my $Command = $Select_Command_Array[1];
+			my $Active = $Select_Command_Array[2];
 
 			if ($Active) {$Active = "Active"} else {$Active = "<span style='color: #FF0000'>Inactive</span>"}
 
@@ -717,9 +852,9 @@ sub html_show_links {
 			$Table->addRow(
 			"$Counter",
 			"Command",
-			"$Command",
+			"$Command_Alias ($Command)",
 			"$Active",
-			"<a href='sudoers-hosts.cgi?ID_Filter=$Command_ID'><img src=\"resources/imgs/forward.png\" alt=\"View $Command\" ></a>"
+			"<a href='sudoers-commands.cgi?ID_Filter=$Command_Alias_ID'><img src=\"resources/imgs/forward.png\" alt=\"View $Command_Alias\" ></a>"
 			);
 		}
 	}
@@ -788,7 +923,7 @@ ENDHTML
 sub html_output {
 
 	my $Table = new HTML::Table(
-		-cols=>9,
+		-cols=>10,
                 -align=>'center',
                 -border=>0,
                 -rules=>'cols',
@@ -805,24 +940,25 @@ sub html_output {
 		my $Total_Rows = $Select_Group_Count->rows();
 
 
-	my $Select_Groups = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `active`, `last_modified`, `modified_by`
+	my $Select_Groups = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `expires`, `active`, `last_modified`, `modified_by`
 		FROM `command_groups`
 		WHERE `id` LIKE ?
 		OR `groupname` LIKE ?
+		OR `expires` LIKE ?
 		ORDER BY `groupname` ASC
 		LIMIT 0 , $Rows_Returned"
 	);
 
 	if ($ID_Filter) {
-		$Select_Groups->execute($ID_Filter, '');
+		$Select_Groups->execute($ID_Filter, '', '');
 	}
 	else {
-		$Select_Groups->execute("%$Filter%", "%$Filter%");
+		$Select_Groups->execute("%$Filter%", "%$Filter%", "%$Filter%");
 	}
-
+	
 	my $Rows = $Select_Groups->rows();
 
-	$Table->addRow( "ID", "Group Name", "Connected Commands", "Active", "Last Modified", "Modified By", "Show Links", "Edit", "Delete" );
+	$Table->addRow( "ID", "Group Name", "Connected Commands", "Expires", "Active", "Last Modified", "Modified By", "Links", "Edit", "Delete" );
 	$Table->setRowClass (1, 'tbrow1');
 
 	my $Group_Row_Count=1;
@@ -840,10 +976,13 @@ sub html_output {
 		my $Group_Name = @Select_Groups[1];
 		my $Group_Name_Clean = $Group_Name;
 			$Group_Name =~ s/(.*)($Filter)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
-		my $Active = @Select_Groups[2];
+		my $Group_Expires = @Select_Groups[2];
+		my $Group_Expires_Clean = $Group_Expires;
+			$Group_Expires =~ s/(.*)($Filter)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
+		my $Active = @Select_Groups[3];
 			if ($Active == 1) {$Active = "Yes"} else {$Active = "No"};
-		my $Last_Modified = @Select_Groups[3];
-		my $Modified_By = @Select_Groups[4];
+		my $Last_Modified = @Select_Groups[4];
+		my $Modified_By = @Select_Groups[5];
 
 
 		my $Select_Links = $DB_Sudoers->prepare("SELECT `command`
@@ -855,37 +994,61 @@ sub html_output {
 		while ( my @Select_Links = $Select_Links->fetchrow_array() )
 		{
 			
-			my $Command_ID = $Select_Links[0];
+			my $Command_Alias_ID = @Select_Links[0];
 
-			my $Select_Commands = $DB_Sudoers->prepare("SELECT `command_alias`, `command`, `active`
+			my $Select_Commands = $DB_Sudoers->prepare("SELECT `command_alias`, `command`, `expires`, `active`
 				FROM `commands`
 				WHERE `id` = ?"
 			);
-			$Select_Commands->execute($Command_ID);
+			$Select_Commands->execute($Command_Alias_ID);
 
 			while ( my @Select_Commands = $Select_Commands->fetchrow_array() )
 			{
 
-				my $Command_Alias = $Select_Commands[0];
+				my $Command_Alias = @Select_Commands[0];
 					my $Command_Alias_Clean = $Command_Alias;
-				my $Command = $Select_Commands[1];
-				my $Active = $Select_Commands[2];
+				my $Command = @Select_Commands[1];
+				my $Expires = @Select_Commands[2];
+				my $Active = @Select_Commands[3];
 
-				if ($Active == 1) {
-					$Command = "<a href='sudoers-commands.cgi?ID_Filter=$Command_ID'><span style='color: #00FF00'>$Command_Alias ($Command)</span></a>"
+				my $Expires_Epoch;
+				my $Today_Epoch = time;
+				if ($Expires =~ /^0000-00-00$/) {
+					$Expires = 'Never';
 				}
 				else {
-					$Command = "<a href='sudoers-commands.cgi?ID_Filter=$Command_ID'><span style='color: #FF0000'>$Command_Alias ($Command)</span></a>"
+					$Expires_Epoch = str2time("$Expires"."T23:59:59");
+				}
+
+
+				if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+					$Command_Alias = "<a href='sudoers-commands.cgi?ID_Filter=$Command_Alias_ID'><span style='color: #B1B1B1'>$Command_Alias ($Command)</span></a>"
+				}
+				elsif ($Active == 1) {
+					$Command_Alias = "<a href='sudoers-commands.cgi?ID_Filter=$Command_Alias_ID'><span style='color: #00FF00'>$Command_Alias ($Command)</span></a>"
+				}
+				else {
+					$Command_Alias = "<a href='sudoers-commands.cgi?ID_Filter=$Command_Alias_ID'><span style='color: #FF0000'>$Command_Alias ($Command)</span></a>"
 				};
-				$Commands = $Commands . $Command . "&nbsp;&nbsp;&nbsp;" . "<a href='sudoers-command-groups.cgi?Delete_Command_ID=$Command_ID&Delete_Command_From_Group_ID=$DBID_Clean&Delete_Command_Name=$Command_Alias_Clean&Delete_Command_From_Group_Name=$Command_Alias_Clean'><span style='color: #FFC600'>[Remove]</span></a>" . "<br />";
+				$Commands = $Commands . $Command_Alias . "&nbsp;&nbsp;&nbsp;" . "<a href='sudoers-command-groups.cgi?Delete_Command_ID=$Command_Alias_ID&Delete_Command_From_Group_ID=$DBID_Clean&Delete_Command_Name=$Command_Alias_Clean&Delete_Command_From_Group_Name=$Group_Name_Clean'><span style='color: #FFC600'>[Remove]</span></a>" . "<br />";
 
 			}
+		}
+
+		my $Group_Expires_Epoch;
+		my $Today_Epoch = time;
+		if ($Group_Expires_Clean =~ /^0000-00-00$/) {
+			$Group_Expires = 'Never';
+		}
+		else {
+			$Group_Expires_Epoch = str2time("$Group_Expires_Clean"."T23:59:59");
 		}
 
 		$Table->addRow(
 			"$DBID",
 			"$Group_Name",
 			"$Commands",
+			"$Group_Expires",
 			"$Active",
 			"$Last_Modified",
 			"$Modified_By",
@@ -896,23 +1059,29 @@ sub html_output {
 
 
 		if ($Active eq 'Yes') {
-			$Table->setCellClass ($Group_Row_Count, 4, 'tbrowgreen');
+			$Table->setCellClass ($Group_Row_Count, 5, 'tbrowgreen');
 		}
 		else {
-			$Table->setCellClass ($Group_Row_Count, 4, 'tbrowerror');
+			$Table->setCellClass ($Group_Row_Count, 5, 'tbrowerror');
 		}
+
+		if ($Group_Expires ne 'Never' && $Group_Expires_Epoch < $Today_Epoch) {
+			$Table->setCellClass ($Group_Row_Count, 4, 'tbrowdisabled');
+		}
+
 	}
 
 	$Table->setColWidth(1, '1px');
 	$Table->setColWidth(4, '1px');
-	$Table->setColWidth(5, '110px');
+	$Table->setColWidth(5, '1px');
 	$Table->setColWidth(6, '110px');
-	$Table->setColWidth(7, '1px');
+	$Table->setColWidth(7, '110px');
 	$Table->setColWidth(8, '1px');
 	$Table->setColWidth(9, '1px');
+	$Table->setColWidth(10, '1px');
 
 	$Table->setColAlign(1, 'center');
-	for (4 .. 9) {
+	for (4 .. 10) {
 		$Table->setColAlign($_, 'center');
 	}
 
@@ -953,8 +1122,9 @@ print <<ENDHTML;
 					<td colspan='2' style="text-align: left;">
 						Commands highlighted <span style="color: #00FF00;">green</span> are Active<br />
 						Commands highlighted <span style="color: #FF0000;">red</span> are Inactive<br />
+						Commands highlighted <span style="color: #B1B1B1;">grey</span> have expired<br />
 						Click a Command to view it in the Commands table<br />
-						Click <span style='color: #FFC600'>[Remove]</span> to remove a host from the group
+						Click <span style='color: #FFC600'>[Remove]</span> to remove a command from the group
 					</td>
 				</tr>
 			</form>

@@ -2,6 +2,8 @@
 
 use strict;
 use HTML::Table;
+use Date::Parse;
+use POSIX;
 
 require 'common.pl';
 my $DB_Sudoers = DB_Sudoers();
@@ -15,6 +17,8 @@ my $Command_Alias_Add = $CGI->param("Command_Alias_Add");
 my $Command_Add = $CGI->param("Command_Add");
 	$Command_Add =~ s/\n//g;
 	$Command_Add =~ s/\r//g;
+my $Expires_Toggle_Add = $CGI->param("Expires_Toggle_Add");
+my $Expires_Date_Add = $CGI->param("Expires_Date_Add");
 my $Active_Add = $CGI->param("Active_Add");
 
 my $Edit_Command_Post = $CGI->param("Edit_Command_Post");
@@ -23,6 +27,8 @@ my $Command_Alias_Edit = $CGI->param("Command_Alias_Edit");
 my $Command_Edit = $CGI->param("Command_Edit");
 	$Command_Edit =~ s/\n//g;
 	$Command_Edit =~ s/\r//g;
+my $Expires_Toggle_Edit = $CGI->param("Expires_Toggle_Edit");
+my $Expires_Date_Edit = $CGI->param("Expires_Date_Edit");
 my $Active_Edit = $CGI->param("Active_Edit");
 
 my $Delete_Command = $CGI->param("Delete_Command");
@@ -116,6 +122,8 @@ else {
 
 sub html_add_command {
 
+my $Date = strftime "%Y-%m-%d", localtime;
+
 print <<ENDHTML;
 <div id="wide-popup-box">
 <a href="sudoers-commands.cgi">
@@ -125,7 +133,21 @@ print <<ENDHTML;
 
 <h3 align="center">Add New Command</h3>
 
-<form action='sudoers-commands.cgi' method='post' >
+<SCRIPT LANGUAGE="JavaScript"><!--
+function Expire_Toggle() {
+	if(document.Add_Commands.Expires_Toggle_Add.checked)
+	{
+		document.Add_Commands.Expires_Date_Add.disabled=false;
+	}
+	else
+	{
+		document.Add_Commands.Expires_Date_Add.disabled=true;
+	}
+}
+//-->
+</SCRIPT>
+
+<form action='sudoers-commands.cgi' name='Add_Commands' method='post' >
 
 <table align = "center">
 	<tr>
@@ -135,6 +157,11 @@ print <<ENDHTML;
 	<tr>
 		<td style="text-align: right;">Command:</td>
 		<td colspan="4"><textarea name='Command_Add' style="width: 300px; height: 150px" maxlength='1000' placeholder="Command" required></textarea></td>
+	</tr>
+	<tr>
+		<td style="text-align: right;">Expires:</td>
+		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Add"></td>
+		<td colspan="3"><input type="text" style="width: 100%" name="Expires_Date_Add" value="$Date" placeholder="YYYY-MM-DD" disabled></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Active:</td>
@@ -149,6 +176,9 @@ print <<ENDHTML;
 <li>Command Alias and Commands must have unique names.</li>
 <li>Commands take only full paths (e.g. <i>/sbin/service</i> instead of just <i>service</i>).</li>
 <li>Do not use spaces  or none alphanumeric characters in the Alias - they will be stripped.</li>
+<li>Commands with an expiry set are automatically removed from sudoers at 23:59:59
+(or the next sudoers refresh thereafter) on the day of expiry. Expired entries are functionally
+equivalent to inactive entries. The date entry format is YYYY-MM-DD.</li>
 <li>Active commands are eligible for sudoers inclusion.</li>
 </ul>
 
@@ -207,11 +237,15 @@ sub add_command {
 	}
 	### / Existing Command Check
 
+	if ($Expires_Toggle_Add ne 'on') {
+		$Expires_Date_Add = '0000-00-00';
+	}
 
 	my $Command_Insert = $DB_Sudoers->prepare("INSERT INTO `commands` (
 		`id`,
 		`command_alias`,
 		`command`,
+		`expires`,
 		`active`,
 		`modified_by`
 	)
@@ -220,10 +254,11 @@ sub add_command {
 		?,
 		?,
 		?,
+		?,
 		?
 	)");
 
-	$Command_Insert->execute($Command_Alias_Add, $Command_Add, $Active_Add, $User_Name);
+	$Command_Insert->execute($Command_Alias_Add, $Command_Add, $Expires_Date_Add, $Active_Add, $User_Name);
 
 	my $Command_Insert_ID = $DB_Sudoers->{mysql_insertid};
 
@@ -233,7 +268,7 @@ sub add_command {
 
 sub html_edit_command {
 
-	my $Select_Command = $DB_Sudoers->prepare("SELECT `command_alias`, `command`, `active`
+	my $Select_Command = $DB_Sudoers->prepare("SELECT `command_alias`, `command`, `expires`, `active`
 	FROM `commands`
 	WHERE `id` = ?");
 	$Select_Command->execute($Edit_Command);
@@ -243,7 +278,20 @@ sub html_edit_command {
 	
 		my $Command_Alias_Extract = $DB_Command[0];
 		my $Command_Extract = $DB_Command[1];
-		my $Active_Extract = $DB_Command[2];
+		my $Expires_Extract = $DB_Command[2];
+		my $Active_Extract = $DB_Command[3];
+
+		my $Checked;
+		my $Disabled;
+		if ($Expires_Extract eq '0000-00-00') {
+			$Checked = '';
+			$Disabled = 'disabled';
+			$Expires_Extract = strftime "%Y-%m-%d", localtime;
+		}
+		else {
+			$Checked = 'checked';
+			$Disabled = '';
+		}
 
 print <<ENDHTML;
 <div id="wide-popup-box">
@@ -254,7 +302,21 @@ print <<ENDHTML;
 
 <h3 align="center">Edit Command</h3>
 
-<form action='sudoers-commands.cgi' method='post' >
+<SCRIPT LANGUAGE="JavaScript"><!--
+function Expire_Toggle() {
+	if(document.Edit_Commands.Expires_Toggle_Edit.checked)
+	{
+		document.Edit_Commands.Expires_Date_Edit.disabled=false;
+	}
+	else
+	{
+		document.Edit_Commands.Expires_Date_Edit.disabled=true;
+	}
+}
+//-->
+</SCRIPT>
+
+<form action='sudoers-commands.cgi' name='Edit_Commands' method='post' >
 
 <table align = "center">
 	<tr>
@@ -264,6 +326,11 @@ print <<ENDHTML;
 	<tr>
 		<td style="text-align: right;">Command:</td>
 		<td colspan="4"><textarea name='Command_Edit' style="width: 300px; height: 150px" maxlength='1000' placeholder="$Command_Extract" required>$Command_Extract</textarea></td>
+	</tr>
+	<tr>
+		<td style="text-align: right;">Expires:</td>
+		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Edit" $Checked></td>
+		<td colspan="3"><input type="text" style="width: 100%" name="Expires_Date_Edit" value="$Expires_Extract" placeholder="$Expires_Extract" $Disabled></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Active:</td>
@@ -298,6 +365,9 @@ print <<ENDHTML;
 <li>Commands take only full paths (e.g. <i>/sbin/service</i> instead of just <i>service</i>).</li>
 <li>Do not use spaces  or none alphanumeric characters in the Alias - they will be stripped.</li>
 <li>You can only activate a modified command if you are an Approver. If you are not an Approver and you modify this entry, it will automatically be set to Inactive.</li>
+<li>Commands with an expiry set are automatically removed from sudoers at 23:59:59
+(or the next sudoers refresh thereafter) on the day of expiry. Expired entries are functionally
+equivalent to inactive entries. The date entry format is YYYY-MM-DD.</li>
 <li>Active commands are eligible for sudoers inclusion.</li>
 </ul>
 <hr width="50%">
@@ -360,20 +430,25 @@ sub edit_command {
 
 	if (!$User_Approver) {$Active_Edit = 0};
 
+	if ($Expires_Toggle_Edit ne 'on') {
+		$Expires_Date_Edit = '0000-00-00';
+	}
+
 	my $Update_Command = $DB_Sudoers->prepare("UPDATE `commands` SET
 		`command_alias` = ?,
 		`command` = ?,
+		`expires` = ?,
 		`active` = ?,
 		`modified_by` = ?
 		WHERE `id` = ?");
 		
-	$Update_Command->execute($Command_Alias_Edit, $Command_Edit, $Active_Edit, $User_Name, $Edit_Command_Post);
+	$Update_Command->execute($Command_Alias_Edit, $Command_Edit, $Expires_Date_Edit, $Active_Edit, $User_Name, $Edit_Command_Post);
 
 } # sub edit_command
 
 sub html_delete_command {
 
-	my $Select_Command = $DB_Sudoers->prepare("SELECT `command_alias`, `command`,
+	my $Select_Command = $DB_Sudoers->prepare("SELECT `command_alias`, `command`
 	FROM `commands`
 	WHERE `id` = ?");
 
@@ -552,15 +627,15 @@ ENDHTML
 sub html_output {
 
 	my $Table = new HTML::Table(
-		-cols=>7,
-                -align=>'center',
-                -border=>0,
-                -rules=>'cols',
-                -evenrowclass=>'tbeven',
-                -oddrowclass=>'tbodd',
-                -width=>'100%',
-                -spacing=>0,
-                -padding=>1
+		-cols=>10,
+		-align=>'center',
+		-border=>0,
+		-rules=>'cols',
+		-evenrowclass=>'tbeven',
+		-oddrowclass=>'tbodd',
+		-width=>'100%',
+		-spacing=>0,
+		-padding=>1
 	);
 
 
@@ -569,25 +644,26 @@ sub html_output {
 		my $Total_Rows = $Select_Command_Count->rows();
 
 
-	my $Select_Commands = $DB_Sudoers->prepare("SELECT `id`, `command_alias`, `command`, `active`, `last_modified`, `modified_by`
+	my $Select_Commands = $DB_Sudoers->prepare("SELECT `id`, `command_alias`, `command`, `expires`, `active`, `last_modified`, `modified_by`
 		FROM `commands`
 			WHERE `id` LIKE ?
 			OR `command_alias` LIKE ?
 			OR `command` LIKE ?
+			OR `expires` LIKE ?
 		ORDER BY `command_alias` ASC
 		LIMIT 0 , $Rows_Returned"
 	);
 
 	if ($ID_Filter) {
-		$Select_Commands->execute($ID_Filter, '', '');
+		$Select_Commands->execute($ID_Filter, '', '', '');
 	}
 	else {
-		$Select_Commands->execute("%$Filter%", "%$Filter%", "%$Filter%");
+		$Select_Commands->execute("%$Filter%", "%$Filter%", "%$Filter%", "%$Filter%");
 	}
 
 	my $Rows = $Select_Commands->rows();
 
-	$Table->addRow( "ID", "Command Alias", "Command", "Active", "Last Modified", "Modified By", "Show Links", "Edit", "Delete" );
+	$Table->addRow( "ID", "Command Alias", "Command", "Expires", "Active", "Last Modified", "Modified By", "Show Links", "Edit", "Delete" );
 	$Table->setRowClass (1, 'tbrow1');
 
 	my $Command_Row_Count=1;
@@ -606,16 +682,28 @@ sub html_output {
 			$Command_Alias =~ s/(.*)($Filter)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
 		my $Command = $Select_Commands[2];
 			$Command =~ s/(.*)($Filter)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
-		my $Active = $Select_Commands[3];
+		my $Expires = $Select_Commands[3];
+			my $Expires_Clean = $Expires;
+			$Expires =~ s/(.*)($Filter)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
+		my $Active = $Select_Commands[4];
 			if ($Active == 1) {$Active = "Yes"} else {$Active = "No"};
-		my $Last_Modified = $Select_Commands[4];
-		my $Modified_By = $Select_Commands[5];
+		my $Last_Modified = $Select_Commands[5];
+		my $Modified_By = $Select_Commands[6];
 
+		my $Expires_Epoch;
+		my $Today_Epoch = time;
+		if ($Expires_Clean =~ /^0000-00-00$/) {
+			$Expires = 'Never';
+		}
+		else {
+			$Expires_Epoch = str2time("$Expires_Clean"."T23:59:59");
+		}
 
 		$Table->addRow(
 			"$DBID",
 			"$Command_Alias",
 			"$Command",
+			"$Expires",
 			"$Active",
 			"$Last_Modified",
 			"$Modified_By",
@@ -626,25 +714,31 @@ sub html_output {
 
 
 		if ($Active eq 'Yes') {
-			$Table->setCellClass ($Command_Row_Count, 4, 'tbrowgreen');
+			$Table->setCellClass ($Command_Row_Count, 5, 'tbrowgreen');
 		}
 		else {
-			$Table->setCellClass ($Command_Row_Count, 4, 'tbrowerror');
+			$Table->setCellClass ($Command_Row_Count, 5, 'tbrowerror');
 		}
+
+		if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+			$Table->setCellClass ($Command_Row_Count, 4, 'tbrowdisabled');
+		}
+
 	}
 
 
 	$Table->setColWidth(1, '1px');
 	$Table->setColWidth(4, '1px');
-	$Table->setColWidth(5, '110px');
+	$Table->setColWidth(5, '1px');
 	$Table->setColWidth(6, '110px');
-	$Table->setColWidth(7, '1px');
+	$Table->setColWidth(7, '110px');
 	$Table->setColWidth(8, '1px');
 	$Table->setColWidth(9, '1px');
+	$Table->setColWidth(10, '1px');
 
 	$Table->setColAlign(1, 'center');
 
-	for (4 .. 9) {
+	for (4 .. 10) {
 		$Table->setColAlign($_, 'center');
 	}
 

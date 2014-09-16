@@ -1,5 +1,5 @@
 /*
------Background, foreground, font, margin, link, tooltip-----
+-----Background, foreground, font, margin, link-----
 */
 
 body {	
@@ -278,6 +278,7 @@ textarea:focus {
 	padding: 5px 15px;
 	position: absolute;
 	z-index: 98;
+	min-width: 30px;
 }
 
 .tooltip:hover:before {
@@ -286,7 +287,7 @@ textarea:focus {
 	border-width: 10px 10px 0 10px;
 	bottom: 0px;
 	content: "";
-	left: 50%;
+	left: 10px;
 	position: absolute;
 	z-index: 99;
 }

@@ -16,6 +16,8 @@ my $Host_Name_Add = $CGI->param("Host_Name_Add");
 	$Host_Name_Add =~ s/\W//g;
 my $IP_Add = $CGI->param("IP_Add");
 	$IP_Add =~ s/\s//g;
+my $Expires_Toggle_Add = $CGI->param("Expires_Toggle_Add");
+my $Expires_Date_Add = $CGI->param("Expires_Date_Add");
 my $Active_Add = $CGI->param("Active_Add");
 
 my $Edit_Host_Post = $CGI->param("Edit_Host_Post");
@@ -23,6 +25,8 @@ my $Host_Name_Edit = $CGI->param("Host_Name_Edit");
 	$Host_Name_Edit =~ s/\W//g;
 my $IP_Edit = $CGI->param("IP_Edit");
 	$IP_Edit =~ s/\s//g;
+my $Expires_Toggle_Edit = $CGI->param("Expires_Toggle_Edit");
+my $Expires_Date_Edit = $CGI->param("Expires_Date_Edit");
 my $Active_Edit = $CGI->param("Active_Edit");
 
 my $Delete_Host = $CGI->param("Delete_Host");
@@ -104,7 +108,7 @@ else {
 
 sub html_add_host {
 
-my $Date = strftime "%Y-%m-%d", gmtime(time+172800);
+my $Date = strftime "%Y-%m-%d", localtime;
 
 print <<ENDHTML;
 
@@ -116,19 +120,17 @@ print <<ENDHTML;
 
 <h3 align="center">Add New Host</h3>
 
-
 <SCRIPT LANGUAGE="JavaScript"><!--
 function Expire_Toggle() {
-	if(document.Add_Hosts.Expires_Add_Toggle.checked)
+	if(document.Add_Hosts.Expires_Toggle_Add.checked)
 	{
-		document.Add_Hosts.Expires_Add_Date.disabled=false;
+		document.Add_Hosts.Expires_Date_Add.disabled=false;
 	}
 	else
 	{
-		document.Add_Hosts.Expires_Add_Date.disabled=true;
+		document.Add_Hosts.Expires_Date_Add.disabled=true;
 	}
 }
-
 //-->
 </SCRIPT>
 
@@ -143,14 +145,10 @@ function Expire_Toggle() {
 		<td style="text-align: right;">IP:</td>
 		<td colspan="2"><input type='text' name='IP_Add' size='15' maxlength='15' placeholder="IP Address" required></td>
 	</tr>
-	
-
-
-
 	<tr>
 		<td style="text-align: right;">Expires:</td>
-		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Add_Toggle"></td>
-		<td><input type="text" size="10" name="Expires_Add_Date" value="$Date" placeholder="YYYY-MM-DD" disabled></td>
+		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Add"></td>
+		<td><input type="text" size="10" name="Expires_Date_Add" value="$Date" placeholder="YYYY-MM-DD" disabled></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Active:</td>
@@ -162,7 +160,9 @@ function Expire_Toggle() {
 <ul style='text-align: left; display: inline-block;'>
 <li>Host Names and IPs must be unique.</li>
 <li>Do not use spaces in Host Names or IPs - they will be stripped.</li>
-<li>Hosts with an expiry set are automatically removed from sudoers at 23:59:59 (or the next sudoers refresh thereafter) on the day of expiry. The date entry format is YYYY-MM-DD.</li>
+<li>Hosts with an expiry set are automatically removed from sudoers at 23:59:59
+(or the next sudoers refresh thereafter) on the day of expiry. Expired entries are functionally
+equivalent to inactive entries. The date entry format is YYYY-MM-DD.</li>
 <li>Active hosts are eligible for sudoers inclusion.</li>
 </ul>
 
@@ -221,11 +221,15 @@ sub add_host {
 	}
 	### / Existing IP Check
 
+	if ($Expires_Toggle_Add ne 'on') {
+		$Expires_Date_Add = '0000-00-00';
+	}
 
 	my $Host_Insert = $DB_Sudoers->prepare("INSERT INTO `hosts` (
 		`id`,
 		`hostname`,
 		`ip`,
+		`expires`,
 		`active`,
 		`modified_by`
 	)
@@ -234,10 +238,11 @@ sub add_host {
 		?,
 		?,
 		?,
+		?,
 		?
 	)");
 
-	$Host_Insert->execute($Host_Name_Add, $IP_Add, $Active_Add, $User_Name);
+	$Host_Insert->execute($Host_Name_Add, $IP_Add, $Expires_Date_Add, $Active_Add, $User_Name);
 
 	my $Host_Insert_ID = $DB_Sudoers->{mysql_insertid};
 
@@ -247,17 +252,30 @@ sub add_host {
 
 sub html_edit_host {
 
-	my $Select_Host = $DB_Sudoers->prepare("SELECT `hostname`, `ip`, `active`
+	my $Select_Host = $DB_Sudoers->prepare("SELECT `hostname`, `ip`, `expires`, `active`
 	FROM `hosts`
 	WHERE `id` = ?");
 	$Select_Host->execute($Edit_Host);
-	
+
 	while ( my @DB_Host = $Select_Host->fetchrow_array() )
 	{
-	
+
 		my $Host_Name_Extract = $DB_Host[0];
 		my $IP_Extract = $DB_Host[1];
-		my $Active_Extract = $DB_Host[2];
+		my $Expires_Extract = $DB_Host[2];
+		my $Active_Extract = $DB_Host[3];
+
+		my $Checked;
+		my $Disabled;
+		if ($Expires_Extract eq '0000-00-00') {
+			$Checked = '';
+			$Disabled = 'disabled';
+			$Expires_Extract = strftime "%Y-%m-%d", localtime;
+		}
+		else {
+			$Checked = 'checked';
+			$Disabled = '';
+		}
 
 print <<ENDHTML;
 <div id="small-popup-box">
@@ -268,7 +286,21 @@ print <<ENDHTML;
 
 <h3 align="center">Edit Host</h3>
 
-<form action='sudoers-hosts.cgi' method='post' >
+<SCRIPT LANGUAGE="JavaScript"><!--
+function Expire_Toggle() {
+	if(document.Edit_Hosts.Expires_Toggle_Edit.checked)
+	{
+		document.Edit_Hosts.Expires_Date_Edit.disabled=false;
+	}
+	else
+	{
+		document.Edit_Hosts.Expires_Date_Edit.disabled=true;
+	}
+}
+//-->
+</SCRIPT>
+
+<form action='sudoers-hosts.cgi' name='Edit_Hosts' method='post' >
 
 <table align = "center">
 	<tr>
@@ -278,6 +310,11 @@ print <<ENDHTML;
 	<tr>
 		<td style="text-align: right;">IP:</td>
 		<td colspan="2"><input type='text' name='IP_Edit' value='$IP_Extract' size='15' maxlength='15' placeholder="$IP_Extract" required></td>
+	</tr>
+	<tr>
+		<td style="text-align: right;">Expires:</td>
+		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Edit" $Checked></td>
+		<td><input type="text" size="10" name="Expires_Date_Edit" value="$Expires_Extract" placeholder="$Expires_Extract" $Disabled></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Active:</td>
@@ -305,7 +342,11 @@ print <<ENDHTML;
 <ul style='text-align: left; display: inline-block;'>
 <li>Host Names and IPs must be unique.</li>
 <li>Do not use spaces in Host Names or IPs - they will be stripped.</li>
-<li>You can only activate a modified host if you are an Approver. If you are not an Approver and you modify this entry, it will automatically be set to Inactive.</li>
+<li>You can only activate a modified host if you are an Approver. If you are not an
+Approver and you modify this entry, it will automatically be set to Inactive.</li>
+<li>Hosts with an expiry set are automatically removed from sudoers at 23:59:59
+(or the next sudoers refresh thereafter) on the day of expiry. Expired entries are functionally
+equivalent to inactive entries. The date entry format is YYYY-MM-DD.</li>
 <li>Active hosts are eligible for sudoers inclusion.</li>
 </ul>
 
@@ -368,15 +409,19 @@ sub edit_host {
 	### / Existing IP Check
 
 	if (!$User_Approver) {$Active_Edit = 0};
+	if ($Expires_Toggle_Edit ne 'on') {
+		$Expires_Date_Edit = '0000-00-00';
+	}
 
 	my $Update_Host = $DB_Sudoers->prepare("UPDATE `hosts` SET
 		`hostname` = ?,
 		`ip` = ?,
+		`expires` = ?,
 		`active` = ?,
 		`modified_by` = ?
 		WHERE `id` = ?");
 		
-	$Update_Host->execute($Host_Name_Edit, $IP_Edit, $Active_Edit, $User_Name, $Edit_Host_Post);
+	$Update_Host->execute($Host_Name_Edit, $IP_Edit, $Expires_Date_Edit, $Active_Edit, $User_Name, $Edit_Host_Post);
 
 } # sub edit_host
 
@@ -661,6 +706,7 @@ sub html_output {
 	}
 
 	$Table->setColWidth(1, '1px');
+	$Table->setColWidth(4, '1px');
 	$Table->setColWidth(5, '1px');
 	$Table->setColWidth(6, '110px');
 	$Table->setColWidth(7, '110px');

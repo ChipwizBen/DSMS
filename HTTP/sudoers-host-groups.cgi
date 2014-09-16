@@ -2,6 +2,8 @@
 
 use strict;
 use HTML::Table;
+use Date::Parse;
+use POSIX;
 
 require 'common.pl';
 my $DB_Sudoers = DB_Sudoers();
@@ -13,6 +15,8 @@ my $Add_Host_Temp_New = $CGI->param("Add_Host_Temp_New");
 my $Add_Host_Temp_Existing = $CGI->param("Add_Host_Temp_Existing");
 my $Group_Name_Add = $CGI->param("Group_Name_Add");
 	$Group_Name_Add =~ s/\W//g;
+my $Expires_Toggle_Add = $CGI->param("Expires_Toggle_Add");
+my $Expires_Date_Add = $CGI->param("Expires_Date_Add");
 my $Active_Add = $CGI->param("Active_Add");
 
 my $Edit_Group = $CGI->param("Edit_Group");
@@ -21,6 +25,8 @@ my $Edit_Host_Temp_New = $CGI->param("Edit_Host_Temp_New");
 my $Edit_Host_Temp_Existing = $CGI->param("Edit_Host_Temp_Existing");
 my $Group_Name_Edit = $CGI->param("Group_Name_Edit");
 	$Group_Name_Edit =~ s/\W//g;
+my $Expires_Toggle_Edit = $CGI->param("Expires_Toggle_Edit");
+my $Expires_Date_Edit = $CGI->param("Expires_Date_Edit");
 my $Active_Edit = $CGI->param("Active_Edit");
 
 my $Delete_Group = $CGI->param("Delete_Group");
@@ -127,14 +133,27 @@ my @Hosts = split(',', $Add_Host_Temp_Existing);
 
 foreach my $Host (@Hosts) {
 
-	my $Host_Query = $DB_Sudoers->prepare("SELECT `hostname`, `ip`, `active`
+	my $Host_Query = $DB_Sudoers->prepare("SELECT `hostname`, `ip`, `expires`, `active`
 		FROM `hosts`
 		WHERE `id` = ? ");
 	$Host_Query->execute($Host);
-		
-	while ( (my $Host_Name, my $IP, my $Active) = my @Host_Query = $Host_Query->fetchrow_array() )
+
+	while ( (my $Host_Name, my $IP, my $Expires, my $Active) = my @Host_Query = $Host_Query->fetchrow_array() )
 	{
-		if ($Active) {
+
+		my $Expires_Epoch;
+		my $Today_Epoch = time;
+		if ($Expires =~ /^0000-00-00$/) {
+			$Expires = 'Never';
+		}
+		else {
+			$Expires_Epoch = str2time("$Expires"."T23:59:59");
+		}
+
+		if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+			$Hosts = $Hosts . "<tr><td align='left' style='color: #B1B1B1'>$Host_Name</td> <td align='left' style='color: #B1B1B1'>$IP</td></tr>";
+		}
+		elsif ($Active) {
 			$Hosts = $Hosts . "<tr><td align='left' style='color: #00FF00'>$Host_Name</td> <td align='left' style='color: #00FF00'>$IP</td></tr>";
 		}
 		else {
@@ -145,7 +164,7 @@ foreach my $Host (@Hosts) {
 
 }
 
-
+my $Date = strftime "%Y-%m-%d", localtime;
 
 print <<ENDHTML;
 <div id="wide-popup-box">
@@ -156,7 +175,21 @@ print <<ENDHTML;
 
 <h3 align="center">Add New Group</h3>
 
-<form action='sudoers-host-groups.cgi' method='post' >
+<SCRIPT LANGUAGE="JavaScript"><!--
+function Expire_Toggle() {
+	if(document.Add_Group.Expires_Toggle_Add.checked)
+	{
+		document.Add_Group.Expires_Date_Add.disabled=false;
+	}
+	else
+	{
+		document.Add_Group.Expires_Date_Add.disabled=true;
+	}
+}
+//-->
+</SCRIPT>
+
+<form action='sudoers-host-groups.cgi' name='Add_Group' method='post' >
 
 <table align = "center">
 	<tr>
@@ -169,16 +202,28 @@ print <<ENDHTML;
 			<select name='Add_Host_Temp_New' onchange='this.form.submit()' style="width: 300px">
 ENDHTML
 
-				my $Host_List_Query = $DB_Sudoers->prepare("SELECT `id`, `hostname`, `ip`, `active`
+				my $Host_List_Query = $DB_Sudoers->prepare("SELECT `id`, `hostname`, `ip`, `expires`, `active`
 				FROM `hosts`
 				ORDER BY `hostname` ASC");
 				$Host_List_Query->execute( );
 				
 				print "<option value='' selected>--Select a Host--</option>";
 				
-				while ( (my $ID, my $Host_Name, my $IP, my $Active) = my @Host_List_Query = $Host_List_Query->fetchrow_array() )
+				while ( (my $ID, my $Host_Name, my $IP, my $Expires, my $Active) = my @Host_List_Query = $Host_List_Query->fetchrow_array() )
 				{
-					if ($Active) {
+					my $Expires_Epoch;
+					my $Today_Epoch = time;
+					if ($Expires =~ /^0000-00-00$/) {
+						$Expires = 'Never';
+					}
+					else {
+						$Expires_Epoch = str2time("$Expires"."T23:59:59");
+					}
+
+					if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+						print "<option style='color: #B1B1B1;' value='$ID'>$Host_Name ($IP) [Expired]</option>";
+					}
+					elsif ($Active) {
 						print "<option value='$ID'>$Host_Name ($IP)</option>";
 					}
 					else {
@@ -216,6 +261,11 @@ print <<ENDHTML;
 		</td>
 	</tr>
 	<tr>
+		<td style="text-align: right;">Expires:</td>
+		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Add"></td>
+		<td><input type="text" style="width: 100%" name="Expires_Date_Add" value="$Date" placeholder="YYYY-MM-DD" disabled></td>
+	</tr>
+	<tr>
 		<td style="text-align: right;">Active:</td>
 		<td style="text-align: right;"><input type="radio" name="Active_Add" value="1" checked> Yes</td>
 		<td style="text-align: right;"><input type="radio" name="Active_Add" value="0"> No</td>
@@ -225,6 +275,9 @@ print <<ENDHTML;
 <ul style='text-align: left; display: inline-block;'>
 <li>Group Names must be unique.</li>
 <li>Do not use spaces in Group Names - they will be stripped.</li>
+<li>Groups with an expiry set are automatically removed from sudoers at 23:59:59
+(or the next sudoers refresh thereafter) on the day of expiry. Expired entries are functionally
+equivalent to inactive entries. The date entry format is YYYY-MM-DD.</li>
 <li>Active Groups are eligible for sudoers inclusion.</li>
 </ul>
 
@@ -262,9 +315,14 @@ sub add_group {
 	}
 	### / Existing Group_Name Check
 
+	if ($Expires_Toggle_Add ne 'on') {
+		$Expires_Date_Add = '0000-00-00';
+	}
+
 	my $Group_Insert = $DB_Sudoers->prepare("INSERT INTO `host_groups` (
 		`id`,
 		`groupname`,
+		`expires`,
 		`active`,
 		`modified_by`
 	)
@@ -272,10 +330,11 @@ sub add_group {
 		NULL,
 		?,
 		?,
+		?,
 		?
 	)");
 
-	$Group_Insert->execute($Group_Name_Add, $Active_Add, $User_Name);
+	$Group_Insert->execute($Group_Name_Add, $Expires_Date_Add, $Active_Add, $User_Name);
 
 	my $Group_Insert_ID = $DB_Sudoers->{mysql_insertid};
 
@@ -321,14 +380,27 @@ while ( my @Select_Links = $Select_Links->fetchrow_array() )
 {
 	my $Link = @Select_Links[0];
 
-	my $Host_Query = $DB_Sudoers->prepare("SELECT `hostname`, `ip`, `active`
+	my $Host_Query = $DB_Sudoers->prepare("SELECT `hostname`, `ip`, `expires`, `active`
 		FROM `hosts`
 		WHERE `id` = ? ");
 	$Host_Query->execute($Link);
 		
-	while ( (my $Host_Name, my $IP, my $Active) = my @Host_Query = $Host_Query->fetchrow_array() )
+	while ( (my $Host_Name, my $IP, my $Expires, my $Active) = my @Host_Query = $Host_Query->fetchrow_array() )
 	{
-		if ($Active) {
+
+		my $Expires_Epoch;
+		my $Today_Epoch = time;
+		if ($Expires =~ /^0000-00-00$/) {
+			$Expires = 'Never';
+		}
+		else {
+			$Expires_Epoch = str2time("$Expires"."T23:59:59");
+		}
+
+		if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+			$Hosts = $Hosts . "<tr><td align='left' style='color: #B1B1B1'>$Host_Name</td> <td align='left' style='color: #B1B1B1'>$IP</td></tr>";
+		}
+		elsif ($Active) {
 			$Hosts = $Hosts . "<tr><td align='left' style='color: #00FF00'>$Host_Name</td> <td align='left' style='color: #00FF00'>$IP</td></tr>";
 		}
 		else {
@@ -368,14 +440,27 @@ my @Hosts = split(',', $Edit_Host_Temp_Existing);
 
 foreach my $Host (@Hosts) {
 
-	my $Host_Query = $DB_Sudoers->prepare("SELECT `hostname`, `ip`, `active`
+	my $Host_Query = $DB_Sudoers->prepare("SELECT `hostname`, `ip`, `expires`, `active`
 		FROM `hosts`
 		WHERE `id` = ? ");
 	$Host_Query->execute($Host);
 		
-	while ( (my $Host_Name, my $IP, my $Active) = my @Host_Query = $Host_Query->fetchrow_array() )
+	while ( (my $Host_Name, my $IP, my $Expires, my $Active) = my @Host_Query = $Host_Query->fetchrow_array() )
 	{
-		if ($Active) {
+
+		my $Expires_Epoch;
+		my $Today_Epoch = time;
+		if ($Expires =~ /^0000-00-00$/) {
+			$Expires = 'Never';
+		}
+		else {
+			$Expires_Epoch = str2time("$Expires"."T23:59:59");
+		}
+
+		if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+			$Hosts_New = $Hosts_New . "<tr><td align='left' style='color: #B1B1B1'>$Host_Name</td> <td align='left' style='color: #B1B1B1'>$IP</td></tr>";
+		}
+		elsif ($Active) {
 			$Hosts_New = $Hosts_New . "<tr><td align='left' style='color: #00FF00'>$Host_Name</td> <td align='left' style='color: #00FF00'>$IP</td></tr>";
 		}
 		else {
@@ -389,7 +474,7 @@ foreach my $Host (@Hosts) {
 ### Group Details Retrieval
 
 if (!$Group_Name_Edit) {
-	my $Select_Group_Details = $DB_Sudoers->prepare("SELECT `groupname`, `active`
+	my $Select_Group_Details = $DB_Sudoers->prepare("SELECT `groupname`, `expires`, `active`
 		FROM `host_groups`
 		WHERE `id` = ? "
 	);
@@ -398,9 +483,22 @@ if (!$Group_Name_Edit) {
 	while ( my @Select_Details = $Select_Group_Details->fetchrow_array() )
 	{
 		$Group_Name_Edit = @Select_Details[0];
-		$Active_Edit = @Select_Details[1];
+		$Expires_Date_Edit = @Select_Details[1];
+		$Active_Edit = @Select_Details[2];
 	}
 }
+
+	my $Checked;
+	my $Disabled;
+	if ($Expires_Date_Edit eq '0000-00-00' || !$Expires_Date_Edit) {
+		$Checked = '';
+		$Disabled = 'disabled';
+		$Expires_Date_Edit = strftime "%Y-%m-%d", localtime;
+	}
+	else {
+		$Checked = 'checked';
+		$Disabled = '';
+	}
 
 ### / Group Details Retrieval
 
@@ -413,7 +511,21 @@ print <<ENDHTML;
 
 <h3 align="center">Edit Group</h3>
 
-<form action='sudoers-host-groups.cgi' method='post' >
+<SCRIPT LANGUAGE="JavaScript"><!--
+function Expire_Toggle() {
+	if(document.Edit_Group.Expires_Toggle_Edit.checked)
+	{
+		document.Edit_Group.Expires_Date_Edit.disabled=false;
+	}
+	else
+	{
+		document.Edit_Group.Expires_Date_Edit.disabled=true;
+	}
+}
+//-->
+</SCRIPT>
+
+<form action='sudoers-host-groups.cgi' name='Edit_Group' method='post' >
 
 <table align = "center">
 	<tr>
@@ -426,16 +538,28 @@ print <<ENDHTML;
 			<select name='Edit_Host_Temp_New' onchange='this.form.submit()' style="width: 300px">
 ENDHTML
 
-				my $Host_List_Query = $DB_Sudoers->prepare("SELECT `id`, `hostname`, `ip`, `active`
+				my $Host_List_Query = $DB_Sudoers->prepare("SELECT `id`, `hostname`, `ip`, `expires`, `active`
 				FROM `hosts`
 				ORDER BY `hostname` ASC");
 				$Host_List_Query->execute( );
 				
 				print "<option value='' selected>--Select a Host--</option>";
 				
-				while ( (my $ID, my $Host_Name, my $IP, my $Active) = my @Host_List_Query = $Host_List_Query->fetchrow_array() )
+				while ( (my $ID, my $Host_Name, my $IP, my $Expires, my $Active) = my @Host_List_Query = $Host_List_Query->fetchrow_array() )
 				{
-					if ($Active) {
+					my $Expires_Epoch;
+					my $Today_Epoch = time;
+					if ($Expires =~ /^0000-00-00$/) {
+						$Expires = 'Never';
+					}
+					else {
+						$Expires_Epoch = str2time("$Expires"."T23:59:59");
+					}
+			
+					if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+						print "<option style='color: #B1B1B1;' value='$ID'>$Host_Name ($IP) [Expired]</option>";
+					}
+					elsif ($Active) {
 						print "<option value='$ID'>$Host_Name ($IP)</option>";
 					}
 					else {
@@ -497,6 +621,11 @@ print <<ENDHTML;
 		</td>
 	</tr>
 	<tr>
+		<td style="text-align: right;">Expires:</td>
+		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Edit" $Checked></td>
+		<td><input type="text" style="width: 100%" name="Expires_Date_Edit" value="$Expires_Date_Edit" placeholder="$Expires_Date_Edit" $Disabled></td>
+	</tr>
+	<tr>
 		<td style="text-align: right;">Active:</td>
 ENDHTML
 
@@ -520,7 +649,11 @@ print <<ENDHTML;
 <ul style='text-align: left; display: inline-block;'>
 <li>Group Names must be unique.</li>
 <li>Do not use spaces in Group Names - they will be stripped.</li>
-<li>You can only activate a modified command if you are an Approver. If you are not an Approver and you modify this entry, it will automatically be set to Inactive.</li>
+<li>You can only activate a modified command if you are an Approver.
+If you are not an Approver and you modify this entry, it will automatically be set to Inactive.</li>
+<li>Groups with an expiry set are automatically removed from sudoers at 23:59:59
+(or the next sudoers refresh thereafter) on the day of expiry. Expired entries are functionally
+equivalent to inactive entries. The date entry format is YYYY-MM-DD.</li>
 <li>Active Groups are eligible for sudoers inclusion.</li>
 </ul>
 
@@ -560,13 +693,17 @@ sub edit_group {
 	### / Existing Group_Name Check
 
 	if (!$User_Approver) {$Active_Edit = 0};
+	if ($Expires_Toggle_Edit ne 'on') {
+		$Expires_Date_Edit = '0000-00-00';
+	}
 
 	my $Update_Group = $DB_Sudoers->prepare("UPDATE `host_groups` SET
 		`groupname` = ?,
+		`expires` = ?,
 		`active` = ?,
 		`modified_by` = ?
 		WHERE `id` = ?");
-	$Update_Group->execute($Group_Name_Edit, $Active_Edit, $User_Name, $Edit_Group);
+	$Update_Group->execute($Group_Name_Edit, $Expires_Date_Edit, $Active_Edit, $User_Name, $Edit_Group);
 
 	$Edit_Host_Temp_Existing =~ s/,$//;
 	my @Hosts = split(',', $Edit_Host_Temp_Existing);
@@ -786,7 +923,7 @@ ENDHTML
 sub html_output {
 
 	my $Table = new HTML::Table(
-		-cols=>9,
+		-cols=>10,
                 -align=>'center',
                 -border=>0,
                 -rules=>'cols',
@@ -803,24 +940,25 @@ sub html_output {
 		my $Total_Rows = $Select_Group_Count->rows();
 
 
-	my $Select_Groups = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `active`, `last_modified`, `modified_by`
+	my $Select_Groups = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `expires`, `active`, `last_modified`, `modified_by`
 		FROM `host_groups`
 		WHERE `id` LIKE ?
 		OR `groupname` LIKE ?
+		OR `expires` LIKE ?
 		ORDER BY `groupname` ASC
 		LIMIT 0 , $Rows_Returned"
 	);
 
 	if ($ID_Filter) {
-		$Select_Groups->execute($ID_Filter, '');
+		$Select_Groups->execute($ID_Filter, '', '');
 	}
 	else {
-		$Select_Groups->execute("%$Filter%", "%$Filter%");
+		$Select_Groups->execute("%$Filter%", "%$Filter%", "%$Filter%");
 	}
 	
 	my $Rows = $Select_Groups->rows();
 
-	$Table->addRow( "ID", "Group Name", "Connected Hosts", "Active", "Last Modified", "Modified By", "Links", "Edit", "Delete" );
+	$Table->addRow( "ID", "Group Name", "Connected Hosts", "Expires", "Active", "Last Modified", "Modified By", "Links", "Edit", "Delete" );
 	$Table->setRowClass (1, 'tbrow1');
 
 	my $Group_Row_Count=1;
@@ -838,10 +976,13 @@ sub html_output {
 		my $Group_Name = @Select_Groups[1];
 		my $Group_Name_Clean = $Group_Name;
 			$Group_Name =~ s/(.*)($Filter)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
-		my $Active = @Select_Groups[2];
+		my $Group_Expires = @Select_Groups[2];
+		my $Group_Expires_Clean = $Group_Expires;
+			$Group_Expires =~ s/(.*)($Filter)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
+		my $Active = @Select_Groups[3];
 			if ($Active == 1) {$Active = "Yes"} else {$Active = "No"};
-		my $Last_Modified = @Select_Groups[3];
-		my $Modified_By = @Select_Groups[4];
+		my $Last_Modified = @Select_Groups[4];
+		my $Modified_By = @Select_Groups[5];
 
 
 		my $Select_Links = $DB_Sudoers->prepare("SELECT `host`
@@ -855,7 +996,7 @@ sub html_output {
 			
 			my $Host_ID = @Select_Links[0];
 
-			my $Select_Hosts = $DB_Sudoers->prepare("SELECT `hostname`, `ip`, `active`
+			my $Select_Hosts = $DB_Sudoers->prepare("SELECT `hostname`, `ip`, `expires`, `active`
 				FROM `hosts`
 				WHERE `id` = ?"
 			);
@@ -867,9 +1008,23 @@ sub html_output {
 				my $Host = @Select_Hosts[0];
 					my $Host_Clean = $Host;
 				my $IP = @Select_Hosts[1];
-				my $Active = @Select_Hosts[2];
+				my $Expires = @Select_Hosts[2];
+				my $Active = @Select_Hosts[3];
 
-				if ($Active == 1) {
+				my $Expires_Epoch;
+				my $Today_Epoch = time;
+				if ($Expires =~ /^0000-00-00$/) {
+					$Expires = 'Never';
+				}
+				else {
+					$Expires_Epoch = str2time("$Expires"."T23:59:59");
+				}
+
+
+				if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+					$Host = "<a href='sudoers-hosts.cgi?ID_Filter=$Host_ID'><span style='color: #B1B1B1'>$Host ($IP)</span></a>"
+				}
+				elsif ($Active == 1) {
 					$Host = "<a href='sudoers-hosts.cgi?ID_Filter=$Host_ID'><span style='color: #00FF00'>$Host ($IP)</span></a>"
 				}
 				else {
@@ -880,10 +1035,20 @@ sub html_output {
 			}
 		}
 
+		my $Group_Expires_Epoch;
+		my $Today_Epoch = time;
+		if ($Group_Expires_Clean =~ /^0000-00-00$/) {
+			$Group_Expires = 'Never';
+		}
+		else {
+			$Group_Expires_Epoch = str2time("$Group_Expires_Clean"."T23:59:59");
+		}
+
 		$Table->addRow(
 			"$DBID",
 			"$Group_Name",
 			"$Hosts",
+			"$Group_Expires",
 			"$Active",
 			"$Last_Modified",
 			"$Modified_By",
@@ -894,23 +1059,29 @@ sub html_output {
 
 
 		if ($Active eq 'Yes') {
-			$Table->setCellClass ($Group_Row_Count, 4, 'tbrowgreen');
+			$Table->setCellClass ($Group_Row_Count, 5, 'tbrowgreen');
 		}
 		else {
-			$Table->setCellClass ($Group_Row_Count, 4, 'tbrowerror');
+			$Table->setCellClass ($Group_Row_Count, 5, 'tbrowerror');
 		}
+
+		if ($Group_Expires ne 'Never' && $Group_Expires_Epoch < $Today_Epoch) {
+			$Table->setCellClass ($Group_Row_Count, 4, 'tbrowdisabled');
+		}
+
 	}
 
 	$Table->setColWidth(1, '1px');
 	$Table->setColWidth(4, '1px');
-	$Table->setColWidth(5, '110px');
+	$Table->setColWidth(5, '1px');
 	$Table->setColWidth(6, '110px');
-	$Table->setColWidth(7, '1px');
+	$Table->setColWidth(7, '110px');
 	$Table->setColWidth(8, '1px');
 	$Table->setColWidth(9, '1px');
+	$Table->setColWidth(10, '1px');
 
 	$Table->setColAlign(1, 'center');
-	for (4 .. 9) {
+	for (4 .. 10) {
 		$Table->setColAlign($_, 'center');
 	}
 
@@ -951,6 +1122,7 @@ print <<ENDHTML;
 					<td colspan='2' style="text-align: left;">
 						Hosts highlighted <span style="color: #00FF00;">green</span> are Active<br />
 						Hosts highlighted <span style="color: #FF0000;">red</span> are Inactive<br />
+						Hosts highlighted <span style="color: #B1B1B1;">grey</span> have expired<br />
 						Click a Host to view it in the Hosts table<br />
 						Click <span style='color: #FFC600'>[Remove]</span> to remove a host from the group
 					</td>

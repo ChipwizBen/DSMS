@@ -7,6 +7,12 @@ use CGI::Carp qw/fatalsToBrowser/;
 use CGI::Session qw/-ip-match/;
 use DBI;
 
+sub Version {
+
+	return '1.5';
+
+};
+
 sub Server_Hostname {
 
 	return `hostname`;
