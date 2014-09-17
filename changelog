@@ -3,9 +3,11 @@
 		where a string time is specified (such as "$Date = strftime "%Y-%m-%d", localtime;").
 1.2.1 -	Reduced Date::Parse module requirement from Date::Parse to Date::Parse qw(str2time).
 1.2.0 -	Added item and rule expiry system. Added Date::Parse to requirement list (see README).
+----------------
 1.1.1 -	Trimmed legacy files.
 1.1.0 -	Moved environmental variables from sudoers-build.pl to dedicated plain text environmental-variables
 		file so users don't need to edit the sudoers-build.pl script.
+----------------
 1.0.2 -	Renamed from  Sudoers Build System to  Sudoers Management System to better describe
 		the system's purpose. Modified login.cgi, lockout.cgi, header.cgi to pull name from new sub routine
 		in common.pl so the name can be easily edited to fit more easily into different customer
