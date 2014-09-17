@@ -4,6 +4,7 @@ use strict;
 use Digest::SHA qw(sha512_hex);
 
 require 'common.pl';
+my $System_Name = System_Name();
 my $DB_Main = DB_Main();
 my ($CGI, $Session, $Cookie) = CGI();
 
@@ -84,14 +85,14 @@ print <<ENDHTML;
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Sudoers Build System</title>
+	<title>$System_Name</title>
 	<link rel="stylesheet" type="text/css" href="format.css" media= "screen" title ="Default CSS"/>
 </head>
 
 <body style="background-color: #575757;">
 <div id="login">
 <div id="loginform">
-<h3>Sudoers Build System</h3>
+<h3>$System_Name</h3>
 <form action='lockout.cgi' method='post' >
 <div style="text-align: center;">
 

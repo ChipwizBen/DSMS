@@ -6,6 +6,7 @@ use MIME::Lite;
 #use Crypt::PBKDF2;
 
 require 'common.pl';
+my $System_Name = System_Name();
 my $DB_Main = DB_Main();
 my ($CGI, $Session, $Cookie) = CGI();
 
@@ -168,7 +169,7 @@ If you are still having problems logging in, you should contact an administrator
 Ben Schofield: <a href='mailto:bensch\@'>bensch\@</a><br/>
 <br/>
 Regards,<br/>
-Sudoers Build System<br/>
+$System_Name<br/>
 
 ";
 
@@ -204,15 +205,19 @@ sub html_output {
 print <<ENDHTML;
 <html>
 <head>
-  <title> Sudoers Build System</title>
-  <link rel="stylesheet" type="text/css" href="format.css" media= "screen,print" title =" - Default"/>
-  
+	<title>$System_Name</title>
+	<link rel="stylesheet" type="text/css" href="format.css" media= "screen,print" title =" - Default"/>
+
+	<!--[if IE]>
+		<META HTTP-EQUIV=REFRESH CONTENT="0; URL=http://getfirefox.com">
+	<![endif]-->
+
 </head>
 
 <body style="background-color: #575757;">
 <div id="login">
 <div id="loginform">
-<h3> Sudoers Build System</h3>
+<h3>$System_Name</h3>
 <form action='login.cgi' method='post' >
 <div style="text-align: center;">
 

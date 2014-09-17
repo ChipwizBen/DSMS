@@ -7,9 +7,21 @@ use CGI::Carp qw/fatalsToBrowser/;
 use CGI::Session qw/-ip-match/;
 use DBI;
 
+sub System_Name {
+
+	return ' Sudoers Management System';
+
+};
+
+sub System_Short_Name {
+
+	return 'DSMS';
+
+};
+
 sub Version {
 
-	return '1.5';
+	return '1.2.2';
 
 };
 

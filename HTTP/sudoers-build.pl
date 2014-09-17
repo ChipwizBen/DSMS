@@ -5,9 +5,11 @@ use POSIX qw(strftime);
 
 require 'common.pl';
 my $DB_Sudoers = DB_Sudoers();
+my $Sudoers_Location = Sudoers_Location(); # Set the path in common.pl
+my $System_Name = System_Name();
 
 my $Date_Time = strftime "%Y-%m-%d %H:%M:%S", localtime;
-my $Sudoers_Location = Sudoers_Location(); # Set the path in common.pl
+my $Date = strftime "%Y-%m-%d", localtime;
 
 &write_environmentals;
 &write_host_groups;
@@ -34,14 +36,12 @@ sub write_environmentals {
 	open( FILE, ">$Sudoers_Location" ) or die "Can't open $Sudoers_Location";
 
 	print FILE "#########################################################################\n";
+	print FILE "## $System_Name\n";
 	print FILE "## AUTO GENERATED SCRIPT\n";
 	print FILE "## Please do not edit by hand\n";
 	print FILE "## This file is part of a wider system and is automatically overwritten often\n";
-	print FILE "## V1.0 26/08/2014 bensch\@\n";
 	print FILE "## File Created: $Date_Time\n";
-	print FILE "##\n";
-	print FILE "## Changelog\n";
-	print FILE "## 1.0 - Initial Version\n";
+	print FILE "## View the changelog or README files for more information.\n";
 	print FILE "#########################################################################\n";
 	print FILE "\n\n";
 
@@ -74,9 +74,11 @@ sub write_host_groups {
 
 	print FILE "\n### Host Groups ###\n\n";
 
-	my $Select_Groups = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `last_modified`, `modified_by`
+	my $Select_Groups = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `expires`, `last_modified`, `modified_by`
 		FROM `host_groups`
 		WHERE `active` = '1'
+		AND (`expires` >= '$Date'
+			OR `expires` = '0000-00-00')
 		ORDER BY `groupname` ASC"
 	);
 	$Select_Groups->execute();
@@ -86,10 +88,18 @@ sub write_host_groups {
 
 		my $DBID = $Select_Groups[0];
 		my $Group_Name = $Select_Groups[1];
-		my $Last_Modified = $Select_Groups[2];
-		my $Modified_By = $Select_Groups[3];
+		my $Expires = $Select_Groups[2];
+		my $Last_Modified = $Select_Groups[3];
+		my $Modified_By = $Select_Groups[4];
 
-		print FILE "## $Group_Name (ID: $DBID), last modified $Last_Modified by $Modified_By\n";
+			if ($Expires eq '0000-00-00') {
+				$Expires = 'does not expire';
+			}
+			else {
+				$Expires = "expires on " . $Expires;
+			}
+
+		print FILE "## $Group_Name (ID: $DBID), $Expires, last modified $Last_Modified by $Modified_By\n";
 
 		my $Hosts;
 		my $Select_Links = $DB_Sudoers->prepare("SELECT `host`
@@ -106,7 +116,9 @@ sub write_host_groups {
 			my $Select_Hosts = $DB_Sudoers->prepare("SELECT `hostname`, `ip`
 				FROM `hosts`
 				WHERE `id` = ?
-				AND `active` = '1'"
+				AND `active` = '1'
+				AND (`expires` >= '$Date'
+					OR `expires` = '0000-00-00')"
 			);
 			$Select_Hosts->execute($Host_ID);
 
@@ -137,9 +149,11 @@ sub write_user_groups {
 
 	print FILE "\n### User Groups ###\n\n";
 
-	my $Select_Groups = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `last_modified`, `modified_by`
+	my $Select_Groups = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `expires`, `last_modified`, `modified_by`
 		FROM `user_groups`
 		WHERE `active` = '1'
+		AND (`expires` >= '$Date'
+			OR `expires` = '0000-00-00')
 		ORDER BY `groupname` ASC"
 	);
 	$Select_Groups->execute();
@@ -149,10 +163,18 @@ sub write_user_groups {
 
 		my $DBID = $Select_Groups[0];
 		my $Group_Name = $Select_Groups[1];
-		my $Last_Modified = $Select_Groups[2];
-		my $Modified_By = $Select_Groups[3];
+		my $Expires = $Select_Groups[2];
+		my $Last_Modified = $Select_Groups[3];
+		my $Modified_By = $Select_Groups[4];
 
-		print FILE "## $Group_Name (ID: $DBID), last modified $Last_Modified by $Modified_By\n";
+		if ($Expires eq '0000-00-00') {
+			$Expires = 'does not expire';
+		}
+		else {
+			$Expires = "expires on " . $Expires;
+		}
+
+		print FILE "## $Group_Name (ID: $DBID), $Expires, last modified $Last_Modified by $Modified_By\n";
 
 		my $Users;
 		my $Select_Links = $DB_Sudoers->prepare("SELECT `user`
@@ -169,7 +191,9 @@ sub write_user_groups {
 			my $Select_Users = $DB_Sudoers->prepare("SELECT `username`
 				FROM `users`
 				WHERE `id` = ?
-				AND `active` = '1'"
+				AND `active` = '1'
+				AND (`expires` >= '$Date'
+					OR `expires` = '0000-00-00')"
 			);
 			$Select_Users->execute($User_ID);
 
@@ -199,9 +223,11 @@ sub write_command_groups {
 
 	print FILE "\n### Command Groups ###\n\n";
 
-	my $Select_Groups = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `last_modified`, `modified_by`
+	my $Select_Groups = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `expires`, `last_modified`, `modified_by`
 		FROM `command_groups`
 		WHERE `active` = '1'
+		AND (`expires` >= '$Date'
+			OR `expires` = '0000-00-00')
 		ORDER BY `groupname` ASC"
 	);
 	$Select_Groups->execute();
@@ -211,10 +237,18 @@ sub write_command_groups {
 
 		my $DBID = $Select_Groups[0];
 		my $Group_Name = $Select_Groups[1];
-		my $Last_Modified = $Select_Groups[2];
-		my $Modified_By = $Select_Groups[3];
+		my $Expires = $Select_Groups[2];
+		my $Last_Modified = $Select_Groups[3];
+		my $Modified_By = $Select_Groups[4];
 
-		print FILE "## $Group_Name (ID: $DBID), last modified $Last_Modified by $Modified_By\n";
+		if ($Expires eq '0000-00-00') {
+			$Expires = 'does not expire';
+		}
+		else {
+			$Expires = "expires on " . $Expires;
+		}
+
+		print FILE "## $Group_Name (ID: $DBID), $Expires, last modified $Last_Modified by $Modified_By\n";
 
 		my $Commands;
 		my $Select_Links = $DB_Sudoers->prepare("SELECT `command`
@@ -231,7 +265,9 @@ sub write_command_groups {
 			my $Select_Commands = $DB_Sudoers->prepare("SELECT `command_alias`
 				FROM `commands`
 				WHERE `id` = ?
-				AND `active` = '1'"
+				AND `active` = '1'
+				AND (`expires` >= '$Date'
+					OR `expires` = '0000-00-00')"
 			);
 			$Select_Commands->execute($Command_ID);
 
@@ -262,9 +298,11 @@ sub write_commands {
 
 	print FILE "\n### Commands ###\n\n";
 
-	my $Select_Commands = $DB_Sudoers->prepare("SELECT `id`, `command_alias`, `command`, `last_modified`, `modified_by`
+	my $Select_Commands = $DB_Sudoers->prepare("SELECT `id`, `command_alias`, `command`, `expires`, `last_modified`, `modified_by`
 		FROM `commands`
 		WHERE `active` = '1'
+		AND (`expires` >= '$Date'
+			OR `expires` = '0000-00-00')
 		ORDER BY `command_alias` ASC"
 	);
 	$Select_Commands->execute();
@@ -275,10 +313,18 @@ sub write_commands {
 		my $DBID = $Select_Commands[0];
 		my $Command_Alias = $Select_Commands[1];
 		my $Command = $Select_Commands[2];
-		my $Last_Modified = $Select_Commands[3];
-		my $Modified_By = $Select_Commands[4];
+		my $Expires = $Select_Commands[3];
+		my $Last_Modified = $Select_Commands[4];
+		my $Modified_By = $Select_Commands[5];
 
-		print FILE "## $Command_Alias (ID: $DBID), last modified $Last_Modified by $Modified_By\n";
+		if ($Expires eq '0000-00-00') {
+			$Expires = 'does not expire';
+		}
+		else {
+			$Expires = "expires on " . $Expires;
+		}
+
+		print FILE "## $Command_Alias (ID: $DBID), $Expires, last modified $Last_Modified by $Modified_By\n";
 		$Command_Alias = uc($Command_Alias); # Turn to uppercase so that sudo can read it correctly
 		$Command =~ s/,\s$//; # Remove trailing comma
 		print FILE "Cmnd_Alias	COMMAND_$Command_Alias = $Command\n\n";
@@ -309,7 +355,9 @@ sub create_host_rule_groups {
 			my $Select_Groups = $DB_Sudoers->prepare("SELECT `groupname`
 				FROM `host_groups`
 				WHERE `id` = ?
-				AND `active` = '1'"
+				AND `active` = '1'
+				AND (`expires` >= '$Date'
+					OR `expires` = '0000-00-00')"
 			);
 			$Select_Groups->execute($Group_ID);
 
@@ -336,7 +384,9 @@ sub create_host_rule_groups {
 			my $Select_Hosts = $DB_Sudoers->prepare("SELECT `hostname`
 				FROM `hosts`
 				WHERE `id` = ?
-				AND `active` = '1'"
+				AND `active` = '1'
+				AND (`expires` >= '$Date'
+					OR `expires` = '0000-00-00')"
 			);
 			$Select_Hosts->execute($Host_ID);
 
@@ -372,7 +422,9 @@ sub create_user_rule_groups {
 			my $Select_Groups = $DB_Sudoers->prepare("SELECT `groupname`
 				FROM `user_groups`
 				WHERE `id` = ?
-				AND `active` = '1'"
+				AND `active` = '1'
+				AND (`expires` >= '$Date'
+					OR `expires` = '0000-00-00')"
 			);
 			$Select_Groups->execute($Group_ID);
 
@@ -399,7 +451,9 @@ sub create_user_rule_groups {
 			my $Select_Users = $DB_Sudoers->prepare("SELECT `username`
 				FROM `users`
 				WHERE `id` = ?
-				AND `active` = '1'"
+				AND `active` = '1'
+				AND (`expires` >= '$Date'
+					OR `expires` = '0000-00-00')"
 			);
 			$Select_Users->execute($User_ID);
 
@@ -436,7 +490,9 @@ sub create_command_rule_groups {
 			my $Select_Groups = $DB_Sudoers->prepare("SELECT `groupname`
 				FROM `command_groups`
 				WHERE `id` = ?
-				AND `active` = '1'"
+				AND `active` = '1'
+				AND (`expires` >= '$Date'
+					OR `expires` = '0000-00-00')"
 			);
 			$Select_Groups->execute($Group_ID);
 
@@ -463,7 +519,9 @@ sub create_command_rule_groups {
 			my $Select_Commands = $DB_Sudoers->prepare("SELECT `command`
 				FROM `commands`
 				WHERE `id` = ?
-				AND `active` = '1'"
+				AND `active` = '1'
+				AND (`expires` >= '$Date'
+					OR `expires` = '0000-00-00')"
 			);
 			$Select_Commands->execute($Command_ID);
 
@@ -486,10 +544,12 @@ sub write_rules {
 
 	print FILE "\n### Rules ###\n\n";
 
-	my $Select_Rules = $DB_Sudoers->prepare("SELECT `id`, `name`, `run_as`, `nopasswd`, `noexec`, `last_approved`, `approved_by`, `last_modified`, `modified_by`
+	my $Select_Rules = $DB_Sudoers->prepare("SELECT `id`, `name`, `run_as`, `nopasswd`, `noexec`, `expires`, `last_approved`, `approved_by`, `last_modified`, `modified_by`
 		FROM `rules`
 		WHERE `active` = '1'
 		AND `approved` = '1'
+		AND (`expires` >= '$Date'
+			OR `expires` = '0000-00-00')
 		ORDER BY `id` ASC"
 	);
 
@@ -505,17 +565,25 @@ sub write_rules {
 			if ($NOPASSWD == 1) {$NOPASSWD = 'NOPASSWD'} else {$NOPASSWD = 'PASSWD'};
 		my $NOEXEC = $Select_Rules[4];
 			if ($NOEXEC == 1) {$NOEXEC = 'NOEXEC'} else {$NOEXEC = 'EXEC'};
-		my $Last_Approved = $Select_Rules[5];
-		my $Approved_By = $Select_Rules[6];
-		my $Last_Modified = $Select_Rules[7];
-		my $Modified_By = $Select_Rules[8];
+		my $Expires = $Select_Rules[5];
+		my $Last_Approved = $Select_Rules[6];
+		my $Approved_By = $Select_Rules[7];
+		my $Last_Modified = $Select_Rules[8];
+		my $Modified_By = $Select_Rules[9];
 
 		my $Returned_Host_Group = &create_host_rule_groups($DBID);
 		my $Returned_User_Group = &create_user_rule_groups($DBID);
 		my $Returned_Command_Group = &create_command_rule_groups($DBID);
 
+		if ($Expires eq '0000-00-00') {
+			$Expires = 'does not expire';
+		}
+		else {
+			$Expires = "expires on " . $Expires;
+		}
+
 		if ($Returned_Host_Group && $Returned_User_Group && $Returned_Command_Group) {
-			print FILE "## $DB_Rule_Name (ID: $DBID), last modified $Last_Modified by $Modified_By, last approved $Last_Approved by $Approved_By\n";
+			print FILE "## $DB_Rule_Name (ID: $DBID), $Expires, last modified $Last_Modified by $Modified_By, last approved $Last_Approved by $Approved_By\n";
 			print FILE "Host_Alias	HOST_RULE_GROUP_$DBID = $Returned_Host_Group\n";
 			print FILE "User_Alias	USER_RULE_GROUP_$DBID = $Returned_User_Group\n";
 			print FILE "Cmnd_Alias	COMMAND_RULE_GROUP_$DBID = $Returned_Command_Group\n";

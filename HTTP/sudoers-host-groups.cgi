@@ -2,8 +2,8 @@
 
 use strict;
 use HTML::Table;
-use Date::Parse;
-use POSIX;
+use Date::Parse qw(str2time);
+use POSIX qw(strftime);
 
 require 'common.pl';
 my $DB_Sudoers = DB_Sudoers();

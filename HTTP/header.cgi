@@ -1,9 +1,11 @@
 #!/usr/bin/perl
 
 use strict;
-use POSIX;
+use POSIX qw(strftime);
 
 require 'common.pl';
+my $System_Name = System_Name();
+my $System_Short_Name = System_Short_Name();
 my $Version = Version();
 my $DB_Main = DB_Main();
 my ($CGI, $Session, $Cookie) = CGI();
@@ -102,7 +104,7 @@ print <<ENDHTML;
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Sudoers Build System</title>
+	<title>$System_Name</title>
 	<link rel="stylesheet" type="text/css" href="format.css" media= "screen" title ="Default CSS"/>
 </head>
 <body>
@@ -112,7 +114,7 @@ print <<ENDHTML;
 	<div id="loginlink">
 
 		<div id="loginlinkleft">
-			DSMS version <span style="color: #00FF00;">$Version</span> on <span style="color: #00FF00;">$Server_Hostname</span> | Welcome <a href="password-change.cgi">$Username</a> <span id="logoutlink"><a href="logout.cgi">[ Logout ]</a></span>
+			$System_Short_Name version <span style="color: #00FF00;">$Version</span> on <span style="color: #00FF00;">$Server_Hostname</span> | Welcome <a href="password-change.cgi">$Username</a> <span id="logoutlink"><a href="logout.cgi">[ Logout ]</a></span>
 		</div> <!-- loginlinkleft -->
 
 			<form action='search.cgi' method='post' >

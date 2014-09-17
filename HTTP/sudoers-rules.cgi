@@ -2,8 +2,8 @@
 
 use strict;
 use HTML::Table;
-use Date::Parse;
-use POSIX;
+use Date::Parse qw(str2time);
+use POSIX qw(strftime);
 
 require 'common.pl';
 my $DB_Main = DB_Main();
@@ -19,6 +19,8 @@ my $Add_Rule_Final = $CGI->param("Add_Rule_Final");
 	my $Run_As_Add = $CGI->param("Run_As_Add");
 	my $NOPASSWD_Add = $CGI->param("NOPASSWD_Add");
 	my $NOEXEC_Add = $CGI->param("NOEXEC_Add");
+	my $Expires_Toggle_Add = $CGI->param("Expires_Toggle_Add");
+	my $Expires_Date_Add = $CGI->param("Expires_Date_Add");
 	my $Active_Add = $CGI->param("Active_Add");
 
 	my $Add_Host_Group_Temp_New = $CGI->param("Add_Host_Group_Temp_New");
@@ -45,6 +47,8 @@ my $Edit_Rule_Final = $CGI->param("Edit_Rule_Final");
 	my $Run_As_Edit = $CGI->param("Run_As_Edit");
 	my $NOPASSWD_Edit = $CGI->param("NOPASSWD_Edit");
 	my $NOEXEC_Edit = $CGI->param("NOEXEC_Edit");
+	my $Expires_Toggle_Edit = $CGI->param("Expires_Toggle_Edit");
+	my $Expires_Date_Edit = $CGI->param("Expires_Date_Edit");
 	my $Active_Edit = $CGI->param("Active_Edit");
 
 	my $Edit_Host_Group_Temp_New = $CGI->param("Edit_Host_Group_Temp_New");
@@ -157,6 +161,8 @@ else {
 
 
 sub html_add_rule {
+
+my $Date = strftime "%Y-%m-%d", localtime;
 
 ### Temp Selection Filters
 	# *_Temp_Existing are existing temporary allocations from the last refresh. This is basically a list of 'new' elements that have not yet been committed to the database.
@@ -354,7 +360,21 @@ print <<ENDHTML;
 
 <h3 align="center">Add New Rule</h3>
 
-<form action='sudoers-rules.cgi' method='post' >
+<SCRIPT LANGUAGE="JavaScript"><!--
+function Expire_Toggle() {
+	if(document.Add_Rule.Expires_Toggle_Add.checked)
+	{
+		document.Add_Rule.Expires_Date_Add.disabled=false;
+	}
+	else
+	{
+		document.Add_Rule.Expires_Date_Add.disabled=true;
+	}
+}
+//-->
+</SCRIPT>
+
+<form action='sudoers-rules.cgi' name='Add_Rule' method='post' >
 
 <table align = "center">
 	<tr>
@@ -554,6 +574,11 @@ print <<ENDHTML;
 		<td style="text-align: left;">EXEC</td>
 	</tr>
 	<tr>
+		<td style="text-align: right;">Expires:</td>
+		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Add"></td>
+		<td colspan="3"><input type="text" style="width: 100%" name="Expires_Date_Add" value="$Date" placeholder="YYYY-MM-DD" disabled></td>
+	</tr>
+	<tr>
 		<td style="text-align: right;">Active:</td>
 		<td style="text-align: right;"><input type="radio" name="Active_Add" value="1" checked></td>
 		<td style="text-align: left;">Yes</td>
@@ -721,6 +746,9 @@ print <<ENDHTML;
 <li>Rule Names must be unique.</li>
 <li>Do not use spaces in Rule Names - they will be stripped.</li>
 <li>If you do not understand the Options, <span style="color: #00FF00;">defaults</span> are safest.</li>
+<li>Rules with an expiry set are automatically removed from sudoers at 23:59:59
+(or the next sudoers refresh thereafter) on the day of expiry. Expired entries are functionally
+equivalent to inactive entries. The date entry format is YYYY-MM-DD.</li>
 <li>Active Rules are eligible for sudoers inclusion.</li>
 </ul>
 
@@ -768,70 +796,58 @@ sub add_rule {
 	### / Existing Rule_Name Check
 
 	my $Approved;
+
+	if ($Expires_Toggle_Add ne 'on') {
+		$Expires_Date_Add = '0000-00-00';
+	}
+
+	my $Approver_Name;
+	my $Last_Approved;
 	if (!$User_Requires_Approval && $User_Approver) {
 		$Approved = 1;
-
-		my $Rule_Insert = $DB_Sudoers->prepare("INSERT INTO `rules` (
-			`id`,
-			`name`,
-			`run_as`,
-			`nopasswd`,
-			`noexec`,
-			`active`,
-			`approved`,
-			`last_approved`,
-			`approved_by`,
-			`modified_by`
-		)
-		VALUES (
-			NULL,
-			?,
-			?,
-			?,
-			?,
-			?,
-			?,
-			NOW(),
-			?,
-			?
-		)");
-	
-		$Rule_Insert->execute($Rule_Name_Add, $Run_As_Add, $NOPASSWD_Add, $NOEXEC_Add, $Active_Add, $Approved, $User_Name, $User_Name);
-
-
 	}
 	else {
 		$Approved = 0;
-
-		my $Rule_Insert = $DB_Sudoers->prepare("INSERT INTO `rules` (
-			`id`,
-			`name`,
-			`run_as`,
-			`nopasswd`,
-			`noexec`,
-			`active`,
-			`approved`,
-			`modified_by`
-		)
-		VALUES (
-			NULL,
-			?,
-			?,
-			?,
-			?,
-			?,
-			?,
-			?
-		)");
-	
-		$Rule_Insert->execute($Rule_Name_Add, $Run_As_Add, $NOPASSWD_Add, $NOEXEC_Add, $Active_Add, $Approved, $User_Name);
-
 	}
 
+	my $Rule_Insert = $DB_Sudoers->prepare("INSERT INTO `rules` (
+		`id`,
+		`name`,
+		`run_as`,
+		`nopasswd`,
+		`noexec`,
+		`expires`,
+		`active`,
+		`approved`,
+		`modified_by`
+	)
+	VALUES (
+		NULL,
+		?,
+		?,
+		?,
+		?,
+		?,
+		?,
+		?,
+		?
+	)");
 
+	$Rule_Insert->execute($Rule_Name_Add, $Run_As_Add, $NOPASSWD_Add, $NOEXEC_Add, $Expires_Date_Add,
+	$Active_Add, $Approved, $User_Name);
 
 	my $Rule_Insert_ID = $DB_Sudoers->{mysql_insertid};
 
+	if (!$User_Requires_Approval && $User_Approver) {
+
+		my $Approve_Rule = $DB_Sudoers->prepare("UPDATE `rules` SET
+		`last_approved` = NOW(),
+		`approved_by` = ?
+		WHERE `id` = ?");
+
+		$Approve_Rule->execute($User_Name, $Rule_Insert_ID);
+
+	}
 
 	### Host Groups
 	$Add_Host_Group_Temp_Existing =~ s/,$//;
@@ -965,7 +981,7 @@ sub html_edit_rule {
 
 ### Rule Details
 
-my $Select_Rule = $DB_Sudoers->prepare("SELECT `name`, `run_as`, `nopasswd`, `noexec`, `active`
+my $Select_Rule = $DB_Sudoers->prepare("SELECT `name`, `run_as`, `nopasswd`, `noexec`, `expires`, `active`
 FROM `rules`
 WHERE `id` = ?");
 $Select_Rule->execute($Edit_Rule);
@@ -974,6 +990,7 @@ my $Rule_Name_Extract;
 my $Run_As_Extract;
 my $NOPASSWD_Extract;
 my $NOEXEC_Extract;
+my $Expires_Extract;
 my $Active_Extract;
 while (my @DB_Rule = $Select_Rule->fetchrow_array() )
 {
@@ -981,7 +998,20 @@ while (my @DB_Rule = $Select_Rule->fetchrow_array() )
 	$Run_As_Extract = $DB_Rule[1];
 	$NOPASSWD_Extract = $DB_Rule[2];
 	$NOEXEC_Extract = $DB_Rule[3];
-	$Active_Extract = $DB_Rule[4];
+	$Expires_Extract = $DB_Rule[4];
+	$Active_Extract = $DB_Rule[5];
+}
+
+my $Checked;
+my $Disabled;
+if ($Expires_Extract eq '0000-00-00') {
+	$Checked = '';
+	$Disabled = 'disabled';
+	$Expires_Extract = strftime "%Y-%m-%d", localtime;
+}
+else {
+	$Checked = 'checked';
+	$Disabled = '';
 }
 
 if ($Rule_Name_Edit eq undef) {$Rule_Name_Edit = $Rule_Name_Extract};
@@ -1475,7 +1505,21 @@ print <<ENDHTML;
 
 <h3 align="center">Edit Rule</h3>
 
-<form action='sudoers-rules.cgi' method='post' >
+<SCRIPT LANGUAGE="JavaScript"><!--
+function Expire_Toggle() {
+	if(document.Edit_Rule.Expires_Toggle_Edit.checked)
+	{
+		document.Edit_Rule.Expires_Date_Edit.disabled=false;
+	}
+	else
+	{
+		document.Edit_Rule.Expires_Date_Edit.disabled=true;
+	}
+}
+//-->
+</SCRIPT>
+
+<form action='sudoers-rules.cgi' name='Edit_Rule' method='post' >
 
 <table align = "center">
 	<tr>
@@ -1722,6 +1766,12 @@ print <<ENDHTML;
 ENDHTML
 }
 print <<ENDHTML;
+	</tr>
+	<tr>
+		<td style="text-align: right;">Expires:</td>
+		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Edit" $Checked></td>
+		<td colspan="3"><input type="text" style="width: 100%" name="Expires_Date_Edit" value="$Expires_Extract" placeholder="$Expires_Extract" $Disabled></td>
+	</tr>
 	<tr>
 		<td style="text-align: right;">Active:</td>
 ENDHTML
@@ -1861,6 +1911,9 @@ print <<ENDHTML;
 <li>Rule Names must be unique.</li>
 <li>Do not use spaces in Rule Names - they will be stripped.</li>
 <li>If you do not understand the Options, <span style="color: #00FF00;">defaults</span> are safest.</li>
+<li>Rules with an expiry set are automatically removed from sudoers at 23:59:59
+(or the next sudoers refresh thereafter) on the day of expiry. Expired entries are functionally
+equivalent to inactive entries. The date entry format is YYYY-MM-DD.</li>
 <li>Active Rules are eligible for sudoers inclusion.</li>
 </ul>
 
@@ -1917,16 +1970,21 @@ sub edit_rule {
 		$Approved = 0;
 	}
 
+	if ($Expires_Toggle_Edit ne 'on') {
+		$Expires_Date_Edit = '0000-00-00';
+	}
+
 	my $Update_Rule = $DB_Sudoers->prepare("UPDATE `rules` SET
 		`name` = ?,
 		`run_as` = ?,
 		`nopasswd` = ?,
 		`noexec` = ?,
+		`expires` = ?,
 		`active` = ?,
 		`approved` = ?,
 		`modified_by` = ?
 		WHERE `id` = ?");
-	$Update_Rule->execute($Rule_Name_Edit, $Run_As_Edit, $NOPASSWD_Edit, $NOEXEC_Edit, $Active_Edit, $Approved, $User_Name, $Edit_Rule);
+	$Update_Rule->execute($Rule_Name_Edit, $Run_As_Edit, $NOPASSWD_Edit, $NOEXEC_Edit, $Expires_Date_Edit, $Active_Edit, $Approved, $User_Name, $Edit_Rule);
 
 
 	### Host Groups
@@ -2272,6 +2330,7 @@ sub html_output {
 			if ($Approved_By eq undef) {$Approved_By = "<span style='color: #FF0000'>Unapproved</span>"} else {$Approved_By = "<span style='color: #B6B600'>$Approved_By</span>"};
 		my $Last_Modified = $Select_Rules[10];
 		my $Modified_By = $Select_Rules[11];
+
 
 #######################################################################################################
 
@@ -2774,6 +2833,15 @@ sub html_output {
 
 #######################################################################################################
 
+		my $Expires_Epoch;
+		my $Today_Epoch = time;
+		if ($Rule_Expires_Clean =~ /^0000-00-00$/) {
+			$Rule_Expires = 'Never';
+		}
+		else {
+			$Expires_Epoch = str2time("$Rule_Expires_Clean"."T23:59:59");
+		}
+
 		if (($User_Approver && ($User_Name ne $Modified_By)) ||
 		($User_Approver && $User_Requires_Approval == 0)) {
 			$Table->addRow(
@@ -2822,15 +2890,6 @@ sub html_output {
 
 		if ($Run_As_Clean eq 'root' || $Run_As_Clean eq 'ALL') {
 			$Table->setCellClass ($Rule_Row_Count, 9, 'tbroworange');
-		}
-
-		my $Expires_Epoch;
-		my $Today_Epoch = time;
-		if ($Rule_Expires_Clean =~ /^0000-00-00$/) {
-			$Rule_Expires = 'Never';
-		}
-		else {
-			$Expires_Epoch = str2time("$Rule_Expires_Clean"."T23:59:59");
 		}
 
 		if ($Rule_Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
