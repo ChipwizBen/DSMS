@@ -15,4 +15,4 @@
 1.0.2 -	Added version numbering system (hello reader!) to common.pl and modified index.cgi to display version
 		number.
 1.0.1 -	Fixed SQL bug in sudoers-commands.cgi which prevented commands from being deleted.
-1.0.0 -	Inital release.
+1.0.0 -	Initial release.
