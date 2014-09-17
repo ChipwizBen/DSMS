@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 5.6.17, for Win32 (x86)
+-- MySQL dump 10.13  Distrib 5.5.38, for debian-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: sudoers
 -- ------------------------------------------------------
--- Server version	5.1.61
+-- Server version	5.1.73
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -33,6 +33,7 @@ DROP TABLE IF EXISTS `command_groups`;
 CREATE TABLE `command_groups` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `groupname` varchar(128) NOT NULL,
+  `expires` date NOT NULL,
   `active` int(1) NOT NULL DEFAULT '1',
   `last_modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `modified_by` varchar(128) NOT NULL,
@@ -62,6 +63,7 @@ CREATE TABLE `commands` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `command_alias` varchar(128) NOT NULL,
   `command` varchar(1000) NOT NULL,
+  `expires` date NOT NULL,
   `active` int(1) NOT NULL,
   `last_modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `modified_by` varchar(128) NOT NULL,
@@ -91,6 +93,7 @@ DROP TABLE IF EXISTS `host_groups`;
 CREATE TABLE `host_groups` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `groupname` varchar(128) NOT NULL,
+  `expires` date NOT NULL,
   `active` int(1) NOT NULL DEFAULT '1',
   `last_modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `modified_by` varchar(128) NOT NULL,
@@ -120,6 +123,7 @@ CREATE TABLE `hosts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `hostname` varchar(128) NOT NULL,
   `ip` varchar(15) NOT NULL,
+  `expires` date NOT NULL,
   `active` int(1) NOT NULL DEFAULT '1',
   `last_modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `modified_by` varchar(128) NOT NULL,
@@ -377,6 +381,7 @@ CREATE TABLE `rules` (
   `run_as` varchar(128) NOT NULL,
   `nopasswd` int(1) NOT NULL DEFAULT '0',
   `noexec` int(1) NOT NULL DEFAULT '1',
+  `expires` date NOT NULL,
   `active` int(1) NOT NULL DEFAULT '1',
   `approved` int(1) NOT NULL DEFAULT '0',
   `last_approved` datetime NOT NULL,
@@ -408,6 +413,7 @@ DROP TABLE IF EXISTS `user_groups`;
 CREATE TABLE `user_groups` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `groupname` varchar(128) NOT NULL,
+  `expires` date NOT NULL,
   `active` int(1) NOT NULL DEFAULT '1',
   `last_modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `modified_by` varchar(128) NOT NULL,
@@ -436,6 +442,7 @@ DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(128) NOT NULL,
+  `expires` date NOT NULL,
   `active` int(1) NOT NULL DEFAULT '1',
   `last_modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `modified_by` varchar(128) NOT NULL,
@@ -529,7 +536,7 @@ CREATE TABLE `credentials` (
 
 LOCK TABLES `credentials` WRITE;
 /*!40000 ALTER TABLE `credentials` DISABLE KEYS */;
-INSERT INTO `credentials` VALUES (1,'admin','3c9909afec25354d551dae21590bb26e38d53f2173b8d3dc3eee4c047e7ab1c1eb8b85103e3be7ba613b31bb5c9c36214dc9f14a42fd7a2fdb84856bca5c44c2','noreply@example.com','0000-00-00 00:00:00','0000-00-00 00:00:00',1,0,1,0,0,'','2014-09-03 22:53:47','admin');
+INSERT INTO `credentials` VALUES (1,'admin','3c9909afec25354d551dae21590bb26e38d53f2173b8d3dc3eee4c047e7ab1c1eb8b85103e3be7ba613b31bb5c9c36214dc9f14a42fd7a2fdb84856bca5c44c2','noreply@','2014-09-11 10:23:21','2014-09-11 10:23:21',1,0,1,0,0,'','2014-09-10 22:23:21','Ben Schofield');
 /*!40000 ALTER TABLE `credentials` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -542,4 +549,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2014-09-04 11:02:23
+-- Dump completed on 2014-09-17 12:16:09
