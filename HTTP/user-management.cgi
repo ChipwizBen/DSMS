@@ -5,7 +5,7 @@ use Digest::SHA qw(sha512_hex);
 use HTML::Table;
 
 require 'common.pl';
-my $DB_Main = DB_Main();
+my $DB_Management = DB_Management();
 my ($CGI, $Session, $Cookie) = CGI();
 
 my $Add_User = $CGI->param("Add_User");
@@ -166,7 +166,7 @@ sub add_user {
 
 	$Password_Add = sha512_hex($Password_Add);
 
-	my $User_Insert = $DB_Main->prepare("INSERT INTO `credentials` (
+	my $User_Insert = $DB_Management->prepare("INSERT INTO `credentials` (
 		`id`,
 		`username`,
 		`password`,
@@ -203,7 +203,7 @@ sub add_user {
 
 sub html_edit_user {
 
-	my $Select_User = $DB_Main->prepare("SELECT `username`, `admin`, `approver`, `requires_approval`, `lockout`, `last_modified`, `modified_by`, `email`
+	my $Select_User = $DB_Management->prepare("SELECT `username`, `admin`, `approver`, `requires_approval`, `lockout`, `last_modified`, `modified_by`, `email`
 	FROM `credentials`
 	WHERE `id` = ?");
 	$Select_User->execute($Edit_User);
@@ -348,7 +348,7 @@ sub edit_user {
 		
 		$Password_Edit = sha512_hex($Password_Edit);
 
-		my $Update_Credentials = $DB_Main->prepare("UPDATE `credentials` SET
+		my $Update_Credentials = $DB_Management->prepare("UPDATE `credentials` SET
 			`username` = ?,
 			`password` = ?,
 			`email` = ?,
@@ -364,7 +364,7 @@ sub edit_user {
 	}
 	else {
 
-		my $Update_Credentials = $DB_Main->prepare("UPDATE `credentials` SET
+		my $Update_Credentials = $DB_Management->prepare("UPDATE `credentials` SET
 			`username` = ?,
 			`email` = ?,
 			`admin` = ?,
@@ -388,7 +388,7 @@ sub edit_user {
 
 sub html_delete_user {
 
-	my $Select_User = $DB_Main->prepare("SELECT `username`, `last_active`, `email`
+	my $Select_User = $DB_Management->prepare("SELECT `username`, `last_active`, `email`
 	FROM `credentials`
 	WHERE `id` = ?");
 
@@ -443,7 +443,7 @@ ENDHTML
 
 sub delete_user {
 	
-	my $Delete_User = $DB_Main->prepare("DELETE from `credentials`
+	my $Delete_User = $DB_Management->prepare("DELETE from `credentials`
 		WHERE `id` = ?");
 	
 	$Delete_User->execute($Delete_User_Confirm);
@@ -451,6 +451,22 @@ sub delete_user {
 } # sub delete_user
 
 sub html_output {
+
+my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+	`category`,
+	`method`,
+	`action`,
+	`username`
+)
+VALUES (
+	?,
+	?,
+	?,
+	?
+)");
+
+$Audit_Log_Submission->execute("User Management", "View", "$User_Name accessed User Management.", $User_Name);
+
 
 my $Table = new HTML::Table(
 	-cols=>12,
@@ -469,7 +485,7 @@ my $Table = new HTML::Table(
 $Table->addRow ( "User Name", "Email Address", "Last Login", "Last Active", "Admin", "Approver", "Requires Approval", "Lockout", "Last Modified", "Modified By", "Edit", "Delete" );
 $Table->setRowClass (1, 'tbrow1');
 
-my $Select_Users = $DB_Main->prepare("SELECT `id`, `username`, `email`, `last_login`, `last_active`,  `admin`, `approver`, `requires_approval`, `lockout`, `last_modified`, `modified_by`
+my $Select_Users = $DB_Management->prepare("SELECT `id`, `username`, `email`, `last_login`, `last_active`,  `admin`, `approver`, `requires_approval`, `lockout`, `last_modified`, `modified_by`
 FROM `credentials`
 ORDER BY `last_active` DESC
 LIMIT 0 , $Rows_Returned");
@@ -621,7 +637,7 @@ print <<ENDHTML;
 						<select name='Edit_User' style="width: 150px">
 ENDHTML
 
-						my $User_List_Query = $DB_Main->prepare("SELECT `id`, `username`
+						my $User_List_Query = $DB_Management->prepare("SELECT `id`, `username`
 						FROM `credentials`
 						ORDER BY `username` ASC");
 						$User_List_Query->execute( );

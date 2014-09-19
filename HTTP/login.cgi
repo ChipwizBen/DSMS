@@ -7,7 +7,7 @@ use MIME::Lite;
 
 require 'common.pl';
 my $System_Name = System_Name();
-my $DB_Main = DB_Main();
+my $DB_Management = DB_Management();
 my ($CGI, $Session, $Cookie) = CGI();
 
 my $Referer = $Session->param("Referer"); #Accessing Referer session var
@@ -39,7 +39,7 @@ if ($User_Name_Form) {
 exit(0);
 
 sub login_user {
-	my $Login_DB_Query = $DB_Main->prepare("SELECT `password`, `email`, `admin`, `approver`, `requires_approval`, `lockout`
+	my $Login_DB_Query = $DB_Management->prepare("SELECT `password`, `email`, `admin`, `approver`, `requires_approval`, `lockout`
 	FROM `credentials`
 	WHERE `username` = ?");
 	$Login_DB_Query->execute($User_Name_Form);
@@ -62,7 +62,7 @@ sub login_user {
 		elsif ("$DB_Password" ne "$User_Password_Form")
 		{
 	
-			my $Lockout_Counter_Query = $DB_Main->prepare("SELECT `lockout_counter`
+			my $Lockout_Counter_Query = $DB_Management->prepare("SELECT `lockout_counter`
 				FROM `credentials`
 				WHERE `username` = ?");
 
@@ -71,14 +71,14 @@ sub login_user {
 			while ( (my $Lockout_Counter) = my @Lockout_Counter_Query = $Lockout_Counter_Query->fetchrow_array() )
 			{
 				$Lockout_Counter++;
-				my $Lockout_Increase = $DB_Main->prepare("UPDATE `credentials`
+				my $Lockout_Increase = $DB_Management->prepare("UPDATE `credentials`
 					SET `lockout_counter` = '$Lockout_Counter'
 					WHERE `username` = ?");
 
 				$Lockout_Increase->execute($User_Name_Form);
 
 					if ($Lockout_Counter >= 5) {
-						my $Lockout_User = $DB_Main->prepare("UPDATE `credentials`
+						my $Lockout_User = $DB_Management->prepare("UPDATE `credentials`
 							SET `lockout` = '1'
 							WHERE `username` = ?");
 						$Lockout_User->execute($User_Name_Form);
@@ -96,7 +96,7 @@ sub login_user {
 			$Session->param('User_Approver', $DB_Approver);
 			$Session->param('User_Requires_Approval', $DB_Requires_Approval);
 
-			my $Login_User = $DB_Main->prepare("UPDATE `credentials`
+			my $Login_User = $DB_Management->prepare("UPDATE `credentials`
 			SET `lockout_counter` = '0',
 			`last_login` = NOW()
 			WHERE `username` = ?");
@@ -143,7 +143,7 @@ sub email_user_password_reset {
 
 	my $Server_Hostname = Server_Hostname();
 
-	my $User_Email_Address_Query = $DB_Main->prepare("SELECT `email` FROM `credentials`
+	my $User_Email_Address_Query = $DB_Management->prepare("SELECT `email` FROM `credentials`
 	WHERE `username` = ?");
 	$User_Email_Address_Query->execute($User_Name_Form);
 
@@ -181,7 +181,7 @@ $System_Name<br/>
 			Data	=> "$Email_Body");
 
 			$Random_Password = sha512_hex($Random_Password);
-				my $Perform_Lockout_Password_Set = $DB_Main->prepare("UPDATE `credentials`
+				my $Perform_Lockout_Password_Set = $DB_Management->prepare("UPDATE `credentials`
 					SET `lockout_reset` = '$Random_Password'
 					WHERE `username` = ?");
 				

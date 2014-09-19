@@ -4,7 +4,7 @@ use strict;
 use Digest::SHA qw(sha512_hex);
 
 require 'common.pl';
-my $DB_Main = DB_Main();
+my $DB_Management = DB_Management();
 my ($CGI, $Session, $Cookie) = CGI();
 
 my $Message_Red;
@@ -17,7 +17,7 @@ if ($User_Name eq '') {
 	exit(0);
 }
 
-my $Select_User_Name = $DB_Main->prepare("SELECT `id`, `username`, `password`, `email`
+my $Select_User_Name = $DB_Management->prepare("SELECT `id`, `username`, `password`, `email`
 FROM `credentials`
 WHERE `username` = ?
 ");
@@ -53,7 +53,7 @@ sub change_password {
 		
 			$Message_Green="Password successfully changed.";
 		
-			my $Change_Password = $DB_Main->prepare("UPDATE `credentials` SET
+			my $Change_Password = $DB_Management->prepare("UPDATE `credentials` SET
 			`password` = ?,
 			`modified_by` = ?
 			WHERE `id` = ?");

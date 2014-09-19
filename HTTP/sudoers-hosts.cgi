@@ -246,6 +246,33 @@ sub add_host {
 
 	my $Host_Insert_ID = $DB_Sudoers->{mysql_insertid};
 
+	# Audit Log
+	if ($Expires_Date_Add eq '0000-00-00') {
+		$Expires_Date_Add = 'not expire';
+	}
+	else {
+		$Expires_Date_Add = "expire on " . $Expires_Date_Add;
+	}
+
+	if ($Active_Add) {$Active_Add = 'Active'} else {$Active_Add = 'Inactive'}
+
+	my $DB_Management = DB_Management();
+	my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+		`category`,
+		`method`,
+		`action`,
+		`username`
+	)
+	VALUES (
+		?,
+		?,
+		?,
+		?
+	)");
+	
+	$Audit_Log_Submission->execute("Hosts", "Add", "$User_Name added $Host_Name_Add ($IP_Add), set it $Active_Add and to $Expires_Date_Add. The system assigned it Host ID $Host_Insert_ID.", $User_Name);
+	# / Audit Log
+
 	return($Host_Insert_ID);
 
 } # sub add_host
@@ -423,6 +450,33 @@ sub edit_host {
 		
 	$Update_Host->execute($Host_Name_Edit, $IP_Edit, $Expires_Date_Edit, $Active_Edit, $User_Name, $Edit_Host_Post);
 
+	# Audit Log
+	if ($Expires_Date_Edit eq '0000-00-00') {
+		$Expires_Date_Edit = 'does not expire';
+	}
+	else {
+		$Expires_Date_Edit = "expires on " . $Expires_Date_Edit;
+	}
+
+	if ($Active_Edit) {$Active_Edit = 'Active'} else {$Active_Edit = 'Inactive'}
+
+	my $DB_Management = DB_Management();
+	my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+		`category`,
+		`method`,
+		`action`,
+		`username`
+	)
+	VALUES (
+		?,
+		?,
+		?,
+		?
+	)");
+	
+	$Audit_Log_Submission->execute("Hosts", "Modify", "$User_Name modified Host ID $Edit_Host_Post. The new entry is recorded as $Host_Name_Edit ($IP_Edit), set $Active_Edit and $Expires_Date_Edit.", $User_Name);
+	# / Audit Log
+
 } # sub edit_host
 
 sub html_delete_host {
@@ -476,7 +530,45 @@ ENDHTML
 } # sub html_delete_host
 
 sub delete_host {
+
+	# Audit Log
+	my $Select_Hosts = $DB_Sudoers->prepare("SELECT `hostname`, `ip`, `expires`, `active`
+		FROM `hosts`
+		WHERE `id` = ?");
+
+	$Select_Hosts->execute($Delete_Host_Confirm);
+
+	while (( my $Hostname, my $IP, my $Expires, my $Active ) = $Select_Hosts->fetchrow_array() )
+	{
+
+		if ($Expires eq '0000-00-00') {
+			$Expires = 'does not expire';
+		}
+		else {
+			$Expires = "expires on " . $Expires;
+		}
 	
+		if ($Active) {$Active = 'Active'} else {$Active = 'Inactive'}
+	
+		my $DB_Management = DB_Management();
+		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+			`category`,
+			`method`,
+			`action`,
+			`username`
+		)
+		VALUES (
+			?,
+			?,
+			?,
+			?
+		)");
+		
+		$Audit_Log_Submission->execute("Hosts", "Delete", "$User_Name deleted Host ID $Delete_Host_Confirm. The deleted entry's last values were $Hostname ($IP), set $Active and $Expires.", $User_Name);
+
+	}
+	# / Audit Log
+
 	my $Delete_Host = $DB_Sudoers->prepare("DELETE from `hosts`
 		WHERE `id` = ?");
 	

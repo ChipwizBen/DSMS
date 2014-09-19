@@ -22,8 +22,8 @@ System Requirements
 		POSIX qw(strftime)
 		MIME::Lite
 		CGI
-		CGI::Carp qw/fatalsToBrowser/
-		CGI::Session qw/-ip-match/
+		CGI::Carp qw(fatalsToBrowser)
+		CGI::Session qw(-ip-match)
 		Date::Parse
 		Crypt::PBKDF2 (planned)
 

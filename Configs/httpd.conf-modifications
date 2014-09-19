@@ -1,0 +1,11 @@
+Under DefaultType text/plain
+...
+
+#Handlers
+AddHandler cgi-script .cgi .pl
+<Files ~ "\.pl$">
+Options +ExecCGI
+</Files>
+<Files ~ "\.cgi$">
+Options +ExecCGI
+</Files>

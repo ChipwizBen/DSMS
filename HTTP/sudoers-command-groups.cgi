@@ -361,6 +361,57 @@ sub add_group {
 
 	}
 
+	# Audit Log
+	if ($Expires_Date_Add eq '0000-00-00') {
+		$Expires_Date_Add = 'not expire';
+	}
+	else {
+		$Expires_Date_Add = "expire on " . $Expires_Date_Add;
+	}
+
+	if ($Active_Add) {$Active_Add = 'Active'} else {$Active_Add = 'Inactive'}
+
+	my $Commands_Attached;
+	foreach my $Command (@Commands) {
+
+		my $Select_Commands = $DB_Sudoers->prepare("SELECT `command_alias`
+			FROM `commands`
+			WHERE `id` = ?"
+		);
+		$Select_Commands->execute($Command);
+
+		while ((my $Command_Name) = $Select_Commands->fetchrow_array() )
+		{
+			$Commands_Attached = $Command_Name . ", " . $Commands_Attached;
+		}
+
+	$Commands_Attached =~ s/,\s$//;
+	}
+
+	if ($Commands_Attached) {
+		$Commands_Attached = ": " . $Commands_Attached;
+	}
+	else {
+		$Commands_Attached = '';
+	}
+
+	my $DB_Management = DB_Management();
+	my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+		`category`,
+		`method`,
+		`action`,
+		`username`
+	)
+	VALUES (
+		?,
+		?,
+		?,
+		?
+	)");
+	
+	$Audit_Log_Submission->execute("Command Groups", "Add", "$User_Name added $Group_Name_Add, set it $Active_Add and to $Expires_Date_Add. $Command_Alias_Count commands were attached$Commands_Attached. The system assigned it Command Group ID $Group_Insert_ID.", $User_Name);
+	# / Audit Log
+
 	return($Group_Insert_ID, $Command_Alias_Count);
 
 } # sub add_group
@@ -727,6 +778,57 @@ sub edit_group {
 		$Command_Alias_Insert->execute($Edit_Group, $Command_Alias);
 
 	}
+
+	# Audit Log
+	if ($Expires_Date_Edit eq '0000-00-00') {
+		$Expires_Date_Edit = 'does not expire';
+	}
+	else {
+		$Expires_Date_Edit = "expires on " . $Expires_Date_Edit;
+	}
+
+	if ($Active_Edit) {$Active_Edit = 'Active'} else {$Active_Edit = 'Inactive'}
+
+	my $Commands_Attached;
+	foreach my $Command (@Commands) {
+
+		my $Select_Commands = $DB_Sudoers->prepare("SELECT `command_alias`
+			FROM `commands`
+			WHERE `id` = ?"
+		);
+		$Select_Commands->execute($Command);
+
+		while ((my $Command_Name) = $Select_Commands->fetchrow_array() )
+		{
+			$Commands_Attached = $Command_Name . ", " . $Commands_Attached;
+		}
+
+	$Commands_Attached =~ s/,\s$//;
+	}
+
+	if ($Commands_Attached) {
+		$Commands_Attached = ": " . $Commands_Attached;
+	}
+	else {
+		$Commands_Attached = '';
+	}
+
+	my $DB_Management = DB_Management();
+	my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+		`category`,
+		`method`,
+		`action`,
+		`username`
+	)
+	VALUES (
+		?,
+		?,
+		?,
+		?
+	)");
+	
+	$Audit_Log_Submission->execute("Command Groups", "Modify", "$User_Name modified Command Group ID $Edit_Group. The new entry is recorded as $Group_Name_Edit, set $Active_Edit and $Expires_Date_Edit. $Command_Alias_Count new commands were attached$Commands_Attached.", $User_Name);
+	# / Audit Log
 
 	return($Command_Alias_Count);
 

@@ -360,6 +360,57 @@ sub add_group {
 
 	}
 
+	# Audit Log
+	if ($Expires_Date_Add eq '0000-00-00') {
+		$Expires_Date_Add = 'not expire';
+	}
+	else {
+		$Expires_Date_Add = "expire on " . $Expires_Date_Add;
+	}
+
+	if ($Active_Add) {$Active_Add = 'Active'} else {$Active_Add = 'Inactive'}
+
+	my $Users_Attached;
+	foreach my $User (@Users) {
+
+		my $Select_Users = $DB_Sudoers->prepare("SELECT `username`
+			FROM `users`
+			WHERE `id` = ?"
+		);
+		$Select_Users->execute($User);
+
+		while ((my $User_Name) = $Select_Users->fetchrow_array() )
+		{
+			$Users_Attached = $User_Name . ", " . $Users_Attached;
+		}
+
+	$Users_Attached =~ s/,\s$//;
+	}
+
+	if ($Users_Attached) {
+		$Users_Attached = ": " . $Users_Attached;
+	}
+	else {
+		$Users_Attached = '';
+	}
+
+	my $DB_Management = DB_Management();
+	my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+		`category`,
+		`method`,
+		`action`,
+		`username`
+	)
+	VALUES (
+		?,
+		?,
+		?,
+		?
+	)");
+	
+	$Audit_Log_Submission->execute("User Groups", "Add", "$User_Name added $Group_Name_Add, set it $Active_Add and to $Expires_Date_Add. $User_Count users were attached$Users_Attached. The system assigned it User Group ID $Group_Insert_ID.", $User_Name);
+	# / Audit Log
+
 	return($Group_Insert_ID, $User_Count);
 
 } # sub add_group
@@ -724,6 +775,57 @@ sub edit_group {
 		$User_Insert->execute($Edit_Group, $User);
 
 	}
+
+	# Audit Log
+	if ($Expires_Date_Edit eq '0000-00-00') {
+		$Expires_Date_Edit = 'does not expire';
+	}
+	else {
+		$Expires_Date_Edit = "expires on " . $Expires_Date_Edit;
+	}
+
+	if ($Active_Edit) {$Active_Edit = 'Active'} else {$Active_Edit = 'Inactive'}
+
+	my $Users_Attached;
+	foreach my $User (@Users) {
+
+		my $Select_Users = $DB_Sudoers->prepare("SELECT `username`
+			FROM `users`
+			WHERE `id` = ?"
+		);
+		$Select_Users->execute($User);
+
+		while ((my $User_Name) = $Select_Users->fetchrow_array() )
+		{
+			$Users_Attached = $User_Name . ", " . $Users_Attached;
+		}
+
+	$Users_Attached =~ s/,\s$//;
+	}
+
+	if ($Users_Attached) {
+		$Users_Attached = ": " . $Users_Attached;
+	}
+	else {
+		$Users_Attached = '';
+	}
+
+	my $DB_Management = DB_Management();
+	my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+		`category`,
+		`method`,
+		`action`,
+		`username`
+	)
+	VALUES (
+		?,
+		?,
+		?,
+		?
+	)");
+	
+	$Audit_Log_Submission->execute("User Groups", "Modify", "$User_Name modified User Group ID $Edit_Group. The new entry is recorded as $Group_Name_Edit, set $Active_Edit and $Expires_Date_Edit. $User_Count new users were attached$Users_Attached.", $User_Name);
+	# / Audit Log
 
 	return($User_Count);
 

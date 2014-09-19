@@ -361,6 +361,57 @@ sub add_group {
 
 	}
 
+	# Audit Log
+	if ($Expires_Date_Add eq '0000-00-00') {
+		$Expires_Date_Add = 'not expire';
+	}
+	else {
+		$Expires_Date_Add = "expire on " . $Expires_Date_Add;
+	}
+
+	if ($Active_Add) {$Active_Add = 'Active'} else {$Active_Add = 'Inactive'}
+
+	my $Hosts_Attached;
+	foreach my $Host (@Hosts) {
+
+		my $Select_Hosts = $DB_Sudoers->prepare("SELECT `hostname`
+			FROM `hosts`
+			WHERE `id` = ?"
+		);
+		$Select_Hosts->execute($Host);
+
+		while ((my $Host_Name) = $Select_Hosts->fetchrow_array() )
+		{
+			$Hosts_Attached = $Host_Name . ", " . $Hosts_Attached;
+		}
+
+	$Hosts_Attached =~ s/,\s$//;
+	}
+
+	if ($Hosts_Attached) {
+		$Hosts_Attached = ": " . $Hosts_Attached;
+	}
+	else {
+		$Hosts_Attached = '';
+	}
+
+	my $DB_Management = DB_Management();
+	my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+		`category`,
+		`method`,
+		`action`,
+		`username`
+	)
+	VALUES (
+		?,
+		?,
+		?,
+		?
+	)");
+	
+	$Audit_Log_Submission->execute("Host Groups", "Add", "$User_Name added $Group_Name_Add, set it $Active_Add and to $Expires_Date_Add. $Host_Count hosts were attached$Hosts_Attached. The system assigned it Host Group ID $Group_Insert_ID.", $User_Name);
+	# / Audit Log
+
 	return($Group_Insert_ID, $Host_Count);
 
 } # sub add_group
@@ -728,6 +779,57 @@ sub edit_group {
 
 	}
 
+	# Audit Log
+	if ($Expires_Date_Edit eq '0000-00-00') {
+		$Expires_Date_Edit = 'does not expire';
+	}
+	else {
+		$Expires_Date_Edit = "expires on " . $Expires_Date_Edit;
+	}
+
+	if ($Active_Edit) {$Active_Edit = 'Active'} else {$Active_Edit = 'Inactive'}
+
+	my $Hosts_Attached;
+	foreach my $Host (@Hosts) {
+
+		my $Select_Hosts = $DB_Sudoers->prepare("SELECT `hostname`
+			FROM `hosts`
+			WHERE `id` = ?"
+		);
+		$Select_Hosts->execute($Host);
+
+		while ((my $Host_Name) = $Select_Hosts->fetchrow_array() )
+		{
+			$Hosts_Attached = $Host_Name . ", " . $Hosts_Attached;
+		}
+
+	$Hosts_Attached =~ s/,\s$//;
+	}
+
+	if ($Hosts_Attached) {
+		$Hosts_Attached = ": " . $Hosts_Attached;
+	}
+	else {
+		$Hosts_Attached = '';
+	}
+
+	my $DB_Management = DB_Management();
+	my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+		`category`,
+		`method`,
+		`action`,
+		`username`
+	)
+	VALUES (
+		?,
+		?,
+		?,
+		?
+	)");
+	
+	$Audit_Log_Submission->execute("Host Groups", "Modify", "$User_Name modified Host Group ID $Edit_Group. The new entry is recorded as $Group_Name_Edit, set $Active_Edit and $Expires_Date_Edit. $Host_Count new hosts were attached$Hosts_Attached.", $User_Name);
+	# / Audit Log
+
 	return($Host_Count);
 
 } # sub edit_group
@@ -777,7 +879,75 @@ ENDHTML
 } # sub html_delete_group
 
 sub delete_group {
+
+	# Audit Log
+	my $Select_Links = $DB_Sudoers->prepare("SELECT `host`
+		FROM `lnk_host_groups_to_hosts`
+		WHERE `group` = ?"
+	);
+	$Select_Links->execute($Delete_Group_Confirm);
+
+	my $Hosts_Attached;
+	while (( my $Host_ID ) = $Select_Links->fetchrow_array() )
+	{
+
+		my $Select_Hosts = $DB_Sudoers->prepare("SELECT `hostname`
+			FROM `hosts`
+			WHERE `id` = ?"
+		);
+		$Select_Hosts->execute($Host_ID);
+
+		while (( my $Host ) = $Select_Hosts->fetchrow_array() )
+		{
+			$Hosts_Attached = $Host . ", " . $Hosts_Attached;
+		}
+	}
+
+	my $Select_Hosts = $DB_Sudoers->prepare("SELECT `groupname`, `expires`, `active`
+		FROM `host_groups`
+		WHERE `id` = ?");
+
+	$Select_Hosts->execute($Delete_Group_Confirm);
+
+	while (( my $Group_Name, my $Expires, my $Active ) = $Select_Hosts->fetchrow_array() )
+	{
+
+		if ($Expires eq '0000-00-00') {
+			$Expires = 'does not expire';
+		}
+		else {
+			$Expires = "expires on " . $Expires;
+		}
 	
+		if ($Active) {$Active = 'Active'} else {$Active = 'Inactive'}
+		$Hosts_Attached =~ s/,\s$//;
+
+		if ($Hosts_Attached) {
+			$Hosts_Attached = "the following hosts attached: " . $Hosts_Attached . ".";
+		}
+		else {
+			$Hosts_Attached = 'no hosts attached.';
+		}
+
+		my $DB_Management = DB_Management();
+		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+			`category`,
+			`method`,
+			`action`,
+			`username`
+		)
+		VALUES (
+			?,
+			?,
+			?,
+			?
+		)");
+		
+		$Audit_Log_Submission->execute("Host Groups", "Delete", "$User_Name deleted Host Group ID $Delete_Group_Confirm. The deleted entry's last values were $Group_Name, set $Active and $Expires. It had $Hosts_Attached", $User_Name);
+
+	}
+	# / Audit Log
+
 	my $Delete_Group = $DB_Sudoers->prepare("DELETE from `host_groups`
 		WHERE `id` = ?");
 	

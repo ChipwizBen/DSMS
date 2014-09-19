@@ -3,7 +3,7 @@
 use strict;
 
 require 'common.pl';
-my $DB_Main = DB_Main();
+my $DB_Management = DB_Management();
 my ($CGI, $Session, $Cookie) = CGI();
 
 $Session->delete();

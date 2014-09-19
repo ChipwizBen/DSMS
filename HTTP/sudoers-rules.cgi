@@ -6,7 +6,7 @@ use Date::Parse qw(str2time);
 use POSIX qw(strftime);
 
 require 'common.pl';
-my $DB_Main = DB_Main();
+my $DB_Management = DB_Management();
 my $DB_Sudoers = DB_Sudoers();
 my ($CGI, $Session, $Cookie) = CGI();
 
@@ -3025,7 +3025,7 @@ print <<ENDHTML;
 							</tr>
 ENDHTML
 
-						my $Rights_Query = $DB_Main->prepare("SELECT `approver`, `requires_approval`
+						my $Rights_Query = $DB_Management->prepare("SELECT `approver`, `requires_approval`
 						FROM `credentials`
 						WHERE `username` = ?");
 						$Rights_Query->execute($User_Name);

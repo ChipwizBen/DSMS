@@ -5,7 +5,7 @@ use Digest::SHA qw(sha512_hex);
 
 require 'common.pl';
 my $System_Name = System_Name();
-my $DB_Main = DB_Main();
+my $DB_Management = DB_Management();
 my ($CGI, $Session, $Cookie) = CGI();
 
 my $Submit = $CGI->param("Submit");
@@ -21,7 +21,7 @@ my $Unlock = sha512_hex($Unlock);
 
 my $Login_Message;
 sub unlock_check {
-	my $Select_Details = $DB_Main->prepare("SELECT `id`, `admin`, `lockout_reset`, `lockout`
+	my $Select_Details = $DB_Management->prepare("SELECT `id`, `admin`, `lockout_reset`, `lockout`
 	FROM `credentials`
 	WHERE `username` = ?
 	");
@@ -48,7 +48,7 @@ sub unlock_check {
 			}
 			elsif ($Lockout_Reset eq $Unlock) {
 
-				my $Reset_Account = $DB_Main->prepare("
+				my $Reset_Account = $DB_Management->prepare("
 				UPDATE `credentials` SET
 				`password` = ?,
 				`last_login` = NOW(),

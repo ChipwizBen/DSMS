@@ -262,6 +262,33 @@ sub add_command {
 
 	my $Command_Insert_ID = $DB_Sudoers->{mysql_insertid};
 
+	# Audit Log
+	if ($Expires_Date_Add eq '0000-00-00') {
+		$Expires_Date_Add = 'not expire';
+	}
+	else {
+		$Expires_Date_Add = "expire on " . $Expires_Date_Add;
+	}
+
+	if ($Active_Add) {$Active_Add = 'Active'} else {$Active_Add = 'Inactive'}
+
+	my $DB_Management = DB_Management();
+	my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+		`category`,
+		`method`,
+		`action`,
+		`username`
+	)
+	VALUES (
+		?,
+		?,
+		?,
+		?
+	)");
+	
+	$Audit_Log_Submission->execute("Commands", "Add", "$User_Name added $Command_Alias_Add ($Command_Add), set it $Active_Add and to $Expires_Date_Add. The system assigned it Command ID $Command_Insert_ID.", $User_Name);
+	# / Audit Log
+
 	return($Command_Insert_ID);
 
 } # sub add_command
@@ -444,6 +471,33 @@ sub edit_command {
 		
 	$Update_Command->execute($Command_Alias_Edit, $Command_Edit, $Expires_Date_Edit, $Active_Edit, $User_Name, $Edit_Command_Post);
 
+	# Audit Log
+	if ($Expires_Date_Edit eq '0000-00-00') {
+		$Expires_Date_Edit = 'does not expire';
+	}
+	else {
+		$Expires_Date_Edit = "expires on " . $Expires_Date_Edit;
+	}
+
+	if ($Active_Edit) {$Active_Edit = 'Active'} else {$Active_Edit = 'Inactive'}
+
+	my $DB_Management = DB_Management();
+	my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+		`category`,
+		`method`,
+		`action`,
+		`username`
+	)
+	VALUES (
+		?,
+		?,
+		?,
+		?
+	)");
+	
+	$Audit_Log_Submission->execute("Commands", "Modify", "$User_Name modified Command ID $Edit_Command_Post. The new entry is recorded as $Command_Alias_Edit ($Command_Edit), set $Active_Edit and $Expires_Date_Edit.", $User_Name);
+	# / Audit Log
+
 } # sub edit_command
 
 sub html_delete_command {
@@ -497,7 +551,45 @@ ENDHTML
 } # sub html_delete_command
 
 sub delete_command {
+
+	# Audit Log
+	my $Select_Commands = $DB_Sudoers->prepare("SELECT `command_alias`, `command`, `expires`, `active`
+		FROM `commands`
+		WHERE `id` = ?");
+
+	$Select_Commands->execute($Delete_Command_Confirm);
+
+	while (( my $Command_Alias, my $Command, my $Expires, my $Active ) = $Select_Commands->fetchrow_array() )
+	{
+
+		if ($Expires eq '0000-00-00') {
+			$Expires = 'does not expire';
+		}
+		else {
+			$Expires = "expires on " . $Expires;
+		}
 	
+		if ($Active) {$Active = 'Active'} else {$Active = 'Inactive'}
+	
+		my $DB_Management = DB_Management();
+		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+			`category`,
+			`method`,
+			`action`,
+			`username`
+		)
+		VALUES (
+			?,
+			?,
+			?,
+			?
+		)");
+		
+		$Audit_Log_Submission->execute("Commands", "Delete", "$User_Name deleted Command ID $Delete_Command_Confirm. The deleted entry's last values were $Command_Alias ($Command), set $Active and $Expires.", $User_Name);
+
+	}
+	# / Audit Log
+
 	my $Delete_Command = $DB_Sudoers->prepare("DELETE from `commands`
 		WHERE `id` = ?");
 	

@@ -7,7 +7,7 @@ require 'common.pl';
 my $System_Name = System_Name();
 my $System_Short_Name = System_Short_Name();
 my $Version = Version();
-my $DB_Main = DB_Main();
+my $DB_Management = DB_Management();
 my ($CGI, $Session, $Cookie) = CGI();
 my $Server_Hostname = Server_Hostname();
 
@@ -35,14 +35,14 @@ my $Message_Red = $Session->param("Message_Red");
 
 sub access_post {
 
-	$DB_Main->do("UPDATE `credentials` SET `last_active` = NOW() WHERE `username` = '$Username'");
+	$DB_Management->do("UPDATE `credentials` SET `last_active` = NOW() WHERE `username` = '$Username'");
 	
 	my $Access_Time = strftime "%Y-%m-%d %H:%M:%S", localtime;
 	my $HTTPS=$ENV{HTTPS};
 		if (!$HTTPS) {$HTTPS='off';}
 	
 	
-	$DB_Main->do("INSERT INTO `access_log` (
+	$DB_Management->do("INSERT INTO `access_log` (
 		`id`,
 		`ip`,
 		`hostname`,
@@ -134,6 +134,7 @@ print <<ENDHTML;
 						<ul>
 							<li><a href="user-management.cgi">User Management</a></li>
 							<li><a href="access-log.cgi">Access Log</a></li>
+							<li><a href="audit-log.cgi">Audit Log</a></li>
 						</ul>
 					</li>
 				</ul>

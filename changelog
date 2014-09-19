@@ -1,3 +1,15 @@
+
+MAKE SURE LINKS ARE DELETED FOR DROPPED HOSTS, CMDS, USERS
+Finish audit on CMD and User Group Deletes
+
+1.3.0:  - Added full Audit Log (nearly all files have been modified).
+        - Some general interface changes to make tables a bit tidier.
+        - Added MD5 and SHA1 checksum to sudoers file.
+        - Adjusted 'Sudoers Not Found' to include links.
+        - Added helpful descriptions to common.pl components.
+        - Fixed a bug where linked hosts, users and commands were not correctly dropped from the link 
+          table if they were deleted but still belonged to a group.
+----------------
 1.2.2 -	System now uses 'time' epoch instead of 'localtime' string for calculating expiry as the localtime
 		output string varied and was unreliable for calculations. 'localtime' remains in use for variables
 		where a string time is specified (such as "$Date = strftime "%Y-%m-%d", localtime;").
@@ -12,7 +24,7 @@
 		the system's purpose. Modified login.cgi, lockout.cgi, header.cgi to pull name from new sub routine
 		in common.pl so the name can be easily edited to fit more easily into different customer
 		environments. Also added a short name (DSMS) sub routine to common.pl.
-1.0.2 -	Added version numbering system (hello reader!) to common.pl and modified index.cgi to display version
-		number.
+1.0.2 -	Added version numbering system to this file (hello reader!) and to common.pl and modified index.cgi 
+		to display version number.
 1.0.1 -	Fixed SQL bug in sudoers-commands.cgi which prevented commands from being deleted.
 1.0.0 -	Initial release.
