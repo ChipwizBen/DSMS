@@ -135,4 +135,70 @@ sub CGI {
 
 }
 
+sub Random_Alpha_Numeric_Password {
+
+	# Don't touch this. Seriously, leave it.
+
+	my $Random_Value;
+	my $Password_Length = $_[0];
+
+	if (!$Password_Length) {
+		$Password_Length = 10;
+	}
+
+	my @Chars = split(" ",
+		"a b c d e f g h i j
+		 k l m n o p q r s t
+		 u v w x y z A B C D
+		 E F G H I J K L M N
+		 O P Q R S T U V W X
+		 Y Z 0 1 2 3 4 5 6 7
+		 8 9");
+
+	srand;
+
+	my $Random_Password;
+	for (my $i=0; $i <= $Password_Length ;$i++) {
+		$Random_Value = int(rand 62);
+		$Random_Password .= $Chars[$Random_Value];
+	}
+
+	return $Random_Password;
+	
+} # sub Random_Alpha_Numeric_Password
+
+sub Salt {
+
+	#Don't touch this. DO NOT TOUCH IT.
+
+	my $Random_Value;
+	my $Salt_Length = $_[0];
+
+	if (!$Salt_Length) {
+		$Salt_Length = 64;
+	}
+
+	my @Chars = split(" ",
+		"a b c d e f g h i j
+		 k l m n o p q r s t
+		 u v w x y z A B C D
+		 E F G H I J K L M N
+		 O P Q R S T U V W X
+		 Y Z 0 1 2 3 4 5 6 7
+		 8 9 - _ ! @ # ^ ? =
+		 & * ( ) _ + { } | :
+		 < > / \ . , ; $ %");
+
+	srand;
+
+	my $Random_Salt;
+	for (my $i=0; $i <= $Salt_Length ;$i++) {
+		$Random_Value = int(rand 89);
+		$Random_Salt .= $Chars[$Random_Value];
+	}
+
+	return $Random_Salt;
+	
+} # sub salt
+
 1;

@@ -876,7 +876,75 @@ ENDHTML
 } # sub html_delete_group
 
 sub delete_group {
+
+	# Audit Log
+	my $Select_Links = $DB_Sudoers->prepare("SELECT `user`
+		FROM `lnk_user_groups_to_users`
+		WHERE `group` = ?"
+	);
+	$Select_Links->execute($Delete_Group_Confirm);
+
+	my $Users_Attached;
+	while (( my $User_ID ) = $Select_Links->fetchrow_array() )
+	{
+
+		my $Select_Users = $DB_Sudoers->prepare("SELECT `username`
+			FROM `users`
+			WHERE `id` = ?"
+		);
+		$Select_Users->execute($User_ID);
+
+		while (( my $User ) = $Select_Users->fetchrow_array() )
+		{
+			$Users_Attached = $User . ", " . $Users_Attached;
+		}
+	}
+
+	my $Select_Users = $DB_Sudoers->prepare("SELECT `groupname`, `expires`, `active`
+		FROM `user_groups`
+		WHERE `id` = ?");
+
+	$Select_Users->execute($Delete_Group_Confirm);
+
+	while (( my $Group_Name, my $Expires, my $Active ) = $Select_Users->fetchrow_array() )
+	{
+
+		if ($Expires eq '0000-00-00') {
+			$Expires = 'does not expire';
+		}
+		else {
+			$Expires = "expires on " . $Expires;
+		}
 	
+		if ($Active) {$Active = 'Active'} else {$Active = 'Inactive'}
+		$Users_Attached =~ s/,\s$//;
+
+		if ($Users_Attached) {
+			$Users_Attached = "the following users attached: " . $Users_Attached . ".";
+		}
+		else {
+			$Users_Attached = 'no users attached.';
+		}
+
+		my $DB_Management = DB_Management();
+		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+			`category`,
+			`method`,
+			`action`,
+			`username`
+		)
+		VALUES (
+			?,
+			?,
+			?,
+			?
+		)");
+		
+		$Audit_Log_Submission->execute("User Groups", "Delete", "$User_Name deleted User Group ID $Delete_Group_Confirm. The deleted entry's last values were $Group_Name, set $Active and $Expires. It had $Users_Attached", $User_Name);
+
+	}
+	# / Audit Log
+
 	my $Delete_Group = $DB_Sudoers->prepare("DELETE from `user_groups`
 		WHERE `id` = ?");
 	
@@ -887,14 +955,48 @@ sub delete_group {
 	
 	$Delete_User->execute($Delete_Group_Confirm);
 
+ 	my $Delete_Rule_Links = $DB_Sudoers->prepare("DELETE from `lnk_rules_to_user_groups`
+		WHERE `user_group` = ?");
+	
+	$Delete_Rule_Links->execute($Delete_Group_Confirm);
+
 } # sub delete_group
 
 sub delete_user {
- 
- 	my $Delete_User = $DB_Sudoers->prepare("DELETE from `lnk_user_groups_to_users`
+
+	# Audit Log
+	my $Select_Users = $DB_Sudoers->prepare("SELECT `username`
+		FROM `users`
+		WHERE `id` = ?");
+
+	$Select_Users->execute($Delete_User_ID);
+
+	while (( my $Username ) = $Select_Users->fetchrow_array() )
+	{
+	
+		my $DB_Management = DB_Management();
+		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+			`category`,
+			`method`,
+			`action`,
+			`username`
+		)
+		VALUES (
+			?,
+			?,
+			?,
+			?
+		)");
+		
+		$Audit_Log_Submission->execute("User Groups", "Delete", "$User_Name removed $Username [User ID $Delete_User_ID] from User Group $Delete_User_From_Group_Name [User Group ID $Delete_User_From_Group_ID].", $User_Name);
+
+	}
+	# / Audit Log
+
+	my $Delete_User = $DB_Sudoers->prepare("DELETE from `lnk_user_groups_to_users`
 		WHERE `group` = ?
 		AND `user` = ?");
-	
+
 	$Delete_User->execute($Delete_User_From_Group_ID, $Delete_User_ID);
 
 }

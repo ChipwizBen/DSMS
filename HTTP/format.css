@@ -667,7 +667,7 @@ table {
 	margin: 0 auto;
 	top: 200px;
 	position: relative;	
-	width: 300px;
+	width: 400px;
 	height: 200px;	
 	font-size: 1.0em;
 	text-align: center;
@@ -706,9 +706,8 @@ table {
 
 #loginreferer {
 	margin: 0 auto;
-	top: 350px;
-	position: relative;	
-	width: 1000px;
+	top: 220px;
+	position: relative;
 	text-align: center;	
 	font-size: 1.0em;	
 	color: #FFFFFF;

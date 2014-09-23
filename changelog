@@ -1,30 +1,40 @@
-
-MAKE SURE LINKS ARE DELETED FOR DROPPED HOSTS, CMDS, USERS
-Finish audit on CMD and User Group Deletes
-
-1.3.0:  - Added full Audit Log (nearly all files have been modified).
-        - Some general interface changes to make tables a bit tidier.
+1.3.0:  - Added full Audit Log 'audit-log.cgi'. Nearly all files have been modified to integrate with the 
+          new audit system.
+        - Added a password salting system to increase password security (against rainbow attacks) beyond 
+          the current SHA-512 hashing process to SHA-512 + 64 character salt.
+        - Some general interface changes to make things a bit tidier (particularly tables).
         - Added MD5 and SHA1 checksum to sudoers file.
-        - Adjusted 'Sudoers Not Found' to include links.
-        - Added helpful descriptions to common.pl components.
+        - Adjusted 'Sudoers Not Found' to include links to referenced pages.
+        - Added helpful descriptions to 'common.pl' components.
+        - Renamed 'user-management.cgi' to 'account-management.cgi' to avoid confusing system users with 
+          sudo users. Updated 'header.cgi' to reflect name change.
+        - Enforced the reservation of the 'System' user name.
+        - Updated account requirements description to include notice of reserved 'System' user name.
+        - Added better error handling of duplicate user name and email rejections for new and edited users.
         - Fixed a bug where linked hosts, users and commands were not correctly dropped from the link 
-          table if they were deleted but still belonged to a group.
+          table if they were deleted but still belonged to a group or rule.
+        - Fixed a bug where linked groups were not correctly dropped from the rule to group link table.
+        - Fixed a bug in 'account-management.cgi' where an Admin that modified their own rights had their 
+          access stripped for the current session only and could not reach any administrative page without 
+          first logging out and back in.
+        - Added syntax highlighting for potentially dangerous commands (like *).
 ----------------
-1.2.2 -	System now uses 'time' epoch instead of 'localtime' string for calculating expiry as the localtime
-		output string varied and was unreliable for calculations. 'localtime' remains in use for variables
-		where a string time is specified (such as "$Date = strftime "%Y-%m-%d", localtime;").
-1.2.1 -	Reduced Date::Parse module requirement from Date::Parse to Date::Parse qw(str2time).
-1.2.0 -	Added item and rule expiry system. Added Date::Parse to requirement list (see README).
+1.2.2:  - System now uses 'time' epoch instead of 'localtime' string for calculating expiry as the 'localtime'
+          output string varied and was unreliable for calculations. 'localtime' remains in use for variables
+          where a string time is specified (such as "$Date = strftime "%Y-%m-%d", localtime;").
+1.2.1:  - Reduced Date::Parse module requirement from Date::Parse to Date::Parse qw(str2time).
+1.2.0:  - Added item and rule expiry system. Added Date::Parse to requirement list (see README).
 ----------------
-1.1.1 -	Trimmed legacy files.
-1.1.0 -	Moved environmental variables from sudoers-build.pl to dedicated plain text environmental-variables
-		file so users don't need to edit the sudoers-build.pl script.
+1.1.1:  - Trimmed legacy files.
+1.1.0:  - Moved environmental variables from 'sudoers-build.pl' to dedicated plain text 
+          'environmental-variables' file so users don't need to edit the sudoers-build.pl script.
 ----------------
-1.0.2 -	Renamed from  Sudoers Build System to  Sudoers Management System to better describe
-		the system's purpose. Modified login.cgi, lockout.cgi, header.cgi to pull name from new sub routine
-		in common.pl so the name can be easily edited to fit more easily into different customer
-		environments. Also added a short name (DSMS) sub routine to common.pl.
-1.0.2 -	Added version numbering system to this file (hello reader!) and to common.pl and modified index.cgi 
-		to display version number.
-1.0.1 -	Fixed SQL bug in sudoers-commands.cgi which prevented commands from being deleted.
-1.0.0 -	Initial release.
+1.0.2:  - Renamed from  Sudoers Build System to  Sudoers Management System to better describe
+          the system's purpose.
+        - Modified 'login.cgi', 'lockout.cgi', 'header.cgi' to pull name from new subroutine in 'common.pl' 
+          so the name can be easily edited to fit more easily into different customer environments.
+        - Added a short name (DSMS) subroutine to 'common.pl'.
+1.0.2:  - Added version numbering system to this file (hello!) and to 'common.pl'.
+        - Modified index.cgi to display version number.
+1.0.1:  - Fixed SQL bug in 'sudoers-commands.cgi' which prevented commands from being deleted.
+1.0.0:  - Initial release.

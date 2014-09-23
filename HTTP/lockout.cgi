@@ -13,14 +13,29 @@ my $User_Name = $CGI->param("User_Name");
 my $Unlock = $CGI->param("Unlock");
 my $Password = $CGI->param("Password");
 
-my $Password = sha512_hex($Password);
-my $Unlock = sha512_hex($Unlock);
-
-&unlock_check;
-&html_output;
+if (!$User_Name) {
+	&html_go_away;
+}
+else {
+	&unlock_check;
+	&html_output;	
+}
 
 my $Login_Message;
 sub unlock_check {
+
+	if ($Password eq '') {
+		$Login_Message="You did not supply a password";
+		&html_output;
+		exit(0);
+	}
+
+	my $Salt = Salt(64);
+	my $Password = $Password . $Salt;
+		$Password = sha512_hex($Password);
+
+	my $Unlock = sha512_hex($Unlock);
+
 	my $Select_Details = $DB_Management->prepare("SELECT `id`, `admin`, `lockout_reset`, `lockout`
 	FROM `credentials`
 	WHERE `username` = ?
@@ -41,16 +56,12 @@ sub unlock_check {
 			exit(0);
 		}
 		else {
-			if ($Password eq '') {
-				$Login_Message="You did not supply a password";
-				&html_output;
-				exit(0);
-			}
-			elsif ($Lockout_Reset eq $Unlock) {
+			if ($Lockout_Reset eq $Unlock) {
 
 				my $Reset_Account = $DB_Management->prepare("
 				UPDATE `credentials` SET
 				`password` = ?,
+				`salt` = ?,
 				`last_login` = NOW(),
 				`lockout` = '0',
 				`lockout_counter` = '0',
@@ -59,7 +70,7 @@ sub unlock_check {
 				`modified_by` = ?
 				WHERE `id` = ?");
 
-				$Reset_Account->execute($Password, $User_Name, $DBID);
+				$Reset_Account->execute($Password, $Salt, $User_Name, $DBID);
 
 				$Session->param('User_Name', $User_Name);
 				$Session->param('User_Admin', $User_Admin);
@@ -127,3 +138,34 @@ $Login_Message<br />
 ENDHTML
 
 } #sub html_output
+
+sub html_go_away {
+
+print $CGI->header(-cookie=>$Cookie);
+
+print <<ENDHTML;
+<!DOCTYPE html>
+<html>
+<head>
+	<title>$System_Name</title>
+	<link rel="stylesheet" type="text/css" href="format.css" media= "screen" title ="Default CSS"/>
+</head>
+
+<body style="background-color: #575757;">
+<div id="login">
+<div id="loginform">
+<h3>What are you doing here?</h3>
+<br />
+<p>You either messed up the account reset link, or you're just goofing around. Go back and read the email again.</p>
+
+</div> <!-- loginform -->
+</div> <!-- login -->
+
+</div> <!-- body -->
+
+</body>
+</html>
+
+ENDHTML
+
+}

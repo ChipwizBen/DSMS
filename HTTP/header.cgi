@@ -132,7 +132,7 @@ print <<ENDHTML;
 					<li><a href="password-change.cgi">Change Password</a></li>
 					<li><a href="#">Management <b style="float:right;">></b></a>
 						<ul>
-							<li><a href="user-management.cgi">User Management</a></li>
+							<li><a href="account-management.cgi">Account Management</a></li>
 							<li><a href="access-log.cgi">Access Log</a></li>
 							<li><a href="audit-log.cgi">Audit Log</a></li>
 						</ul>

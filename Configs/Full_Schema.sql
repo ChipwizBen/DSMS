@@ -504,6 +504,34 @@ LOCK TABLES `access_log` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `audit_log`
+--
+
+DROP TABLE IF EXISTS `audit_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `audit_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `category` varchar(255) NOT NULL,
+  `method` varchar(45) NOT NULL,
+  `action` text NOT NULL,
+  `time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `username` varchar(128) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `audit_log`
+--
+
+LOCK TABLES `audit_log` WRITE;
+/*!40000 ALTER TABLE `audit_log` DISABLE KEYS */;
+/*!40000 ALTER TABLE `audit_log` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `credentials`
 --
 
@@ -514,6 +542,7 @@ CREATE TABLE `credentials` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `username` varchar(128) NOT NULL,
   `password` varchar(128) NOT NULL,
+  `salt` varchar(64) NOT NULL,
   `email` varchar(128) NOT NULL,
   `last_login` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
   `last_active` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
@@ -526,7 +555,8 @@ CREATE TABLE `credentials` (
   `last_modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `modified_by` varchar(128) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `email_UNIQUE` (`email`)
+  UNIQUE KEY `email_UNIQUE` (`email`),
+  UNIQUE KEY `username_UNIQUE` (`username`)
 ) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -536,7 +566,7 @@ CREATE TABLE `credentials` (
 
 LOCK TABLES `credentials` WRITE;
 /*!40000 ALTER TABLE `credentials` DISABLE KEYS */;
-INSERT INTO `credentials` VALUES (1,'admin','3c9909afec25354d551dae21590bb26e38d53f2173b8d3dc3eee4c047e7ab1c1eb8b85103e3be7ba613b31bb5c9c36214dc9f14a42fd7a2fdb84856bca5c44c2','noreply@','2014-09-11 10:23:21','2014-09-11 10:23:21',1,0,1,0,0,'','2014-09-10 22:23:21','Ben Schofield');
+INSERT INTO `credentials` VALUES (1,'admin','ebc21cd4ad20daa929cdfd65446c662d1454f08552c546d495eed15f3f0edcd39400565ccbebc489542ba1f528a7963e9bd2425ba0dd35370e81e92e0dd708de',';2eiR=|VyBcv0VWVi0gd=9&B,h<*;SpE.JAv)pik>g-6C!|5W#;tfsu(@0L&u@0u','noreply@','2014-09-11 10:23:21','2014-09-11 10:23:21',1,0,1,0,0,'','2014-09-10 22:23:21','Ben Schofield');
 /*!40000 ALTER TABLE `credentials` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -549,4 +579,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2014-09-17 12:16:09
+-- Dump completed on 2014-09-23 14:28:12

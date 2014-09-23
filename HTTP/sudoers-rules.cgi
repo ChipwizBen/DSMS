@@ -838,6 +838,35 @@ sub add_rule {
 
 	my $Rule_Insert_ID = $DB_Sudoers->{mysql_insertid};
 
+	# Audit Log
+	if ($Expires_Date_Add eq '0000-00-00') {
+		$Expires_Date_Add = 'not expire';
+	}
+	else {
+		$Expires_Date_Add = "expire on " . $Expires_Date_Add;
+	}
+
+	if ($Active_Add) {$Active_Add = 'Active'} else {$Active_Add = 'Inactive'}
+	if ($NOPASSWD_Add) {$NOPASSWD_Add = 'NOPASSWD'} else {$NOPASSWD_Add = 'PASSWD'}
+	if ($NOEXEC_Add) {$NOEXEC_Add = 'NOEXEC'} else {$NOEXEC_Add = 'EXEC'}
+	
+	my $DB_Management = DB_Management();
+	my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+		`category`,
+		`method`,
+		`action`,
+		`username`
+	)
+	VALUES (
+		?,
+		?,
+		?,
+		?
+	)");
+
+	$Audit_Log_Submission->execute("Rules", "Add", "$User_Name added $Rule_Name_Add (to be run as $Run_As_Add, with the $NOPASSWD_Add and $NOEXEC_Add flags), set it $Active_Add and to $Expires_Date_Add. The system assigned it Rule ID $Rule_Insert_ID.", $User_Name);
+	# / Audit Log
+
 	if (!$User_Requires_Approval && $User_Approver) {
 
 		my $Approve_Rule = $DB_Sudoers->prepare("UPDATE `rules` SET
@@ -846,6 +875,24 @@ sub add_rule {
 		WHERE `id` = ?");
 
 		$Approve_Rule->execute($User_Name, $Rule_Insert_ID);
+
+		# Audit Log
+		my $DB_Management = DB_Management();
+		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+			`category`,
+			`method`,
+			`action`,
+			`username`
+		)
+		VALUES (
+			?,
+			?,
+			?,
+			?
+		)");
+	
+		$Audit_Log_Submission->execute("Rules", "Approve", "$User_Name Approved their own rule: $Rule_Name_Add [Rule ID $Rule_Insert_ID].", $User_Name);
+		# / Audit Log
 
 	}
 
@@ -867,6 +914,29 @@ sub add_rule {
 		)");
 		
 		$Host_Insert->execute($Rule_Insert_ID, $Host_Group);
+
+		# Audit Log
+		my $Select_Group = $DB_Sudoers->prepare("SELECT `groupname` FROM `host_groups` WHERE `id` = ?");
+		$Select_Group->execute($Host_Group);
+		while ( (my $Name) = $Select_Group->fetchrow_array() )
+		{
+			my $DB_Management = DB_Management();
+			my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+				`category`,
+				`method`,
+				`action`,
+				`username`
+			)
+			VALUES (
+				?,
+				?,
+				?,
+				?
+			)");
+			$Audit_Log_Submission->execute("Rules", "Modify", "$User_Name added Host Group $Name [Host Group ID $Host_Group] to Rule $Rule_Name_Add [Rule ID $Rule_Insert_ID]", $User_Name);
+		}
+		# / Audit Log
+
 	}
 
 	### Hosts
@@ -887,6 +957,29 @@ sub add_rule {
 		)");
 		
 		$Host_Insert->execute($Rule_Insert_ID, $Host);
+
+		# Audit Log
+		my $Select_Host = $DB_Sudoers->prepare("SELECT `hostname` FROM `hosts` WHERE `id` = ?");
+		$Select_Host->execute($Host);
+		while ( (my $Name) = $Select_Host->fetchrow_array() )
+		{
+			my $DB_Management = DB_Management();
+			my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+				`category`,
+				`method`,
+				`action`,
+				`username`
+			)
+			VALUES (
+				?,
+				?,
+				?,
+				?
+			)");
+			$Audit_Log_Submission->execute("Rules", "Modify", "$User_Name added Host $Name [Host ID $Host] to Rule $Rule_Name_Add [Rule ID $Rule_Insert_ID]", $User_Name);
+		}
+		# / Audit Log
+
 	}
 
 	### User Groups
@@ -907,6 +1000,29 @@ sub add_rule {
 		)");
 		
 		$User_Insert->execute($Rule_Insert_ID, $User_Group);
+
+		# Audit Log
+		my $Select_Group = $DB_Sudoers->prepare("SELECT `groupname` FROM `user_groups` WHERE `id` = ?");
+		$Select_Group->execute($User_Group);
+		while ( (my $Name) = $Select_Group->fetchrow_array() )
+		{
+			my $DB_Management = DB_Management();
+			my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+				`category`,
+				`method`,
+				`action`,
+				`username`
+			)
+			VALUES (
+				?,
+				?,
+				?,
+				?
+			)");
+			$Audit_Log_Submission->execute("Rules", "Modify", "$User_Name added User Group $Name [User Group ID $User_Group] to Rule $Rule_Name_Add [Rule ID $Rule_Insert_ID]", $User_Name);
+		}
+		# / Audit Log
+
 	}
 
 	### Users
@@ -927,6 +1043,29 @@ sub add_rule {
 		)");
 		
 		$User_Insert->execute($Rule_Insert_ID, $User);
+
+		# Audit Log
+		my $Select_User = $DB_Sudoers->prepare("SELECT `username` FROM `users` WHERE `id` = ?");
+		$Select_User->execute($User);
+		while ( (my $Name) = $Select_User->fetchrow_array() )
+		{
+			my $DB_Management = DB_Management();
+			my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+				`category`,
+				`method`,
+				`action`,
+				`username`
+			)
+			VALUES (
+				?,
+				?,
+				?,
+				?
+			)");
+			$Audit_Log_Submission->execute("Rules", "Modify", "$User_Name added User $Name [User ID $User] to Rule $Rule_Name_Add [Rule ID $Rule_Insert_ID]", $User_Name);
+		}
+		# / Audit Log
+
 	}
 
 	### Command Groups
@@ -947,6 +1086,29 @@ sub add_rule {
 		)");
 		
 		$Command_Insert->execute($Rule_Insert_ID, $Command_Group);
+
+		# Audit Log
+		my $Select_Group = $DB_Sudoers->prepare("SELECT `groupname` FROM `command_groups` WHERE `id` = ?");
+		$Select_Group->execute($Command_Group);
+		while ( (my $Name) = $Select_Group->fetchrow_array() )
+		{
+			my $DB_Management = DB_Management();
+			my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+				`category`,
+				`method`,
+				`action`,
+				`username`
+			)
+			VALUES (
+				?,
+				?,
+				?,
+				?
+			)");
+			$Audit_Log_Submission->execute("Rules", "Modify", "$User_Name added Command Group $Name [Command Group ID $Command_Group] to Rule $Rule_Name_Add [Rule ID $Rule_Insert_ID]", $User_Name);
+		}
+		# / Audit Log
+
 	}
 
 
@@ -968,6 +1130,29 @@ sub add_rule {
 		)");
 		
 		$Command_Insert->execute($Rule_Insert_ID, $Command);
+
+		# Audit Log
+		my $Select_Command = $DB_Sudoers->prepare("SELECT `command_alias` FROM `commands` WHERE `id` = ?");
+		$Select_Command->execute($Command);
+		while ( (my $Name) = $Select_Command->fetchrow_array() )
+		{
+			my $DB_Management = DB_Management();
+			my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+				`category`,
+				`method`,
+				`action`,
+				`username`
+			)
+			VALUES (
+				?,
+				?,
+				?,
+				?
+			)");
+			$Audit_Log_Submission->execute("Rules", "Modify", "$User_Name added Command $Name [Command ID $Command] to Rule $Rule_Name_Add [Rule ID $Rule_Insert_ID]", $User_Name);
+		}
+		# / Audit Log
+
 	}
 
 	return($Rule_Insert_ID);
@@ -1986,6 +2171,35 @@ sub edit_rule {
 		WHERE `id` = ?");
 	$Update_Rule->execute($Rule_Name_Edit, $Run_As_Edit, $NOPASSWD_Edit, $NOEXEC_Edit, $Expires_Date_Edit, $Active_Edit, $Approved, $User_Name, $Edit_Rule);
 
+	# Audit Log
+	if ($Expires_Date_Edit eq '0000-00-00' || !$Expires_Date_Edit) {
+		$Expires_Date_Edit = 'not expire';
+	}
+	else {
+		$Expires_Date_Edit = "expire on " . $Expires_Date_Edit;
+	}
+
+	if ($Active_Edit) {$Active_Edit = 'Active'} else {$Active_Edit = 'Inactive'}
+	if ($NOPASSWD_Edit) {$NOPASSWD_Edit = 'NOPASSWD'} else {$NOPASSWD_Edit = 'PASSWD'}
+	if ($NOEXEC_Edit) {$NOEXEC_Edit = 'NOEXEC'} else {$NOEXEC_Edit = 'EXEC'}
+	
+	my $DB_Management = DB_Management();
+	my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+		`category`,
+		`method`,
+		`action`,
+		`username`
+	)
+	VALUES (
+		?,
+		?,
+		?,
+		?
+	)");
+
+	$Audit_Log_Submission->execute("Rules", "Modify", "$User_Name edited $Rule_Name_Edit [Rule ID $Edit_Rule] (to be run as $Run_As_Edit, with the $NOPASSWD_Edit and $NOEXEC_Edit flags), set it $Active_Edit and to $Expires_Date_Edit.", $User_Name);
+	# / Audit Log
+
 
 	### Host Groups
 	$Edit_Host_Group_Temp_Existing =~ s/,$//;
@@ -2005,6 +2219,29 @@ sub edit_rule {
 		)");
 		
 		$Host_Insert->execute($Edit_Rule, $Host_Group);
+
+		# Audit Log
+		my $Select_Group = $DB_Sudoers->prepare("SELECT `groupname` FROM `host_groups` WHERE `id` = ?");
+		$Select_Group->execute($Host_Group);
+		while ( (my $Name) = $Select_Group->fetchrow_array() )
+		{
+			my $DB_Management = DB_Management();
+			my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+				`category`,
+				`method`,
+				`action`,
+				`username`
+			)
+			VALUES (
+				?,
+				?,
+				?,
+				?
+			)");
+			$Audit_Log_Submission->execute("Rules", "Modify", "$User_Name added Host Group $Name [Host Group ID $Host_Group] to Rule $Rule_Name_Edit [Rule ID $Edit_Rule]", $User_Name);
+		}
+		# / Audit Log
+
 	}
 
 	### Hosts
@@ -2025,6 +2262,29 @@ sub edit_rule {
 		)");
 		
 		$Host_Insert->execute($Edit_Rule, $Host);
+
+		# Audit Log
+		my $Select_Host = $DB_Sudoers->prepare("SELECT `hostname` FROM `hosts` WHERE `id` = ?");
+		$Select_Host->execute($Host);
+		while ( (my $Name) = $Select_Host->fetchrow_array() )
+		{
+			my $DB_Management = DB_Management();
+			my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+				`category`,
+				`method`,
+				`action`,
+				`username`
+			)
+			VALUES (
+				?,
+				?,
+				?,
+				?
+			)");
+			$Audit_Log_Submission->execute("Rules", "Modify", "$User_Name added Host $Name [Host ID $Host] to Rule $Rule_Name_Add [Rule ID $Edit_Rule]", $User_Name);
+		}
+		# / Audit Log
+
 	}
 
 	### User Groups
@@ -2045,6 +2305,29 @@ sub edit_rule {
 		)");
 		
 		$User_Insert->execute($Edit_Rule, $User_Group);
+
+		# Audit Log
+		my $Select_Group = $DB_Sudoers->prepare("SELECT `groupname` FROM `user_groups` WHERE `id` = ?");
+		$Select_Group->execute($User_Group);
+		while ( (my $Name) = $Select_Group->fetchrow_array() )
+		{
+			my $DB_Management = DB_Management();
+			my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+				`category`,
+				`method`,
+				`action`,
+				`username`
+			)
+			VALUES (
+				?,
+				?,
+				?,
+				?
+			)");
+			$Audit_Log_Submission->execute("Rules", "Modify", "$User_Name added User Group $Name [User Group ID $User_Group] to Rule $Rule_Name_Edit [Rule ID $Edit_Rule]", $User_Name);
+		}
+		# / Audit Log
+
 	}
 
 	### Users
@@ -2065,6 +2348,29 @@ sub edit_rule {
 		)");
 		
 		$User_Insert->execute($Edit_Rule, $User);
+
+		# Audit Log
+		my $Select_User = $DB_Sudoers->prepare("SELECT `username` FROM `users` WHERE `id` = ?");
+		$Select_User->execute($User);
+		while ( (my $Name) = $Select_User->fetchrow_array() )
+		{
+			my $DB_Management = DB_Management();
+			my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+				`category`,
+				`method`,
+				`action`,
+				`username`
+			)
+			VALUES (
+				?,
+				?,
+				?,
+				?
+			)");
+			$Audit_Log_Submission->execute("Rules", "Modify", "$User_Name added User $Name [User ID $User] to Rule $Rule_Name_Add [Rule ID $Edit_Rule]", $User_Name);
+		}
+		# / Audit Log
+
 	}
 
 	### Command Groups
@@ -2085,6 +2391,29 @@ sub edit_rule {
 		)");
 		
 		$Command_Insert->execute($Edit_Rule, $Command_Group);
+
+		# Audit Log
+		my $Select_Group = $DB_Sudoers->prepare("SELECT `groupname` FROM `command_groups` WHERE `id` = ?");
+		$Select_Group->execute($Command_Group);
+		while ( (my $Name) = $Select_Group->fetchrow_array() )
+		{
+			my $DB_Management = DB_Management();
+			my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+				`category`,
+				`method`,
+				`action`,
+				`username`
+			)
+			VALUES (
+				?,
+				?,
+				?,
+				?
+			)");
+			$Audit_Log_Submission->execute("Rules", "Modify", "$User_Name added Command Group $Name [Command Group ID $Command_Group] to Rule $Rule_Name_Edit [Rule ID $Edit_Rule]", $User_Name);
+		}
+		# / Audit Log
+
 	}
 
 
@@ -2106,6 +2435,29 @@ sub edit_rule {
 		)");
 		
 		$Command_Insert->execute($Edit_Rule, $Command);
+
+		# Audit Log
+		my $Select_Command = $DB_Sudoers->prepare("SELECT `command_alias` FROM `commands` WHERE `id` = ?");
+		$Select_Command->execute($Command);
+		while ( (my $Name) = $Select_Command->fetchrow_array() )
+		{
+			my $DB_Management = DB_Management();
+			my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+				`category`,
+				`method`,
+				`action`,
+				`username`
+			)
+			VALUES (
+				?,
+				?,
+				?,
+				?
+			)");
+			$Audit_Log_Submission->execute("Rules", "Modify", "$User_Name added Command $Name [Command ID $Command] to Rule $Rule_Name_Add [Rule ID $Edit_Rule]", $User_Name);
+		}
+		# / Audit Log
+
 	}
 
 } # sub html_edit_rule
@@ -2156,7 +2508,46 @@ ENDHTML
 } # sub html_delete_rule
 
 sub delete_rule {
+
+	# Audit Log
+	my $Select_Rules = $DB_Sudoers->prepare("SELECT `name`, `run_as`, `nopasswd`, `noexec`, `expires`, `active`
+		FROM `rules`
+		WHERE `id` LIKE ?");
+
+	$Select_Rules->execute($Delete_Rule_Confirm);
+
+	while (( my $Rule_Name, my $Run_As, my $NOPASSWD, my $NOEXEC, my $Expires, my $Active ) = $Select_Rules->fetchrow_array() )
+	{
+
+		if ($NOPASSWD == 1) {$NOPASSWD = 'NOPASSWD'} else {$NOPASSWD = 'PASSWD'}
+		if ($NOEXEC == 1) {$NOEXEC = 'NOEXEC'} else {$NOEXEC = 'EXEC'}
+
+		if ($Expires eq '0000-00-00') {
+			$Expires = 'does not expire';
+		}
+		else {
+			$Expires = "expires on " . $Expires;
+		}
 	
+		if ($Active) {$Active = 'Active'} else {$Active = 'Inactive'}
+
+		my $DB_Management = DB_Management();
+		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+			`category`,
+			`method`,
+			`action`,
+			`username`
+		)
+		VALUES (
+			?,
+			?,
+			?,
+			?
+		)");
+		$Audit_Log_Submission->execute("Rules", "Delete", "$User_Name deleted Rule ID $Delete_Rule_Confirm. The deleted entry's last values were $Rule_Name, run as $Run_As with flags $NOPASSWD and $NOEXEC, set $Active and $Expires.", $User_Name);
+	}
+	# / Audit Log
+
 	my $Delete_Rule = $DB_Sudoers->prepare("DELETE from `rules`
 		WHERE `id` = ?");
 	$Delete_Rule->execute($Delete_Rule_Confirm);
@@ -2189,48 +2580,285 @@ sub delete_rule {
 
 sub delete_rule_item {
 
+### Find Rule Name ###
+
+	my $Select_Rule = $DB_Sudoers->prepare("SELECT `name`
+		FROM `rules`
+		WHERE `id` LIKE ?");
+	$Select_Rule->execute($Delete_Rule_Item_ID);
+
+	my $Rule = $Select_Rule->fetchrow_array();
+
+### / Find Rule Name ###
+
+### Host Groups ###
+
+if ($Delete_Host_Group_ID) {
 	my $Delete_Host_Group_Rule = $DB_Sudoers->prepare("DELETE from `lnk_rules_to_host_groups`
 		WHERE `rule` = ?
 		AND `host_group` = ?");
 	$Delete_Host_Group_Rule->execute($Delete_Rule_Item_ID, $Delete_Host_Group_ID);
 
+	# Audit Log
+	my $Select_Item = $DB_Sudoers->prepare("SELECT `groupname`
+		FROM `host_groups`
+		WHERE `id` LIKE ?");
+
+	$Select_Item->execute($Delete_Host_Group_ID);
+
+	while (( my $Name ) = $Select_Item->fetchrow_array() )
+	{
+		my $DB_Management = DB_Management();
+		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+			`category`,
+			`method`,
+			`action`,
+			`username`
+		)
+		VALUES (
+			?,
+			?,
+			?,
+			?
+		)");
+		$Audit_Log_Submission->execute("Rules", "Delete", "$User_Name removed Host Group $Name [Host Group ID $Delete_Host_Group_ID] from Rule $Rule [Rule ID $Delete_Rule_Item_ID]", $User_Name);
+
+		my $Message_Green="Host Group $Name [Host Group ID $Delete_Host_Group_ID] removed from $Rule [Rule ID $Delete_Rule_Item_ID] successfully";
+		$Session->param('Message_Green', $Message_Green); #Posting Message_Green session var
+		print "Location: sudoers-rules.cgi\n\n";
+		exit(0);
+
+	}
+	# / Audit Log
+
+}
+
+### / Host Groups ###
+
+### Hosts ###
+
+if ($Delete_Host_ID) {
 	my $Delete_Host_Rule = $DB_Sudoers->prepare("DELETE from `lnk_rules_to_hosts`
 		WHERE `rule` = ?
 		AND `host` = ?");
 	$Delete_Host_Rule->execute($Delete_Rule_Item_ID, $Delete_Host_ID);
 
+	# Audit Log
+	my $Select_Item = $DB_Sudoers->prepare("SELECT `hostname`
+		FROM `hosts`
+		WHERE `id` LIKE ?");
+
+	$Select_Item->execute($Delete_Host_ID);
+
+	while (( my $Name ) = $Select_Item->fetchrow_array() )
+	{
+		my $DB_Management = DB_Management();
+		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+			`category`,
+			`method`,
+			`action`,
+			`username`
+		)
+		VALUES (
+			?,
+			?,
+			?,
+			?
+		)");
+		$Audit_Log_Submission->execute("Rules", "Delete", "$User_Name removed Host $Name [Host ID $Delete_Host_ID] from Rule $Rule [Rule ID $Delete_Rule_Item_ID]", $User_Name);
+
+		my $Message_Green="Host $Name [Host ID $Delete_Host_ID] removed from $Rule [Rule ID $Delete_Rule_Item_ID] successfully";
+		$Session->param('Message_Green', $Message_Green); #Posting Message_Green session var
+		print "Location: sudoers-rules.cgi\n\n";
+		exit(0);
+
+	}
+	# / Audit Log
+
+}
+### / Hosts ###
+
+### User Groups ###
+
+if ($Delete_User_Group_ID) {
 	my $Delete_User_Group_Rule = $DB_Sudoers->prepare("DELETE from `lnk_rules_to_user_groups`
 		WHERE `rule` = ?
 		AND `user_group` = ?");
 	$Delete_User_Group_Rule->execute($Delete_Rule_Item_ID, $Delete_User_Group_ID);
 
+	# Audit Log
+	my $Select_Item = $DB_Sudoers->prepare("SELECT `groupname`
+		FROM `user_groups`
+		WHERE `id` LIKE ?");
+
+	$Select_Item->execute($Delete_User_Group_ID);
+
+	while (( my $Name ) = $Select_Item->fetchrow_array() )
+	{
+		my $DB_Management = DB_Management();
+		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+			`category`,
+			`method`,
+			`action`,
+			`username`
+		)
+		VALUES (
+			?,
+			?,
+			?,
+			?
+		)");
+		$Audit_Log_Submission->execute("Rules", "Delete", "$User_Name removed User Group $Name [User Group ID $Delete_User_Group_ID] from Rule $Rule [Rule ID $Delete_Rule_Item_ID]", $User_Name);
+
+		my $Message_Green="User Group $Name [User Group ID $Delete_User_Group_ID] removed from $Rule [Rule ID $Delete_Rule_Item_ID] successfully";
+		$Session->param('Message_Green', $Message_Green); #Posting Message_Green session var
+		print "Location: sudoers-rules.cgi\n\n";
+		exit(0);
+
+	}
+	# / Audit Log
+
+}
+### / User Groups ###
+
+### Users ###
+if ($Delete_User_ID) {
 	my $Delete_User_Rule = $DB_Sudoers->prepare("DELETE from `lnk_rules_to_users`
 		WHERE `rule` = ?
 		AND `user` = ?");
 	$Delete_User_Rule->execute($Delete_Rule_Item_ID, $Delete_User_ID);
 
+	# Audit Log
+	my $Select_Item = $DB_Sudoers->prepare("SELECT `username`
+		FROM `users`
+		WHERE `id` LIKE ?");
+
+	$Select_Item->execute($Delete_User_ID);
+
+	while (( my $Name ) = $Select_Item->fetchrow_array() )
+	{
+		my $DB_Management = DB_Management();
+		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+			`category`,
+			`method`,
+			`action`,
+			`username`
+		)
+		VALUES (
+			?,
+			?,
+			?,
+			?
+		)");
+		$Audit_Log_Submission->execute("Rules", "Delete", "$User_Name removed User $Name [User ID $Delete_User_ID] from Rule $Rule [Rule ID $Delete_Rule_Item_ID]", $User_Name);
+
+		my $Message_Green="User $Name [User ID $Delete_User_ID] removed from $Rule [Rule ID $Delete_Rule_Item_ID] successfully";
+		$Session->param('Message_Green', $Message_Green); #Posting Message_Green session var
+		print "Location: sudoers-rules.cgi\n\n";
+		exit(0);
+
+	}
+	# / Audit Log
+
+}
+### / Users ###
+
+### Command Groups ###
+if ($Delete_Command_Group_ID) {
 	my $Delete_Command_Group_Rule = $DB_Sudoers->prepare("DELETE from `lnk_rules_to_command_groups`
 		WHERE `rule` = ?
 		AND `command_group` = ?");
 	$Delete_Command_Group_Rule->execute($Delete_Rule_Item_ID, $Delete_Command_Group_ID);
 
+	# Audit Log
+	my $Select_Item = $DB_Sudoers->prepare("SELECT `groupname`
+		FROM `command_groups`
+		WHERE `id` LIKE ?");
+
+	$Select_Item->execute($Delete_Command_Group_ID);
+
+	while (( my $Name ) = $Select_Item->fetchrow_array() )
+	{
+		my $DB_Management = DB_Management();
+		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+			`category`,
+			`method`,
+			`action`,
+			`username`
+		)
+		VALUES (
+			?,
+			?,
+			?,
+			?
+		)");
+		$Audit_Log_Submission->execute("Rules", "Delete", "$User_Name removed Command Group $Name [Command Group ID $Delete_Command_Group_ID] from Rule $Rule [Rule ID $Delete_Rule_Item_ID]", $User_Name);
+
+		my $Message_Green="Command Group $Name [Command Group ID $Delete_Command_Group_ID] removed from $Rule [Rule ID $Delete_Rule_Item_ID] successfully";
+		$Session->param('Message_Green', $Message_Green); #Posting Message_Green session var
+		print "Location: sudoers-rules.cgi\n\n";
+		exit(0);
+
+	}
+	# / Audit Log
+
+}
+### / Command Groups ###
+
+### Commands ###
+if ($Delete_Command_ID) {
 	my $Delete_Command_Rule = $DB_Sudoers->prepare("DELETE from `lnk_rules_to_commands`
 		WHERE `rule` = ?
 		AND `command` = ?");
 	$Delete_Command_Rule->execute($Delete_Rule_Item_ID, $Delete_Command_ID);
 
+	# Audit Log
+	my $Select_Item = $DB_Sudoers->prepare("SELECT `command_alias`
+		FROM `commands`
+		WHERE `id` LIKE ?");
+
+	$Select_Item->execute($Delete_Command_ID);
+
+	while (( my $Name ) = $Select_Item->fetchrow_array() )
+	{
+		my $DB_Management = DB_Management();
+		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+			`category`,
+			`method`,
+			`action`,
+			`username`
+		)
+		VALUES (
+			?,
+			?,
+			?,
+			?
+		)");
+		$Audit_Log_Submission->execute("Rules", "Delete", "$User_Name removed Command $Name [Command ID $Delete_Command_ID] from Rule $Rule [Rule ID $Delete_Rule_Item_ID]", $User_Name);
+
+		my $Message_Green="Command $Name [Command ID $Delete_Command_ID] removed from $Rule [Rule ID $Delete_Rule_Item_ID] successfully";
+		$Session->param('Message_Green', $Message_Green); #Posting Message_Green session var
+		print "Location: sudoers-rules.cgi\n\n";
+		exit(0);
+
+	}
+	# / Audit Log
+
+}
+### / Commands ###
+
 } # sub delete_rule_item
 
 sub approve_rule {
 
-	my $Select_Rules = $DB_Sudoers->prepare("SELECT `modified_by`
+	my $Select_Rules = $DB_Sudoers->prepare("SELECT `name`, `modified_by`
 		FROM `rules`
 		WHERE `id` = ?"
 	);
 
 	$Select_Rules->execute($Approve_Rule_ID);
 
-	while ( (my $Modified_By) = my @Select_Rules = $Select_Rules->fetchrow_array() )
+	while ( (my $Name, my $Modified_By) = my @Select_Rules = $Select_Rules->fetchrow_array() )
 	{
 		if (($User_Requires_Approval && ($User_Name ne $Modified_By)) || $User_Requires_Approval == 0) {
 			my $Update_Rule = $DB_Sudoers->prepare("UPDATE `rules` SET
@@ -2241,6 +2869,25 @@ sub approve_rule {
 			WHERE `id` = ?");
 			
 			$Update_Rule->execute($User_Name, $Approve_Rule_ID);
+
+			# Audit Log
+			my $DB_Management = DB_Management();
+			my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+				`category`,
+				`method`,
+				`action`,
+				`username`
+			)
+			VALUES (
+				?,
+				?,
+				?,
+				?
+			)");
+		
+			$Audit_Log_Submission->execute("Rules", "Approve", "$User_Name Approved $Name [Rule ID $Approve_Rule_ID].", $User_Name);
+			# / Audit Log
+
 		}
 		else {
 			my $Message_Red="Nice try, but you cannot approve your own rules.";

@@ -595,6 +595,16 @@ sub delete_command {
 	
 	$Delete_Command->execute($Delete_Command_Confirm);
 
+	my $Delete_Command_From_Groups = $DB_Sudoers->prepare("DELETE from `lnk_command_groups_to_commands`
+			WHERE `command` = ?");
+		
+	$Delete_Command_From_Groups->execute($Delete_Command_Confirm);
+
+	my $Delete_Command_From_Rules = $DB_Sudoers->prepare("DELETE from `lnk_rules_to_commands`
+			WHERE `command` = ?");
+		
+	$Delete_Command_From_Rules->execute($Delete_Command_Confirm);
+
 } # sub delete_command
 
 sub html_show_links {
@@ -774,6 +784,7 @@ sub html_output {
 			$Command_Alias =~ s/(.*)($Filter)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
 		my $Command = $Select_Commands[2];
 			$Command =~ s/(.*)($Filter)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
+			$Command =~ s/(\*)/<span style='background-color: #FF0000'>$1<\/span>/gi;
 		my $Expires = $Select_Commands[3];
 			my $Expires_Clean = $Expires;
 			$Expires =~ s/(.*)($Filter)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;

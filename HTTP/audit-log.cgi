@@ -57,7 +57,7 @@ sub html_output {
 		?
 	)");
 
-	$Audit_Log_Submission->execute("Audit Log", "View", "$User_Name accessed the audit log.", $User_Name);
+	$Audit_Log_Submission->execute("Audit Log", "View", "$User_Name accessed the Audit Log.", $User_Name);
 
 	my $Table = new HTML::Table(
 		-cols=>6,
@@ -85,7 +85,7 @@ sub html_output {
 			OR `time` LIKE ?
 			OR `username` LIKE ?
 			)
-		ORDER BY `time` DESC
+		ORDER BY `id` DESC
 		LIMIT 0 , $Rows_Returned");
 
 	$Select_Logs->execute("%$User_Name_Filter%", "%$Category_Filter%", "%$Method_Filter%", "%$Filter%", "%$Filter%", "%$Filter%", "%$Filter%", "%$Filter%", "%$Filter%" );
@@ -96,7 +96,7 @@ sub html_output {
 		$Select_Logs_Count->execute( );
 		my $Total_Rows = $Select_Logs_Count->rows();
 
-	$Table->addRow( "ID", "Category", "Method", "Action", "Time", "Who dunnit?" );
+	$Table->addRow( "ID", "Category", "Method", "Action", "Time", "User" );
 	$Table->setRowClass (1, 'tbrow1');
 
 	while ( my @Select_Logs = $Select_Logs->fetchrow_array() )
@@ -127,6 +127,15 @@ sub html_output {
 		}
 		elsif ($Method_Clean eq 'Modify') {
 			$Table->setCellClass (-1, 3, 'tbroworange');
+		}
+		elsif ($Method_Clean eq 'Deployment Succeeded') {
+			$Table->setCellClass (-1, 3, 'tbrowgreen');
+		}
+		elsif ($Method_Clean eq 'Deployment Failed') {
+			$Table->setCellClass (-1, 3, 'tbrowerror');
+		}
+		elsif ($Method_Clean eq 'Approve') {
+			$Table->setCellClass (-1, 3, 'tbrowdarkgreen');
 		}
 
 		$Table->setColWidth(1, '1px');

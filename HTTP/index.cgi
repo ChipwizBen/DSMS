@@ -33,7 +33,6 @@ if (!$Sudoers_Not_Found) {
 		$MD5_Checksum = "MD5: " . $MD5_Checksum;
 	$SHA1_Checksum = `sha1sum $Sudoers_Location | cut -d ' ' -f 1`;
 		$SHA1_Checksum = "SHA1: " . $SHA1_Checksum;
-	
 }
 
 print <<ENDHTML;

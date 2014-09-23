@@ -879,25 +879,127 @@ ENDHTML
 } # sub html_delete_group
 
 sub delete_group {
+
+	# Audit Log
+	my $Select_Links = $DB_Sudoers->prepare("SELECT `command`
+		FROM `lnk_command_groups_to_commands`
+		WHERE `group` = ?"
+	);
+	$Select_Links->execute($Delete_Group_Confirm);
+
+	my $Commands_Attached;
+	while (( my $Command_ID ) = $Select_Links->fetchrow_array() )
+	{
+
+		my $Select_Commands = $DB_Sudoers->prepare("SELECT `command_alias`
+			FROM `commands`
+			WHERE `id` = ?"
+		);
+		$Select_Commands->execute($Command_ID);
+
+		while (( my $Command ) = $Select_Commands->fetchrow_array() )
+		{
+			$Commands_Attached = $Command . ", " . $Commands_Attached;
+		}
+	}
+
+	my $Select_Commands = $DB_Sudoers->prepare("SELECT `groupname`, `expires`, `active`
+		FROM `command_groups`
+		WHERE `id` = ?");
+
+	$Select_Commands->execute($Delete_Group_Confirm);
+
+	while (( my $Group_Name, my $Expires, my $Active ) = $Select_Commands->fetchrow_array() )
+	{
+
+		if ($Expires eq '0000-00-00') {
+			$Expires = 'does not expire';
+		}
+		else {
+			$Expires = "expires on " . $Expires;
+		}
 	
+		if ($Active) {$Active = 'Active'} else {$Active = 'Inactive'}
+		$Commands_Attached =~ s/,\s$//;
+
+		if ($Commands_Attached) {
+			$Commands_Attached = "the following commands attached: " . $Commands_Attached . ".";
+		}
+		else {
+			$Commands_Attached = 'no commands attached.';
+		}
+
+		my $DB_Management = DB_Management();
+		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+			`category`,
+			`method`,
+			`action`,
+			`username`
+		)
+		VALUES (
+			?,
+			?,
+			?,
+			?
+		)");
+		
+		$Audit_Log_Submission->execute("Command Groups", "Delete", "$User_Name deleted Command Group ID $Delete_Group_Confirm. The deleted entry's last values were $Group_Name, set $Active and $Expires. It had $Commands_Attached", $User_Name);
+
+	}
+	# / Audit Log
+
 	my $Delete_Group = $DB_Sudoers->prepare("DELETE from `command_groups`
 		WHERE `id` = ?");
 	
 	$Delete_Group->execute($Delete_Group_Confirm);
 
- 	my $Delete_Command = $DB_Sudoers->prepare("DELETE from `lnk_command_groups_to_commands`
+ 	my $Delete_Command_Link = $DB_Sudoers->prepare("DELETE from `lnk_command_groups_to_commands`
 		WHERE `group` = ?");
 	
-	$Delete_Command->execute($Delete_Group_Confirm);
+	$Delete_Command_Link->execute($Delete_Group_Confirm);
+
+ 	my $Delete_Rule_Links = $DB_Sudoers->prepare("DELETE from `lnk_rules_to_command_groups`
+		WHERE `command_group` = ?");
+	
+	$Delete_Rule_Links->execute($Delete_Group_Confirm);
 
 } # sub delete_group
 
 sub delete_command {
- 
- 	my $Delete_Command = $DB_Sudoers->prepare("DELETE from `lnk_command_groups_to_commands`
+
+	# Audit Log
+	my $Select_Commands = $DB_Sudoers->prepare("SELECT `command_alias`, `command`
+		FROM `commands`
+		WHERE `id` = ?");
+
+	$Select_Commands->execute($Delete_Command_ID);
+
+	while (( my $Command_Alias, my $Command ) = $Select_Commands->fetchrow_array() )
+	{
+	
+		my $DB_Management = DB_Management();
+		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+			`category`,
+			`method`,
+			`action`,
+			`username`
+		)
+		VALUES (
+			?,
+			?,
+			?,
+			?
+		)");
+		
+		$Audit_Log_Submission->execute("Command Groups", "Delete", "$User_Name removed $Command_Alias ($Command) [Command ID $Delete_Command_ID] from Command Group $Delete_Command_From_Group_Name [Command Group ID $Delete_Command_From_Group_ID].", $User_Name);
+
+	}
+	# / Audit Log
+
+	my $Delete_Command = $DB_Sudoers->prepare("DELETE from `lnk_command_groups_to_commands`
 		WHERE `group` = ?
 		AND `command` = ?");
-	
+
 	$Delete_Command->execute($Delete_Command_From_Group_ID, $Delete_Command_ID);
 
 }

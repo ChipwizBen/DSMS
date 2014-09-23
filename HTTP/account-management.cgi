@@ -62,7 +62,7 @@ elsif ($User_Name_Add && $Password_Add && $Email_Add) {
 	&add_user;
 	my $Message_Green="$User_Name_Add ($Email_Add) added successfully";
 	$Session->param('Message_Green', $Message_Green); #Posting Message_Green session var
-	print "Location: user-management.cgi\n\n";
+	print "Location: account-management.cgi\n\n";
 	exit(0);
 }
 elsif ($Edit_User) {
@@ -75,7 +75,7 @@ elsif ($Edit_User_Post) {
 	&edit_user;
 	my $Message_Green="$User_Name_Edit ($Email_Edit) edited successfully";
 	$Session->param('Message_Green', $Message_Green); #Posting Message_Green session var
-	print "Location: user-management.cgi\n\n";
+	print "Location: account-management.cgi\n\n";
 	exit(0);
 }
 elsif ($Delete_User) {
@@ -88,7 +88,7 @@ elsif ($Delete_User_Confirm) {
 	&delete_user;
 	my $Message_Green="$User_Name_Delete deleted successfully";
 	$Session->param('Message_Green', $Message_Green); #Posting Message_Green session var
-	print "Location: user-management.cgi\n\n";
+	print "Location: account-management.cgi\n\n";
 	exit(0);
 }
 else {
@@ -104,19 +104,19 @@ sub html_add_user {
 
 print <<ENDHTML;
 <div id="wide-popup-box">
-<a href="user-management.cgi">
+<a href="account-management.cgi">
 <div id="blockclosebutton">
 </div>
 </a>
 
-<h3 align="center">Add New User</h3>
+<h3 align="center">Add New Account</h3>
 
-<form action='user-management.cgi' method='post' >
+<form action='account-management.cgi' method='post' >
 
 <table align = "center">
 	<tr>
 		<td style="text-align: right;">User Name:</td>
-		<td colspan="2"><input type='text' name='User_Name_Add' style='width:250px;' maxlength='128' placeholder="First Last" required></td>
+		<td colspan="2"><input type='text' name='User_Name_Add' style='width:250px;' maxlength='128' placeholder="First Last" required autofocus></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Password:</td>
@@ -151,10 +151,10 @@ print <<ENDHTML;
 <p style="margin-left: 10%; margin-right: 10%;"><i>Admin Privileges</i> allow a user to modify users and permissions, including their own, and view the <b><a href='access-log.cgi'>Access Log</a></b>.</p>
 <p style="margin-left: 10%; margin-right: 10%;"><b>Note:</b> Setting <i>Can Approve Rule Changes</i> to <b>Yes</b> and setting <i>Requires Rule Change Approval</i> to <b>Yes</b> 
 means that rules created or modified by this user must also be approved by another Approver.  A user that has <i>Can Approve Rule Changes</i> set to <b>Yes</b> and <i>Requires Rule Change Approval</i> 
-set to <b>No</b> have their Wchanges automatically approved. Nobody can approve their own rule changes if <i>Requires Rule Change Approval</i> is set to <b>Yes</b>.</p>
+set to <b>No</b> have their changes automatically approved. Nobody can approve their own rule changes if <i>Requires Rule Change Approval</i> is set to <b>Yes</b>. The user name <i>System</i> is reserved and cannot be used.</p>
 
 <hr width="50%">
-<div style="text-align: center"><input type=submit name='ok' value='Add User'></div>
+<div style="text-align: center"><input type=submit name='ok' value='Add Account'></div>
 
 </form>
 
@@ -164,12 +164,68 @@ ENDHTML
 
 sub add_user {
 
+	### Reserved User Name Check ###
+	if ($User_Name_Add eq 'System' || $User_Name_Add eq 'system') {
+		my $Message_Red="User Name '$User_Name_Add' is reserved for system use. Please use a different name.";
+		$Session->param('Message_Red', $Message_Red); #Posting Message_Red session var
+		print "Location: account-management.cgi\n\n";
+		exit(0);
+	}
+	### / Reserved User Name Check ###
+
+	### Existing User_Name Check ###
+	my $Existing_User_Name_Check = $DB_Management->prepare("SELECT `id`, `email`
+		FROM `credentials`
+		WHERE `username` = ?");
+		$Existing_User_Name_Check->execute($User_Name_Add);
+		my $Existing_Users = $Existing_User_Name_Check->rows();
+
+	if ($Existing_Users > 0)  {
+		my $Existing_ID;
+		my $Existing_Email;
+		while ( my @Select_User_Names = $Existing_User_Name_Check->fetchrow_array() )
+		{
+			$Existing_ID = @Select_User_Names[0];
+			$Existing_Email = @Select_User_Names[1];
+		}
+		my $Message_Red="User Name $User_Name_Add already exists as ID $Existing_ID, with email address $Existing_Email";
+		$Session->param('Message_Red', $Message_Red); #Posting Message_Red session var
+		print "Location: account-management.cgi\n\n";
+		exit(0);
+	}
+	### / Existing User_Name Check ###
+
+	### Existing Email Check ###
+	my $Existing_Email_Check = $DB_Management->prepare("SELECT `id`, `username`
+		FROM `credentials`
+		WHERE `email` = ?");
+		$Existing_Email_Check->execute($Email_Add);
+		my $Existing_Users = $Existing_Email_Check->rows();
+
+	if ($Existing_Users > 0)  {
+		my $Existing_ID;
+		my $Existing_User;
+		while ( my @Select_User_Names = $Existing_Email_Check->fetchrow_array() )
+		{
+			$Existing_ID = @Select_User_Names[0];
+			$Existing_User = @Select_User_Names[1];
+		}
+		my $Message_Red="User Email $Email_Add already exists as ID $Existing_ID, User Name: $Existing_User";
+		$Session->param('Message_Red', $Message_Red); #Posting Message_Red session var
+		print "Location: account-management.cgi\n\n";
+		exit(0);
+	}
+	### / Existing Email Check ###
+
+	my $Salt = Salt(64);
+	$Password_Add = $Password_Add . $Salt;
 	$Password_Add = sha512_hex($Password_Add);
 
 	my $User_Insert = $DB_Management->prepare("INSERT INTO `credentials` (
 		`id`,
 		`username`,
 		`password`,
+		`salt`,
 		`email`,
 		`admin`,
 		`approver`,
@@ -190,6 +246,7 @@ sub add_user {
 		?,
 		?,
 		?,
+		?,
 		'0000-00-00 00:00:00',
 		'0000-00-00 00:00:00',
 		0,
@@ -197,7 +254,31 @@ sub add_user {
 		?
 	)");
 
-	$User_Insert->execute($User_Name_Add, $Password_Add, $Email_Add, $Admin_Add, $Approver_Add, $Requires_Approval_Add, $Lockout_Add, $User_Name);
+	$User_Insert->execute($User_Name_Add, $Password_Add, $Salt, $Email_Add, $Admin_Add, $Approver_Add, $Requires_Approval_Add, $Lockout_Add, $User_Name);
+
+	# Audit Log
+	if ($Admin_Add) {$Admin_Add = 'has Admin Privileges'} else {$Admin_Add = 'has no Admin Privileges'}
+	if ($Approver_Add) {$Approver_Add = "$User_Name_Add can Approve the Rules created by others"} else {$Approver_Add = "$User_Name_Add can not Approve the Rules created by others"}
+	if ($Requires_Approval_Add) {$Requires_Approval_Add = "$User_Name_Add"."'s "."Rules require approval"} else {$Requires_Approval_Add = "$User_Name_Add"."'s "."Rules do not require approval"}
+	if ($Lockout_Add) {$Lockout_Add = "$User_Name_Add is locked out"} else {$Lockout_Add = "$User_Name_Add is not locked out"}
+
+	my $Account_Insert_ID = $DB_Management->{mysql_insertid};
+
+	my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+		`category`,
+		`method`,
+		`action`,
+		`username`
+	)
+	VALUES (
+		?,
+		?,
+		?,
+		?
+	)");
+
+	$Audit_Log_Submission->execute("Account Management", "Add", "$User_Name added a new system account as Account ID $Account_Insert_ID: $User_Name_Add ($Email_Add). $User_Name_Add $Admin_Add, $Approver_Add, $Requires_Approval_Add and $Lockout_Add.", $User_Name);
+	#/ Audit Log
 
 } # sub add_user
 
@@ -222,14 +303,14 @@ sub html_edit_user {
 
 print <<ENDHTML;
 <div id="wide-popup-box">
-<a href="user-management.cgi">
+<a href="account-management.cgi">
 <div id="blockclosebutton">
 </div>
 </a>
 
-<h3 align="center">Edit User</h3>
+<h3 align="center">Edit Account</h3>
 
-<form action='user-management.cgi' method='post' >
+<form action='account-management.cgi' method='post' >
 
 <table align = "center">
 	<tr>
@@ -328,12 +409,12 @@ print <<ENDHTML;
 <p style="margin-left: 10%; margin-right: 10%;"><i>Admin Privileges</i> allow a user to modify users and permissions, including their own, and view the <b><a href='access-log.cgi'>Access Log</a></b>.</p>
 <p style="margin-left: 10%; margin-right: 10%;"><b>Note:</b> Setting <i>Can Approve Rule Changes</i> to <b>Yes</b> and setting <i>Requires Rule Change Approval</i> to <b>Yes</b> 
 means that rules created or modified by this user must also be approved by another Approver.  A user that has <i>Can Approve Rule Changes</i> set to <b>Yes</b> and <i>Requires Rule Change Approval</i> 
-set to <b>No</b> have their Wchanges automatically approved. Nobody can approve their own rule changes if <i>Requires Rule Change Approval</i> is set to <b>Yes</b>.</p>
+set to <b>No</b> have their Wchanges automatically approved. Nobody can approve their own rule changes if <i>Requires Rule Change Approval</i> is set to <b>Yes</b>. The user name <i>System</i> is reserved and cannot be used.</p>
 
 <input type='hidden' name='Edit_User_Post' value='$Edit_User'>
 
 <hr width="50%">
-<div style="text-align: center"><input type=submit name='ok' value='Edit User'></div>
+<div style="text-align: center"><input type=submit name='ok' value='Edit Account'></div>
 
 </form>
 
@@ -343,14 +424,79 @@ ENDHTML
 } # sub html_edit_user
 
 sub edit_user {
-	
+
+	### Reserved User Name Check ###
+	if ($User_Name_Edit eq 'System' || $User_Name_Add eq 'system') {
+		my $Message_Red="User Name '$User_Name_Edit' is reserved for system use. Please use a different name.";
+		$Session->param('Message_Red', $Message_Red); #Posting Message_Red session var
+		print "Location: account-management.cgi\n\n";
+		exit(0);
+	}
+	### / Reserved User Name Check ###
+
+	### Existing User_Name Check ###
+	my $Existing_User_Name_Check = $DB_Management->prepare("SELECT `id`, `email`
+		FROM `credentials`
+		WHERE `username` = ?
+		AND `id` != ?");
+		$Existing_User_Name_Check->execute($User_Name_Edit, $Edit_User_Post);
+		my $Existing_Users = $Existing_User_Name_Check->rows();
+
+	if ($Existing_Users > 0)  {
+		my $Existing_ID;
+		my $Existing_Email;
+		while ( my @Select_User_Names = $Existing_User_Name_Check->fetchrow_array() )
+		{
+			$Existing_ID = @Select_User_Names[0];
+			$Existing_Email = @Select_User_Names[1];
+		}
+		my $Message_Red="User Name $User_Name_Edit already exists as ID $Existing_ID, with email address $Existing_Email";
+		$Session->param('Message_Red', $Message_Red); #Posting Message_Red session var
+		print "Location: account-management.cgi\n\n";
+		exit(0);
+	}
+	### / Existing User_Name Check ###
+
+	### Existing Email Check ###
+	my $Existing_Email_Check = $DB_Management->prepare("SELECT `id`, `username`
+		FROM `credentials`
+		WHERE `email` = ?
+		AND `id` != ?");
+		$Existing_Email_Check->execute($Email_Edit, $Edit_User_Post);
+		my $Existing_Users = $Existing_Email_Check->rows();
+
+	if ($Existing_Users > 0)  {
+		my $Existing_ID;
+		my $Existing_User;
+		while ( my @Select_User_Names = $Existing_Email_Check->fetchrow_array() )
+		{
+			$Existing_ID = @Select_User_Names[0];
+			$Existing_User = @Select_User_Names[1];
+		}
+		my $Message_Red="User Email $Email_Edit already exists as ID $Existing_ID, User Name: $Existing_User";
+		$Session->param('Message_Red', $Message_Red); #Posting Message_Red session var
+		print "Location: account-management.cgi\n\n";
+		exit(0);
+	}
+	### / Existing Email Check ###
+
+	if ($User_Name_Edit eq $User_Name) {
+		$Session->param('User_Admin', $Admin_Edit);
+		$Session->param('User_Email', $Email_Edit);
+		$Session->param('User_Approver', $Approver_Edit);
+		$Session->param('User_Requires_Approval', $Requires_Approval_Edit);
+	}
+
 	if ($Password_Edit) {
-		
+
+		my $Salt =  Salt(64);
+		$Password_Edit = $Password_Edit . $Salt;
 		$Password_Edit = sha512_hex($Password_Edit);
 
 		my $Update_Credentials = $DB_Management->prepare("UPDATE `credentials` SET
 			`username` = ?,
 			`password` = ?,
+			`salt` = ?,
 			`email` = ?,
 			`admin` = ?,
 			`approver` = ?,
@@ -359,7 +505,29 @@ sub edit_user {
 			`modified_by` = ?
 			WHERE `id` = ?");
 
-		$Update_Credentials->execute($User_Name_Edit, $Password_Edit, $Email_Edit, $Admin_Edit, $Approver_Edit, $Requires_Approval_Edit, $Lockout_Edit, $User_Name, $Edit_User_Post);
+		$Update_Credentials->execute($User_Name_Edit, $Password_Edit, $Salt, $Email_Edit, $Admin_Edit, $Approver_Edit, $Requires_Approval_Edit, $Lockout_Edit, $User_Name, $Edit_User_Post);
+
+		# Audit Log
+		if ($Admin_Edit) {$Admin_Edit = 'has Admin Privileges'} else {$Admin_Edit = 'has no Admin Privileges'}
+		if ($Approver_Edit) {$Approver_Edit = "$User_Name_Edit can Approve the Rules created by others"} else {$Approver_Edit = "$User_Name_Edit can not Approve the Rules created by others"}
+		if ($Requires_Approval_Edit) {$Requires_Approval_Edit = "$User_Name_Edit"."'s "."Rules require approval"} else {$Requires_Approval_Edit = "$User_Name_Edit"."'s "."Rules require approval"}
+		if ($Lockout_Edit) {$Lockout_Edit = "$User_Name_Edit is locked out"} else {$Lockout_Edit = "$User_Name_Edit is locked out"}
+
+		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+			`category`,
+			`method`,
+			`action`,
+			`username`
+		)
+		VALUES (
+			?,
+			?,
+			?,
+			?
+		)");
+	
+		$Audit_Log_Submission->execute("Account Management", "Modify", "$User_Name edited a system account with Account ID $Edit_User_Post: $User_Name_Edit ($Email_Edit). $User_Name_Edit $Admin_Edit, $Approver_Edit, $Requires_Approval_Edit and $Lockout_Edit. $User_Name also changed $User_Name_Edit"."'s "."password.", $User_Name);
+		#/ Audit Log
 
 	}
 	else {
@@ -373,15 +541,31 @@ sub edit_user {
 			`lockout` = ?,
 			`modified_by` = ?
 			WHERE `id` = ?");
-			
-		$Update_Credentials->execute($User_Name_Edit, $Email_Edit, $Admin_Edit, $Approver_Edit, $Requires_Approval_Edit, $Lockout_Edit, $User_Name, $Edit_User_Post);
-	}
 
-	if ($User_Name_Edit eq $User_Name) {
-		$Session->param('User_Admin', $Admin_Edit);
-		$Session->param('User_Email', $Email_Edit);
-		$Session->param('User_Approver', $Approver_Edit);
-		$Session->param('User_Requires_Approval', $Requires_Approval_Edit);
+		$Update_Credentials->execute($User_Name_Edit, $Email_Edit, $Admin_Edit, $Approver_Edit, $Requires_Approval_Edit, $Lockout_Edit, $User_Name, $Edit_User_Post);
+
+		# Audit Log
+		if ($Admin_Edit) {$Admin_Edit = 'has Admin Privileges'} else {$Admin_Edit = 'has no Admin Privileges'}
+		if ($Approver_Edit) {$Approver_Edit = "$User_Name_Edit can Approve the Rules created by others"} else {$Approver_Edit = "$User_Name_Edit can not Approve the Rules created by others"}
+		if ($Requires_Approval_Edit) {$Requires_Approval_Edit = "$User_Name_Edit"."'s "."Rules require approval"} else {$Requires_Approval_Edit = "$User_Name_Edit"."'s "."Rules require approval"}
+		if ($Lockout_Edit) {$Lockout_Edit = "$User_Name_Edit is locked out"} else {$Lockout_Edit = "$User_Name_Edit is locked out"}
+
+		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+			`category`,
+			`method`,
+			`action`,
+			`username`
+		)
+		VALUES (
+			?,
+			?,
+			?,
+			?
+		)");
+
+		$Audit_Log_Submission->execute("Account Management", "Modify", "$User_Name edited a system account with Account ID $Edit_User_Post: $User_Name_Edit ($Email_Edit). $User_Name_Edit $Admin_Edit, $Approver_Edit, $Requires_Approval_Edit and $Lockout_Edit. $User_Name_Edit"."'s "."password was not changed.", $User_Name);
+		#/ Audit Log
+
 	}
 
 } # sub edit_user
@@ -401,17 +585,21 @@ sub html_delete_user {
 		my $Last_Active_Extract = $DB_User[1];
 		my $Email_Extract = $DB_User[2];
 
+		if ($Last_Active_Extract eq '0000-00-00 00:00:00') {
+			$Last_Active_Extract = 'Never';
+		}
+
 print <<ENDHTML;
 <div id="small-popup-box">
-<a href="user-management.cgi">
+<a href="account-management.cgi">
 <div id="blockclosebutton">
 </div>
 </a>
 
-<h3 align="center">Delete User</h3>
+<h3 align="center">Delete Account</h3>
 
-<form action='user-management.cgi' method='post' >
-<p>Are you sure you want to <span style="color:#FF0000">DELETE</span> this user?</p>
+<form action='account-management.cgi' method='post' >
+<p>Are you sure you want to <span style="color:#FF0000">DELETE</span> this account?</p>
 <table align = "center">
 	<tr>
 		<td style="text-align: right;">User Name:</td>
@@ -432,7 +620,7 @@ print <<ENDHTML;
 
 
 <hr width="50%">
-<div style="text-align: center"><input type=submit name='ok' value='Delete User'></div>
+<div style="text-align: center"><input type=submit name='ok' value='Delete Account'></div>
 
 </form>
 
@@ -442,7 +630,48 @@ ENDHTML
 } # sub html_delete_user
 
 sub delete_user {
+
+	# Audit Log
+	my $Select_User = $DB_Management->prepare("SELECT `username`, `email`, `last_login`, `last_active`,  `admin`, `approver`, `requires_approval`, `lockout`
+	FROM `credentials`
+	WHERE `id` = ?");
+
+	$Select_User->execute($Delete_User_Confirm);
 	
+	while ( my @DB_User = $Select_User->fetchrow_array() )
+	{
+	
+		my $User_Name_Extract = $DB_User[0];
+		my $Email_Extract = $DB_User[1];
+		my $Last_Login_Extract = $DB_User[2];
+		my $Last_Active_Extract = $DB_User[3];
+		my $Admin_Extract = $DB_User[4];
+		my $Approver_Extract = $DB_User[5];
+		my $Requires_Approval_Extract = $DB_User[6];
+		my $Lockout_Extract = $DB_User[7];
+
+		if ($Admin_Extract) {$Admin_Extract = 'had Admin Privileges'} else {$Admin_Extract = 'had no Admin Privileges'}
+		if ($Approver_Extract) {$Approver_Extract = "$User_Name_Extract could Approve the Rules created by others"} else {$Approver_Extract = "$User_Name_Extract could not Approve the Rules created by others"}
+		if ($Requires_Approval_Extract) {$Requires_Approval_Extract = "$User_Name_Extract"."'s "."Rules required approval"} else {$Requires_Approval_Extract = "$User_Name_Extract"."'s "."Rules did not require approval"}
+		if ($Lockout_Extract) {$Lockout_Extract = "$User_Name_Extract was locked out"} else {$Lockout_Extract = "$User_Name_Extract was not locked out"}
+
+		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+			`category`,
+			`method`,
+			`action`,
+			`username`
+		)
+		VALUES (
+			?,
+			?,
+			?,
+			?
+		)");
+	
+		$Audit_Log_Submission->execute("Account Management", "Delete", "$User_Name deleted a system account with Account ID $Delete_User_Confirm: $User_Name_Extract ($Email_Extract). $User_Name_Extract $Admin_Extract, $Approver_Extract, $Requires_Approval_Extract and $Lockout_Extract.", $User_Name);
+	}
+	#/ Audit Log
+
 	my $Delete_User = $DB_Management->prepare("DELETE from `credentials`
 		WHERE `id` = ?");
 	
@@ -465,7 +694,7 @@ VALUES (
 	?
 )");
 
-$Audit_Log_Submission->execute("User Management", "View", "$User_Name accessed User Management.", $User_Name);
+$Audit_Log_Submission->execute("Account Management", "View", "$User_Name accessed Account Management.", $User_Name);
 
 
 my $Table = new HTML::Table(
@@ -539,8 +768,16 @@ while ( my @DB_User = $Select_Users->fetchrow_array() )
 		$Lockout_Extract = "No";
 	}
 
+	if ($Last_Login_Extract eq '0000-00-00 00:00:00') {
+		$Last_Login_Extract = 'Never';
+	}
+
+	if ($Last_Active_Extract eq '0000-00-00 00:00:00') {
+		$Last_Active_Extract = 'Never';
+	}
+
 	$Table->addRow(
-		"<a href='user-management.cgi?Edit_User=$ID_Extract'>$User_Name_Extract</a>",
+		"<a href='account-management.cgi?Edit_User=$ID_Extract'>$User_Name_Extract</a>",
 		"<a href='mailto:$Email_Extract'>$Email_Extract</a>",
 		$Last_Login_Extract,
 		$Last_Active_Extract,
@@ -550,8 +787,8 @@ while ( my @DB_User = $Select_Users->fetchrow_array() )
 		$Lockout_Extract,
 		$Last_Modified_Extract,
 		$Modified_By_Extract,
-		"<a href='user-management.cgi?Edit_User=$ID_Extract'><img src=\"resources/imgs/edit.png\" alt=\"Edit $User_Name_Extract\" ></a>",
-		"<a href='user-management.cgi?Delete_User=$ID_Extract'><img src=\"resources/imgs/delete.png\" alt=\"Delete $User_Name_Extract\" ></a>"
+		"<a href='account-management.cgi?Edit_User=$ID_Extract'><img src=\"resources/imgs/edit.png\" alt=\"Edit $User_Name_Extract\" ></a>",
+		"<a href='account-management.cgi?Delete_User=$ID_Extract'><img src=\"resources/imgs/delete.png\" alt=\"Delete $User_Name_Extract\" ></a>"
 	);
 
 	if ($Admin_Extract eq 'Yes') {
@@ -593,7 +830,7 @@ print <<ENDHTML;
 		<td style="text-align: right;">
 			<table cellpadding="3px">
 				<tr>
-					<form action='user-management.cgi' method='post' >
+					<form action='account-management.cgi' method='post' >
 					<td style="text-align: right;">Returned Rows:</td>
 					<td style="text-align: right;">
 						<select name='Rows_Returned' onchange='this.form.submit()' style="width: 150px">
@@ -614,25 +851,25 @@ print <<ENDHTML;
 			</table>
 		</td>
 		<td align="center">
-			<form action='user-management.cgi' method='post' >
+			<form action='account-management.cgi' method='post' >
 			<table>
 				<tr>
-					<td align="center"><span style="font-size: 18px; color: #00FF00;">Add New User</span></td>
+					<td align="center"><span style="font-size: 18px; color: #00FF00;">Add New Account</span></td>
 				</tr>
 				<tr>
-					<td align="center"><input type='submit' name='Add_User' value='Add User'></td>
+					<td align="center"><input type='submit' name='Add_User' value='Add Account'></td>
 				</tr>
 			</table>
 			</form>
 		</td>
 		<td align="right">
-			<form action='user-management.cgi' method='post' >
+			<form action='account-management.cgi' method='post' >
 			<table>
 				<tr>
-					<td colspan="2" align="center"><span style="font-size: 18px; color: #FFC600;">Edit User</span></td>
+					<td colspan="2" align="center"><span style="font-size: 18px; color: #FFC600;">Edit Account</span></td>
 				</tr>
 				<tr>
-					<td style="text-align: right;"><input type=submit name='Edit User' value='Edit User'></td>
+					<td style="text-align: right;"><input type=submit name='Edit User' value='Edit Account'></td>
 					<td align="center">
 						<select name='Edit_User' style="width: 150px">
 ENDHTML
@@ -659,7 +896,7 @@ print <<ENDHTML;
 	</tr>
 </table>
 
-<p style="font-size:14px; font-weight:bold;">User Privileges | Total Number of Users: $Rows</p>
+<p style="font-size:14px; font-weight:bold;">Account Management | Total Number of Accounts: $Rows</p>
 
 $Table
 

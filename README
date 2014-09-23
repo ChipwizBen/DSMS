@@ -12,20 +12,19 @@ System Requirements
 	Apache 2.2 or newer
 		mod_ssl (if required - highly recommended)
 	MySQL 5.1 or newer
-	visudo (for final syntax validation)
-	Perl v5.10 or newer
+	/usr/sbin/visudo (for final syntax validation)
+	Perl v5.10 or newer (at /usr/bin/perl)
 	Perl modules:
-		strict
-		DBI
-		HTML::Table
-		Digest::SHA qw(sha512_hex)
-		POSIX qw(strftime)
-		MIME::Lite
-		CGI
-		CGI::Carp qw(fatalsToBrowser)
-		CGI::Session qw(-ip-match)
-		Date::Parse
-		Crypt::PBKDF2 (planned)
+		strict -- [Core perl module]
+		DBI -- [Native RHEL package: perl-DBI]
+		HTML::Table -- [Requires CPAN or self-compile]
+		Digest::SHA qw(sha512_hex) -- [Native RHEL package: perl-Digest-SHA, also core module]
+		POSIX qw(strftime) -- [Core perl module]
+		MIME::Lite -- [Native RHEL package: perl-MIME-Lite]
+		CGI -- [Native RHEL package: perl-CGI, also core module]
+		CGI::Carp qw(fatalsToBrowser) -- [Inclued in native RHEL package: perl-CGI, also core module]
+		CGI::Session qw(-ip-match) -- [Native RHEL package: perl-CGI-Session]
+		Date::Parse -- [Included in native RHEL package: perl-DateTime]
 
 Client Requirements
 	Firefox 3 or later

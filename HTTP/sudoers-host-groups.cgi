@@ -953,19 +953,53 @@ sub delete_group {
 	
 	$Delete_Group->execute($Delete_Group_Confirm);
 
- 	my $Delete_Host = $DB_Sudoers->prepare("DELETE from `lnk_host_groups_to_hosts`
+ 	my $Delete_Host_Links = $DB_Sudoers->prepare("DELETE from `lnk_host_groups_to_hosts`
 		WHERE `group` = ?");
 	
-	$Delete_Host->execute($Delete_Group_Confirm);
+	$Delete_Host_Links->execute($Delete_Group_Confirm);
+
+ 	my $Delete_Rule_Links = $DB_Sudoers->prepare("DELETE from `lnk_rules_to_host_groups`
+		WHERE `host_group` = ?");
+	
+	$Delete_Rule_Links->execute($Delete_Group_Confirm);
 
 } # sub delete_group
 
 sub delete_host {
- 
- 	my $Delete_Host = $DB_Sudoers->prepare("DELETE from `lnk_host_groups_to_hosts`
+
+	# Audit Log
+	my $Select_Hosts = $DB_Sudoers->prepare("SELECT `hostname`, `ip`
+		FROM `hosts`
+		WHERE `id` = ?");
+
+	$Select_Hosts->execute($Delete_Host_ID);
+
+	while (( my $Hostname, my $IP ) = $Select_Hosts->fetchrow_array() )
+	{
+	
+		my $DB_Management = DB_Management();
+		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+			`category`,
+			`method`,
+			`action`,
+			`username`
+		)
+		VALUES (
+			?,
+			?,
+			?,
+			?
+		)");
+		
+		$Audit_Log_Submission->execute("Host Groups", "Delete", "$User_Name removed $Hostname ($IP) [Host ID $Delete_Host_ID] from Host Group $Delete_Host_From_Group_Name [Host Group ID $Delete_Host_From_Group_ID].", $User_Name);
+
+	}
+	# / Audit Log
+
+	my $Delete_Host = $DB_Sudoers->prepare("DELETE from `lnk_host_groups_to_hosts`
 		WHERE `group` = ?
 		AND `host` = ?");
-	
+
 	$Delete_Host->execute($Delete_Host_From_Group_ID, $Delete_Host_ID);
 
 }

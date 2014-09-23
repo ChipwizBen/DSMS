@@ -17,21 +17,10 @@ if ($User_Name eq '') {
 	exit(0);
 }
 
-my $Select_User_Name = $DB_Management->prepare("SELECT `id`, `username`, `password`, `email`
-FROM `credentials`
-WHERE `username` = ?
-");
-
-$Select_User_Name->execute($User_Name);
-
 my $Submit = $CGI->param("Submit");
 my $Old_Password = $CGI->param("Old_Password");
 my $New_Password = $CGI->param("New_Password");
 my $Confirm_Password = $CGI->param("Confirm_Password");
-
-$Old_Password = sha512_hex($Old_Password);
-$New_Password = sha512_hex($New_Password);
-$Confirm_Password = sha512_hex($Confirm_Password);
 
 &change_password;
 require "header.cgi";
@@ -40,8 +29,23 @@ require "footer.cgi";
 
 sub change_password {
 
-	while ( (my $ID, my $User_Name, my $Password, my $Email) = $Select_User_Name->fetchrow_array( ) )
+	my $Select_User_Name = $DB_Management->prepare("SELECT `id`, `username`, `password`, `salt`, `email`
+	FROM `credentials`
+	WHERE `username` = ?
+	");
+	$Select_User_Name->execute($User_Name);
+
+	while ( (my $ID, my $User_Name, my $Password, my $Old_Salt, my $Email) = $Select_User_Name->fetchrow_array( ) )
 	{
+
+		my $New_Salt = Salt(64);
+		$Old_Password = $Old_Password . $Old_Salt;
+		$New_Password = $New_Password .  $New_Salt;
+		$Confirm_Password = $Confirm_Password . $New_Salt;
+
+		$Old_Password = sha512_hex($Old_Password);
+		$New_Password = sha512_hex($New_Password);
+		$Confirm_Password = sha512_hex($Confirm_Password);
 
 		if (($Submit ne '') && ($Password ne $Old_Password)) {
 			$Message_Red="Old password does not match.";
@@ -50,14 +54,32 @@ sub change_password {
 			$Message_Red="New passwords do not match.";
 		}
 		elsif (($Old_Password eq $Password) && ($New_Password ne '') && ($New_Password eq $Confirm_Password)) {
+
+			# Audit Log
+			my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+				`category`,
+				`method`,
+				`action`,
+				`username`
+			)
+			VALUES (
+				?,
+				?,
+				?,
+				?
+			)");
 		
+			$Audit_Log_Submission->execute("Account Management", "Modify", "$User_Name changed their own password.", $User_Name);
+			#/ Audit Log
+
 			$Message_Green="Password successfully changed.";
 		
 			my $Change_Password = $DB_Management->prepare("UPDATE `credentials` SET
 			`password` = ?,
+			`salt` = ?,
 			`modified_by` = ?
 			WHERE `id` = ?");
-				$Change_Password->execute($New_Password, $User_Name, $ID);
+			$Change_Password->execute($New_Password, $New_Salt, $User_Name, $ID);
 
 		}
 

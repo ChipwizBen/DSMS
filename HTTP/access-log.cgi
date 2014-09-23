@@ -55,7 +55,7 @@ sub html_output {
 		?
 	)");
 
-	$Audit_Log_Submission->execute("Access Log", "View", "$User_Name accessed the access log.", $User_Name);
+	$Audit_Log_Submission->execute("Access Log", "View", "$User_Name accessed the Access Log.", $User_Name);
 
 
 	my $Table = new HTML::Table(

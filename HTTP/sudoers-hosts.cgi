@@ -574,6 +574,16 @@ sub delete_host {
 	
 	$Delete_Host->execute($Delete_Host_Confirm);
 
+	my $Delete_Host_From_Groups = $DB_Sudoers->prepare("DELETE from `lnk_host_groups_to_hosts`
+			WHERE `host` = ?");
+		
+	$Delete_Host_From_Groups->execute($Delete_Host_Confirm);
+
+	my $Delete_Host_From_Rules = $DB_Sudoers->prepare("DELETE from `lnk_rules_to_hosts`
+			WHERE `host` = ?");
+		
+	$Delete_Host_From_Rules->execute($Delete_Host_Confirm);
+
 } # sub delete_host
 
 sub html_show_links {

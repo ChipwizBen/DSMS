@@ -19,7 +19,6 @@ $Session->param('Referer', $Referer); #Posting Referer session var
 
 my $User_Name_Form = $CGI->param("Username_Form");
 my $User_Password_Form = $CGI->param("Password_Form");
-	$User_Password_Form = sha512_hex($User_Password_Form);
 
 # my $Password = Crypt::PBKDF2->new(
 	# hash_class => 'HMACSHA2',
@@ -39,7 +38,7 @@ if ($User_Name_Form) {
 exit(0);
 
 sub login_user {
-	my $Login_DB_Query = $DB_Management->prepare("SELECT `password`, `email`, `admin`, `approver`, `requires_approval`, `lockout`
+	my $Login_DB_Query = $DB_Management->prepare("SELECT `password`, `salt`, `email`, `admin`, `approver`, `requires_approval`, `lockout`
 	FROM `credentials`
 	WHERE `username` = ?");
 	$Login_DB_Query->execute($User_Name_Form);
@@ -48,11 +47,15 @@ sub login_user {
 	while ( my @DB_Query = $Login_DB_Query->fetchrow_array( ) )
 	{
 		my $DB_Password = $DB_Query[0];
-		my $DB_Email = $DB_Query[1];
-		my $DB_Admin = $DB_Query[2];
-		my $DB_Approver = $DB_Query[3];
-		my $DB_Requires_Approval = $DB_Query[4];
-		my $DB_Lockout = $DB_Query[5];
+		my $DB_Salt = $DB_Query[1];
+		my $DB_Email = $DB_Query[2];
+		my $DB_Admin = $DB_Query[3];
+		my $DB_Approver = $DB_Query[4];
+		my $DB_Requires_Approval = $DB_Query[5];
+		my $DB_Lockout = $DB_Query[6];
+
+		$User_Password_Form = $User_Password_Form . $DB_Salt;
+			$User_Password_Form = sha512_hex($User_Password_Form);
 
 		my $Email_Password;
 		if ($DB_Lockout == 1) {
@@ -61,7 +64,7 @@ sub login_user {
 		}
 		elsif ("$DB_Password" ne "$User_Password_Form")
 		{
-	
+
 			my $Lockout_Counter_Query = $DB_Management->prepare("SELECT `lockout_counter`
 				FROM `credentials`
 				WHERE `username` = ?");
@@ -119,28 +122,8 @@ sub login_user {
 
 sub email_user_password_reset {
 
-	my $_rand;
-
 	my $Password_Length = $_[0];
-	    if (!$Password_Length) {
-	        $Password_Length = 10;
-	    }
-
-	my @Chars = split(" ",
-	    "a b c d e f g h i j k l m n o
-	    p q r s t u v w x y z
-	    A B C D E F G H I J K L M N O
-	    P Q R S T U V W X Y Z 
-	    0 1 2 3 4 5 6 7 8 9");
-
-	srand;
-
-		my $Random_Password;
-		for (my $i=0; $i <= $Password_Length ;$i++) {
-			$_rand = int(rand 62);
-			$Random_Password .= $Chars[$_rand];
-		}
-
+	my $Random_Alpha_Numeric_Password = Random_Alpha_Numeric_Password($Password_Length);
 	my $Server_Hostname = Server_Hostname();
 
 	my $User_Email_Address_Query = $DB_Management->prepare("SELECT `email` FROM `credentials`
@@ -162,7 +145,7 @@ To unlock your account, please visit <a href='https://$Server_Hostname/lockout.c
 <br/>
 You will need to know the below unlock code, which has been randomly generated:<br/>
 <br/>
-Unlock code: $Random_Password<br/>
+Unlock code: $Random_Alpha_Numeric_Password<br/>
 <br/>
 If you are still having problems logging in, you should contact an administrator. Administrators are:<br/>
 <br/>
@@ -180,9 +163,9 @@ $System_Name<br/>
 			Type	=> "text/html",
 			Data	=> "$Email_Body");
 
-			$Random_Password = sha512_hex($Random_Password);
+			$Random_Alpha_Numeric_Password = sha512_hex($Random_Alpha_Numeric_Password);
 				my $Perform_Lockout_Password_Set = $DB_Management->prepare("UPDATE `credentials`
-					SET `lockout_reset` = '$Random_Password'
+					SET `lockout_reset` = '$Random_Alpha_Numeric_Password'
 					WHERE `username` = ?");
 				
 				$Perform_Lockout_Password_Set->execute($User_Name_Form);

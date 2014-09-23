@@ -503,6 +503,16 @@ sub delete_user {
 	
 	$Delete_User->execute($Delete_User_Confirm);
 
+	my $Delete_User_From_Groups = $DB_Sudoers->prepare("DELETE from `lnk_user_groups_to_users`
+			WHERE `user` = ?");
+		
+	$Delete_User_From_Groups->execute($Delete_User_Confirm);
+
+	my $Delete_User_From_Rules = $DB_Sudoers->prepare("DELETE from `lnk_rules_to_users`
+			WHERE `user` = ?");
+		
+	$Delete_User_From_Rules->execute($Delete_User_Confirm);
+
 } # sub delete_user
 
 sub html_show_links {

@@ -22,12 +22,14 @@ my $Sudoers_Check = `/usr/sbin/visudo -c -f $Sudoers_Location`;
 
 if ($Sudoers_Check =~ m/$Sudoers_Location:\sparsed\sOK/) {
 	$Sudoers_Check = "Sudoers check passed!\n";
+	&record_audit('PASSED');
 	print $Sudoers_Check;
 	exit(0);
 }
 else {
 	$Sudoers_Check = "Sudoers check failed, no changes made.\n";
 	print $Sudoers_Check;
+	&record_audit('FAILED');
 	exit(1);
 }
 
@@ -599,3 +601,39 @@ sub write_rules {
 close FILE;
 
 } #sub write_rules
+
+sub record_audit {
+
+	my $Result = $_[0];
+
+	my $DB_Management = DB_Management();
+	my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+		`category`,
+		`method`,
+		`action`,
+		`username`
+	)
+	VALUES (
+		?,
+		?,
+		?,
+		?
+	)");
+
+	my $MD5_Checksum = `md5sum $Sudoers_Location | cut -d ' ' -f 1`;
+		$MD5_Checksum = "MD5:" . $MD5_Checksum;
+		$MD5_Checksum =~ s/\s//g;
+	my $SHA1_Checksum = `sha1sum $Sudoers_Location | cut -d ' ' -f 1`;
+		$SHA1_Checksum =~ s/\s//g;
+		$SHA1_Checksum = "SHA1:" . $SHA1_Checksum;
+
+	if ($Result eq 'PASSED') {
+		$Audit_Log_Submission->execute("Sudoers", "Deployment Succeeded", "The sudoers file was built, passed visudo validation, and checksums as follows: $MD5_Checksum, $SHA1_Checksum.", 'System');
+	}
+	elsif ($Result eq 'FAILED') {
+		$Audit_Log_Submission->execute("Sudoers", "Deployment Failed", "The sudoers file was built, but failed visudo validation. Deployment aborted.", 'System');
+	}
+	# / Audit Log
+
+} #sub record_audit
+
