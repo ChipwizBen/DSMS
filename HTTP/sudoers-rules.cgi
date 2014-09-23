@@ -3562,7 +3562,7 @@ sub html_output {
 	$Table->setColWidth(1, '1px');
 	$Table->setColWidth(9, '1px');
 	$Table->setColWidth(10, '1px');
-	$Table->setColWidth(11, '1px');
+	$Table->setColWidth(11, '60px');
 	$Table->setColWidth(12, '1px');
 	$Table->setColWidth(13, '1px');
 	$Table->setColWidth(14, '110px');

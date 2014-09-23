@@ -18,6 +18,7 @@
           access stripped for the current session only and could not reach any administrative page without 
           first logging out and back in.
         - Added syntax highlighting for potentially dangerous commands (like *).
+        - Adjusted expiry column to fixed width because it was being squashed in Chrome (but not Firefox).
 ----------------
 1.2.2:  - System now uses 'time' epoch instead of 'localtime' string for calculating expiry as the 'localtime'
           output string varied and was unreliable for calculations. 'localtime' remains in use for variables
