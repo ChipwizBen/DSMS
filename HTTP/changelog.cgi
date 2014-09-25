@@ -43,7 +43,10 @@ sub html_output {
 	$Table->addRow('', 'Added storage system for old sudoers files, appended by their checksum for easier 
           identification through the Audit Log.');
 	$Table->addRow('', 'Added \'changelog.cgi\' so that this changelog can be viewed in the web panel.');
+	$Table->addRow('', 'Fixed a bug in \'account-management.cgi\' where it logged an audit message that an edited 
+          account was locked out, even if it wasn\'t.');
 	$Table->addRow('---', '');
+
 	## Version 1.3.0
 	$Table->addRow('1.3.0', 'Added full Audit Log \'audit-log.cgi\'. Nearly all files 
 	      have been modified to integrate with the new audit system.');

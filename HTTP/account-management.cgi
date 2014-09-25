@@ -510,8 +510,8 @@ sub edit_user {
 		# Audit Log
 		if ($Admin_Edit) {$Admin_Edit = 'has Admin Privileges'} else {$Admin_Edit = 'has no Admin Privileges'}
 		if ($Approver_Edit) {$Approver_Edit = "$User_Name_Edit can Approve the Rules created by others"} else {$Approver_Edit = "$User_Name_Edit can not Approve the Rules created by others"}
-		if ($Requires_Approval_Edit) {$Requires_Approval_Edit = "$User_Name_Edit"."'s "."Rules require approval"} else {$Requires_Approval_Edit = "$User_Name_Edit"."'s "."Rules require approval"}
-		if ($Lockout_Edit) {$Lockout_Edit = "$User_Name_Edit is locked out"} else {$Lockout_Edit = "$User_Name_Edit is locked out"}
+		if ($Requires_Approval_Edit) {$Requires_Approval_Edit = "$User_Name_Edit"."'s "."Rules require approval"} else {$Requires_Approval_Edit = "$User_Name_Edit"."'s "."Rules do not require approval"}
+		if ($Lockout_Edit) {$Lockout_Edit = "$User_Name_Edit is locked out"} else {$Lockout_Edit = "$User_Name_Edit is not locked out"}
 
 		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
 			`category`,
@@ -547,8 +547,8 @@ sub edit_user {
 		# Audit Log
 		if ($Admin_Edit) {$Admin_Edit = 'has Admin Privileges'} else {$Admin_Edit = 'has no Admin Privileges'}
 		if ($Approver_Edit) {$Approver_Edit = "$User_Name_Edit can Approve the Rules created by others"} else {$Approver_Edit = "$User_Name_Edit can not Approve the Rules created by others"}
-		if ($Requires_Approval_Edit) {$Requires_Approval_Edit = "$User_Name_Edit"."'s "."Rules require approval"} else {$Requires_Approval_Edit = "$User_Name_Edit"."'s "."Rules require approval"}
-		if ($Lockout_Edit) {$Lockout_Edit = "$User_Name_Edit is locked out"} else {$Lockout_Edit = "$User_Name_Edit is locked out"}
+		if ($Requires_Approval_Edit) {$Requires_Approval_Edit = "$User_Name_Edit"."'s "."Rules require approval"} else {$Requires_Approval_Edit = "$User_Name_Edit"."'s "."Rules do not require approval"}
+		if ($Lockout_Edit) {$Lockout_Edit = "$User_Name_Edit is locked out"} else {$Lockout_Edit = "$User_Name_Edit is not locked out"}
 
 		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
 			`category`,
