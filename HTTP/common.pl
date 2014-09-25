@@ -30,7 +30,7 @@ sub Version {
 
 	# Don't touch this.
 
-	return '1.3.0';
+	return '1.3.1';
 
 }
 
@@ -52,6 +52,14 @@ sub Sudoers_Location {
 	# using a separate root cron job to overwrite /etc/sudoers, instead of directly writing to it.
 
 	return '/var/www/html/sudoers';
+
+}
+
+sub Sudoers_Storage {
+
+	# This is the directory where replaced sudoers files are stored. You do not need a trailing slash.
+
+	return '/var/www/html/sudoers-storage';
 
 }
 

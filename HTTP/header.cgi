@@ -135,6 +135,7 @@ print <<ENDHTML;
 							<li><a href="account-management.cgi">Account Management</a></li>
 							<li><a href="access-log.cgi">Access Log</a></li>
 							<li><a href="audit-log.cgi">Audit Log</a></li>
+							<li><a href="changelog.cgi">System Changelog</a></li>
 						</ul>
 					</li>
 				</ul>

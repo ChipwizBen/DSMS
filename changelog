@@ -1,3 +1,11 @@
+1.3.1:  - Fixed a bug in the audit section of the 'sudoers-build.pl' file where each time the system 
+          generated a new sudoers file it would log the successful build to the Audit Log. If 
+          'sudoers-build.pl' was run from cron, a new audit entry would be created even if no changes 
+          had been made to the system. Now, the system compares the checksum of the old and new files 
+          and determines if a change has taken place before logging changes to the Audit Log.
+        - Added storage system for old sudoers files, appended by their checksum for easier 
+          identification through the Audit Log.
+        - Added 'changelog.cgi' so that this changelog can be viewed in the web panel. 
 1.3.0:  - Added full Audit Log 'audit-log.cgi'. Nearly all files have been modified to integrate with the 
           new audit system.
         - Added a password salting system to increase password security (against rainbow attacks) beyond 
@@ -11,9 +19,9 @@
         - Enforced the reservation of the 'System' user name.
         - Updated account requirements description to include notice of reserved 'System' user name.
         - Added better error handling of duplicate user name and email rejections for new and edited users.
-        - Fixed a bug where linked hosts, users and commands were not correctly dropped from the link 
-          table if they were deleted but still belonged to a group or rule.
-        - Fixed a bug where linked groups were not correctly dropped from the rule to group link table.
+        - Fixed a bug where linked Hosts, Users and Commands were not correctly dropped from the link 
+          table if they were deleted but still belonged to a Group or Rule.
+        - Fixed a bug where linked Groups were not correctly dropped from the Rule to Group link table.
         - Fixed a bug in 'account-management.cgi' where an Admin that modified their own rights had their 
           access stripped for the current session only and could not reach any administrative page without 
           first logging out and back in.
@@ -24,18 +32,18 @@
           output string varied and was unreliable for calculations. 'localtime' remains in use for variables
           where a string time is specified (such as "$Date = strftime "%Y-%m-%d", localtime;").
 1.2.1:  - Reduced Date::Parse module requirement from Date::Parse to Date::Parse qw(str2time).
-1.2.0:  - Added item and rule expiry system. Added Date::Parse to requirement list (see README).
+1.2.0:  - Added expiry system. Hosts, Users, Commands, Groups and Rules can now be set to expire. Added Date::Parse to requirement list (see README).
 ----------------
 1.1.1:  - Trimmed legacy files.
 1.1.0:  - Moved environmental variables from 'sudoers-build.pl' to dedicated plain text 
           'environmental-variables' file so users don't need to edit the sudoers-build.pl script.
 ----------------
-1.0.2:  - Renamed from  Sudoers Build System to  Sudoers Management System to better describe
+1.0.3:  - Renamed from  Sudoers Build System to  Sudoers Management System to better describe
           the system's purpose.
         - Modified 'login.cgi', 'lockout.cgi', 'header.cgi' to pull name from new subroutine in 'common.pl' 
           so the name can be easily edited to fit more easily into different customer environments.
         - Added a short name (DSMS) subroutine to 'common.pl'.
 1.0.2:  - Added version numbering system to this file (hello!) and to 'common.pl'.
-        - Modified index.cgi to display version number.
-1.0.1:  - Fixed SQL bug in 'sudoers-commands.cgi' which prevented commands from being deleted.
+        - Modified 'index.cgi' to display version number.
+1.0.1:  - Fixed SQL bug in 'sudoers-commands.cgi' which prevented Commands from being deleted.
 1.0.0:  - Initial release.

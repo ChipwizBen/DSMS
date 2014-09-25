@@ -5,10 +5,11 @@ use POSIX qw(strftime);
 
 require 'common.pl';
 my $DB_Sudoers = DB_Sudoers();
-my $Sudoers_Location = Sudoers_Location(); # Set the path in common.pl
+my $Sudoers_Location = Sudoers_Location();
+my $Sudoers_Storage = Sudoers_Storage();
 my $System_Name = System_Name();
+my $Version = Version();
 
-my $Date_Time = strftime "%Y-%m-%d %H:%M:%S", localtime;
 my $Date = strftime "%Y-%m-%d", localtime;
 
 &write_environmentals;
@@ -39,15 +40,14 @@ sub write_environmentals {
 
 	print FILE "#########################################################################\n";
 	print FILE "## $System_Name\n";
+	print FILE "## Version: $Version\n";
 	print FILE "## AUTO GENERATED SCRIPT\n";
 	print FILE "## Please do not edit by hand\n";
 	print FILE "## This file is part of a wider system and is automatically overwritten often\n";
-	print FILE "## File Created: $Date_Time\n";
 	print FILE "## View the changelog or README files for more information.\n";
 	print FILE "#########################################################################\n";
 	print FILE "\n\n";
 
-	# Environmental variable inclusion starts here
 
 	print FILE "### Environmental Variables ###\n\n";
 
@@ -59,11 +59,7 @@ sub write_environmentals {
 		print FILE "$Line";
 
 	}
-
 	close ENVIRONMENTALS;
-
-	# Environmental variable inclusion ends here
-
 
 	print FILE "\n";
 	close FILE;
@@ -620,19 +616,30 @@ sub record_audit {
 		?
 	)");
 
-	my $MD5_Checksum = `md5sum $Sudoers_Location | cut -d ' ' -f 1`;
-		$MD5_Checksum = "MD5:" . $MD5_Checksum;
-		$MD5_Checksum =~ s/\s//g;
+	my $MD5_New_Checksum = `md5sum $Sudoers_Location | cut -d ' ' -f 1`;
+		$MD5_New_Checksum =~ s/\s//g;
+	my $MD5_Existing_Sudoers = `md5sum $Sudoers_Storage/sudoers_$MD5_New_Checksum | cut -d ' ' -f 1`;
+		$MD5_Existing_Sudoers =~ s/\s//g;
 	my $SHA1_Checksum = `sha1sum $Sudoers_Location | cut -d ' ' -f 1`;
 		$SHA1_Checksum =~ s/\s//g;
-		$SHA1_Checksum = "SHA1:" . $SHA1_Checksum;
 
-	if ($Result eq 'PASSED') {
-		$Audit_Log_Submission->execute("Sudoers", "Deployment Succeeded", "The sudoers file was built, passed visudo validation, and checksums as follows: $MD5_Checksum, $SHA1_Checksum.", 'System');
+	if ($Result eq 'PASSED' && $MD5_New_Checksum ne $MD5_Existing_Sudoers) {
+		my $New_Sudoers_Location = "$Sudoers_Storage/sudoers_$MD5_New_Checksum";
+		`cp $Sudoers_Location $Sudoers_Storage/sudoers_$MD5_New_Checksum`;
+		$MD5_New_Checksum = "MD5: " . $MD5_New_Checksum;
+		$SHA1_Checksum = "SHA1: " . $SHA1_Checksum;
+		$Audit_Log_Submission->execute("Sudoers", "Deployment Succeeded", "Configuration changes were detected and a new sudoers file was built, passed visudo validation, and checksums as follows: $MD5_New_Checksum, $SHA1_Checksum. A copy of this sudoers has been stored at '$New_Sudoers_Location' for future reference.", 'System');
 	}
-	elsif ($Result eq 'FAILED') {
-		$Audit_Log_Submission->execute("Sudoers", "Deployment Failed", "The sudoers file was built, but failed visudo validation. Deployment aborted.", 'System');
+	elsif ($Result eq 'FAILED' && $MD5_New_Checksum ne $MD5_Existing_Sudoers) {
+		$MD5_New_Checksum = "MD5: " . $MD5_New_Checksum;
+		$SHA1_Checksum = "SHA1: " . $SHA1_Checksum;
+		$Audit_Log_Submission->execute("Sudoers", "Deployment Failed", "Configuration changes were detected and a new sudoers file was built, but failed visudo validation. Deployment aborted.", 'System');
 	}
+	else {
+		print "New sudoers matches old sudoers. Not replacing.\n";
+	}
+
+
 	# / Audit Log
 
 } #sub record_audit
