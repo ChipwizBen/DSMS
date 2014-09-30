@@ -11,8 +11,10 @@ require 'common.pl';
 my $Date = strftime "%Y-%m-%d", localtime;
 my $DB_Management = DB_Management();
 my $DB_Sudoers = DB_Sudoers();
+my $MD5Sum = md5sum();
+my $Cut = cut();
 my $Sudoers_Location = Sudoers_Location();
-	my $MD5_Checksum = `md5sum $Sudoers_Location | cut -d ' ' -f 1`;
+	my $MD5_Checksum = `$MD5Sum $Sudoers_Location | $Cut -d ' ' -f 1`;
 
 my $Select_Hosts = $DB_Sudoers->prepare("SELECT `id`, `hostname`, `ip`
 	FROM `hosts`
@@ -64,7 +66,7 @@ HOST: while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
 			print "Connected successfully to $Hostname ($IP).\n";
 		}
 		else {
-			if ($Error =~ /stalled/) {$Error = $Error . " 
+			if ($Error =~ /Connection to remote server stalled/) {$Error = $Error . " 
 	Hints: 
     1) Check that the key fingerprint is stored in known_hosts
     2) Check for a route to the remote host

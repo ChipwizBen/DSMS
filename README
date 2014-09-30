@@ -1,18 +1,21 @@
 This is the README file for the  Sudoers Management System, developed by Ben Schofield of  Systems (Wellington) Ltd. 
 
 For full technical documentation see:
-https://www.one.com/community/-Developed%20Tools%20%28DDT%29/SitePages/DSMS.aspx
+https://www.one.com/community/-Developed Tools (DDT)/SitePages/DSMS -  Sudoers Management System.aspx
 
 See the changelog file for the latest modifications.
 
 Please send bug reports or change requests to ben@nwk1.com
 
 System Requirements
-	RHEL/CentOS 6 or newer
+	RHEL/CentOS 6 or newer (Debian Squeeze/Ubuntu 14.04 also work)
 	Apache 2.2 or newer
-		mod_ssl (if required - highly recommended)
-	MySQL 5.1 or newer
-	/usr/sbin/visudo (for final syntax validation)
+		mod_ssl
+	MySQL (or MariaDB) 5.1 or newer
+	visudo
+	md5sum
+	sha1sum
+	cut
 	Perl v5.10 or newer (at /usr/bin/perl)
 	Perl modules:
 		strict -- [Core perl module]
@@ -28,12 +31,25 @@ System Requirements
 		Net::SFTP::Foreign -- [Requires CPAN or self-compile]
 		Time::HiRes -- [Included in native RHEL package: perl-DateTime]
 
+File Permissions
+*.cgi
+root:apache 610
+
+*.pl
+root:root 500
+
+env-vars, format.css, favicon.ico, resources/, resources/*, resources/*/*, resources/*/*/*
+root:apache 640
+​
+changelog, README
+root:root 644
+
 Client Requirements
 	Firefox 3 or later
 	Chrome
 	THROW INTERNET EXPLORER AWAY
 	Other browsers may work well, but are untested.
 	Cookies are required for CGI authentication control
-	Javascript is required for toggle switches (I'm really, really sorry).
+	Javascript is required for toggle switches (I'm really, really sorry. There was no other way).
 
 	

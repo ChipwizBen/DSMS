@@ -2,11 +2,6 @@
 
 use strict;
 
-use CGI;
-use CGI::Carp qw(fatalsToBrowser);
-use CGI::Session qw(-ip-match);
-use DBI;
-
 sub System_Name {
 
 	# This is the system's name, used for system identification during login, written to the 
@@ -14,7 +9,7 @@ sub System_Name {
 
 	return ' Sudoers Management System';
 
-}
+} # sub System_Name
 
 sub System_Short_Name {
 
@@ -24,7 +19,7 @@ sub System_Short_Name {
 
 	return 'DSMS';
 
-}
+} # sub System_Short_Name
 
 sub Sudoers_Location {
 
@@ -36,7 +31,7 @@ sub Sudoers_Location {
 
 	return '/var/www/html/sudoers';
 
-}
+} # sub Sudoers_Location
 
 sub Sudoers_Storage {
 
@@ -44,7 +39,7 @@ sub Sudoers_Storage {
 
 	return '/var/www/html/sudoers-storage';
 
-}
+} # sub Sudoers_Storage
 
 sub DB_Management {
 
@@ -54,6 +49,8 @@ sub DB_Management {
 	# normal users should not be allowed access to. This access control should also be applicable to 
 	# DBAs, which is why this data is stored in a seperate database by default to simplify access 
 	# control.
+
+	use DBI;
 
 	my $Host = 'localhost';
 	my $DB = 'Management';
@@ -66,12 +63,14 @@ sub DB_Management {
 		or die "Can't connect to database: $DBI::errstr\n";
 	return $DB_Management;
 
-}
+} # sub DB_Management
 
 sub DB_Sudoers {
 
 	# This is your sudoers database's connection information. This is where your sudoers data is 
 	# stored. Yours faithfully, Captain Obvious.
+
+	use DBI;
 
 	my $Host = 'localhost';
 	my $DB = 'sudoers';
@@ -84,7 +83,7 @@ sub DB_Sudoers {
 		or die "Can't connect to database: $DBI::errstr\n";
 	return $DB_Sudoers;
 
-}
+} # sub DB_Sudoers
 
 sub Distribution_Defaults {
 
@@ -109,7 +108,7 @@ sub Distribution_Defaults {
 	my @Distribution_Defaults = ($Distribution_User, $Key_Path, $Timeout, $Remote_Sudoers);
 	return @Distribution_Defaults;
 
-}
+} # sub Distribution_Defaults
 
 sub CGI {
 
@@ -142,6 +141,10 @@ sub CGI {
 	my $Session_Directory = '/tmp/Sudoers-CGI-Sessions';
 	my $Session_Expiry = '+1h';
 
+	use CGI;
+	use CGI::Carp qw(fatalsToBrowser);
+	use CGI::Session qw(-ip-match);
+
 	my $CGI = new CGI;
 		my $Session = new CGI::Session(undef, $CGI, {Directory=>"$Session_Directory"}); # Sets session directory.
 		$Session->expire("$Session_Expiry"); # Sets expiry.
@@ -150,7 +153,47 @@ sub CGI {
 	my @CGI_Session = ($CGI, $Session, $Cookie);
 	return @CGI_Session;
 
-}
+} # sub CGI
+
+sub md5sum {
+
+	# Manually set the path to `md5sum` here, or just leave this as default and the system 
+	# will try to determine it's location through `which`
+
+	my $MD5Sum = `which md5sum`;
+	return $MD5Sum;
+
+} # sub md5sum
+
+sub sha1sum {
+
+	# Manually set the path to `sha1sum` here, or just leave this as default and the system 
+	# will try to determine it's location through `which`
+
+	my $SHA1Sum = `which sha1sum`;
+	return $SHA1Sum;
+
+} # sub sha1sum
+
+sub cut {
+
+	# Manually set the path to `cut` here, or just leave this as default and the system 
+	# will try to determine it's location through `which`
+
+	my $Cut = `which cut`;
+	return $Cut;
+
+} # sub cut
+
+sub visudo {
+
+	# Manually set the path to `visudo` here, or just leave this as default and the system 
+	# will try to determine it's location through `which`
+
+	my $VISudo = `which visudo`;
+	return $VISudo;
+
+} # sub visudo
 
 ############################################################################################
 ########### The settings beyond this point are advanced, or shouldn't be changed ###########
@@ -160,9 +203,9 @@ sub Version {
 
 	# Don't touch this.
 
-	return '1.4.0';
+	return '1.4.1';
 
-}
+} # sub Version
 
 sub Server_Hostname {
 
@@ -171,7 +214,7 @@ sub Server_Hostname {
 
 	return `hostname`;
 
-}
+} # sub Server_Hostname
 
 sub Random_Alpha_Numeric_Password {
 
@@ -237,6 +280,6 @@ sub Salt {
 
 	return $Random_Salt;
 	
-} # sub salt
+} # sub Salt
 
 1;

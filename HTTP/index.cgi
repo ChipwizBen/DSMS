@@ -7,6 +7,9 @@ my $DB_Management = DB_Management();
 my ($CGI, $Session, $Cookie) = CGI();
 
 my $Sudoers_Location = Sudoers_Location();
+my $MD5Sum = md5sum();
+my $SHA1Sum = sha1sum();
+my $Cut = cut();
 
 my $User_Name = $Session->param("User_Name"); #Accessing User_Name session var
 
@@ -29,9 +32,9 @@ If this is your first time running this system, first create some <a href='sudoe
 my $MD5_Checksum;
 my $SHA1_Checksum;
 if (!$Sudoers_Not_Found) {
-	$MD5_Checksum = `md5sum $Sudoers_Location | cut -d ' ' -f 1`;
+	$MD5_Checksum = `$MD5Sum $Sudoers_Location | $Cut -d ' ' -f 1`;
 		$MD5_Checksum = "MD5: " . $MD5_Checksum;
-	$SHA1_Checksum = `sha1sum $Sudoers_Location | cut -d ' ' -f 1`;
+	$SHA1_Checksum = `$SHA1Sum $Sudoers_Location | $Cut -d ' ' -f 1`;
 		$SHA1_Checksum = "SHA1: " . $SHA1_Checksum;
 }
 

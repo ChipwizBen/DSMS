@@ -9,6 +9,10 @@ my $Sudoers_Location = Sudoers_Location();
 my $Sudoers_Storage = Sudoers_Storage();
 my $System_Name = System_Name();
 my $Version = Version();
+my $MD5Sum = md5sum();
+my $SHA1Sum = sha1sum();
+my $Cut = cut();
+my $VISudo = visudo();
 
 my $Date = strftime "%Y-%m-%d", localtime;
 
@@ -19,7 +23,7 @@ my $Date = strftime "%Y-%m-%d", localtime;
 &write_commands;
 &write_rules;
 
-my $Sudoers_Check = `/usr/sbin/visudo -c -f $Sudoers_Location`;
+my $Sudoers_Check = `$VISudo -c -f $Sudoers_Location`;
 
 if ($Sudoers_Check =~ m/$Sudoers_Location:\sparsed\sOK/) {
 	$Sudoers_Check = "Sudoers check passed!\n";
@@ -616,11 +620,11 @@ sub record_audit {
 		?
 	)");
 
-	my $MD5_New_Checksum = `md5sum $Sudoers_Location | cut -d ' ' -f 1`;
+	my $MD5_New_Checksum = `$MD5Sum $Sudoers_Location | $Cut -d ' ' -f 1`;
 		$MD5_New_Checksum =~ s/\s//g;
-	my $MD5_Existing_Sudoers = `md5sum $Sudoers_Storage/sudoers_$MD5_New_Checksum | cut -d ' ' -f 1`;
+	my $MD5_Existing_Sudoers = `$MD5Sum $Sudoers_Storage/sudoers_$MD5_New_Checksum | $Cut -d ' ' -f 1`;
 		$MD5_Existing_Sudoers =~ s/\s//g;
-	my $SHA1_Checksum = `sha1sum $Sudoers_Location | cut -d ' ' -f 1`;
+	my $SHA1_Checksum = `$SHA1Sum $Sudoers_Location | $Cut -d ' ' -f 1`;
 		$SHA1_Checksum =~ s/\s//g;
 
 	if ($Result eq 'PASSED' && $MD5_New_Checksum ne $MD5_Existing_Sudoers) {
