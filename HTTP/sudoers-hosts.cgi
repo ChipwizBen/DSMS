@@ -261,7 +261,6 @@ sub add_host {
 		)");
 
 
-
 		$Distribution_Insert->execute($Host_Insert_ID, $Distribution_Default_User, $Distribution_Default_Key_Path, 
 		$Distribution_Default_Timeout, $Distribution_Default_Remote_Sudoers, $User_Name);
 
@@ -288,8 +287,7 @@ sub add_host {
 		?, ?, ?, ?
 	)");
 	
-	$Audit_Log_Submission->execute("Hosts", "Add", "$User_Name added $Host_Name_Add ($IP_Add), set it $Active_Add and to $Expires_Date_Add.", $User_Name);
-
+	$Audit_Log_Submission->execute("Hosts", "Add", "$User_Name added $Host_Name_Add ($IP_Add), set it $Active_Add and to $Expires_Date_Add. The system assigned it Host ID $Host_Insert_ID.", $User_Name);
 	$Audit_Log_Submission->execute("Distribution", "Add", "$User_Name added $Host_Name_Add ($IP_Add) [Host ID $Host_Insert_ID] to the sudoers distribution table and assigned it default parameters.", $User_Name);
 
 	# / Audit Log

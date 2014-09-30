@@ -9,10 +9,14 @@ my $Sudoers_Location = Sudoers_Location();
 my $Sudoers_Storage = Sudoers_Storage();
 my $System_Name = System_Name();
 my $Version = Version();
-my $MD5Sum = md5sum();
-my $SHA1Sum = sha1sum();
-my $Cut = cut();
-my $VISudo = visudo();
+my $md5sum = md5sum();
+my $sha1sum = sha1sum();
+my $cut = cut();
+my $visudo = visudo();
+my $cp = cp();
+my $ls = ls();
+my $grep = sudo_grep();
+my $head = head();
 
 my $Date = strftime "%Y-%m-%d", localtime;
 
@@ -23,7 +27,7 @@ my $Date = strftime "%Y-%m-%d", localtime;
 &write_commands;
 &write_rules;
 
-my $Sudoers_Check = `$VISudo -c -f $Sudoers_Location`;
+my $Sudoers_Check = `$visudo -c -f $Sudoers_Location`;
 
 if ($Sudoers_Check =~ m/$Sudoers_Location:\sparsed\sOK/) {
 	$Sudoers_Check = "Sudoers check passed!\n";
@@ -32,7 +36,7 @@ if ($Sudoers_Check =~ m/$Sudoers_Location:\sparsed\sOK/) {
 	exit(0);
 }
 else {
-	$Sudoers_Check = "Sudoers check failed, no changes made.\n";
+	$Sudoers_Check = "Sudoers check failed, no changes made. Latest working sudoers file restored.\n";
 	print $Sudoers_Check;
 	&record_audit('FAILED');
 	exit(1);
@@ -614,30 +618,34 @@ sub record_audit {
 		`username`
 	)
 	VALUES (
-		?,
-		?,
-		?,
-		?
+		?, ?, ?, ?
 	)");
 
-	my $MD5_New_Checksum = `$MD5Sum $Sudoers_Location | $Cut -d ' ' -f 1`;
+	my $MD5_New_Checksum = `$md5sum $Sudoers_Location | $cut -d ' ' -f 1`;
 		$MD5_New_Checksum =~ s/\s//g;
-	my $MD5_Existing_Sudoers = `$MD5Sum $Sudoers_Storage/sudoers_$MD5_New_Checksum | $Cut -d ' ' -f 1`;
+	my $MD5_Existing_Sudoers = `$md5sum $Sudoers_Storage/sudoers_$MD5_New_Checksum | $cut -d ' ' -f 1`;
 		$MD5_Existing_Sudoers =~ s/\s//g;
-	my $SHA1_Checksum = `$SHA1Sum $Sudoers_Location | $Cut -d ' ' -f 1`;
+	my $SHA1_Checksum = `$sha1sum $Sudoers_Location | $cut -d ' ' -f 1`;
 		$SHA1_Checksum =~ s/\s//g;
 
 	if ($Result eq 'PASSED' && $MD5_New_Checksum ne $MD5_Existing_Sudoers) {
 		my $New_Sudoers_Location = "$Sudoers_Storage/sudoers_$MD5_New_Checksum";
-		`cp $Sudoers_Location $Sudoers_Storage/sudoers_$MD5_New_Checksum`;
+		`$cp $Sudoers_Location $Sudoers_Storage/sudoers_$MD5_New_Checksum`; # Backing up sudoers
 		$MD5_New_Checksum = "MD5: " . $MD5_New_Checksum;
 		$SHA1_Checksum = "SHA1: " . $SHA1_Checksum;
 		$Audit_Log_Submission->execute("Sudoers", "Deployment Succeeded", "Configuration changes were detected and a new sudoers file was built, passed visudo validation, and checksums as follows: $MD5_New_Checksum, $SHA1_Checksum. A copy of this sudoers has been stored at '$New_Sudoers_Location' for future reference.", 'System');
 	}
-	elsif ($Result eq 'FAILED' && $MD5_New_Checksum ne $MD5_Existing_Sudoers) {
-		$MD5_New_Checksum = "MD5: " . $MD5_New_Checksum;
-		$SHA1_Checksum = "SHA1: " . $SHA1_Checksum;
-		$Audit_Log_Submission->execute("Sudoers", "Deployment Failed", "Configuration changes were detected and a new sudoers file was built, but failed visudo validation. Deployment aborted.", 'System');
+	elsif ($Result eq 'FAILED') {
+		my $Latest_Good_Sudoers = `$ls -t $Sudoers_Storage | $grep 'sudoers_' | $head -1`;
+			$Latest_Good_Sudoers =~ s/\n//;
+		my $Latest_Good_Sudoers_MD5 = `$md5sum $Sudoers_Storage/$Latest_Good_Sudoers | $cut -d ' ' -f 1`;
+			$Latest_Good_Sudoers_MD5 =~ s/\s//;
+		my $Check_For_Existing_Bad_Sudoers = `$ls -t $Sudoers_Storage/broken_$MD5_New_Checksum`;
+		if (!$Check_For_Existing_Bad_Sudoers) {
+			$Audit_Log_Submission->execute("Sudoers", "Deployment Failed", "Configuration changes were detected and a new sudoers file was built, but failed visudo validation. Deployment aborted, latest sudoers (MD5: $Latest_Good_Sudoers_MD5) restored.", 'System');
+			`$cp $Sudoers_Location $Sudoers_Storage/broken_$MD5_New_Checksum`; # Backing up broken sudoers
+		}
+		`$cp $Sudoers_Storage/$Latest_Good_Sudoers $Sudoers_Location`; # Restoring latest working sudoers
 	}
 	else {
 		print "New sudoers matches old sudoers. Not replacing.\n";

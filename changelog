@@ -3,8 +3,9 @@
         - Bundled required non-core modules with package.
         - Added recommended permissions for files in README.
         - Adjusted the way new hosts send audit messages when they're added to the distribution  
-          table to make it clearer that it's been added to the distribution list. ############
-          ####
+          table to make it clearer that it's been added to the distribution list.
+        - Added fail-safe automatic restore for broken sudoers file with the latest stored working 
+          one.
 1.4.0:  - Sudoers Distribution system is now in place through 'distribution.pl'. Individual private 
           keys, timeouts, users and remote sudoers file paths can now be specified per host.
         - Fail-safe Distribution default values are stored in 'common.pl' so that non-administrative 

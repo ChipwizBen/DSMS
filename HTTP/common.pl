@@ -28,6 +28,9 @@ sub Sudoers_Location {
 	# need to overwrite that file, and the implications of giving Apache those rights. If you 
 	# want to automate it end to end, you should consider writing a temporary sudoers file, then 
 	# using a separate root cron job to overwrite /etc/sudoers, instead of directly writing to it.
+	# Of course, if you do not intend on using sudoers on the local machine, then this should NOT
+	# be /etc/sudoers. For sudoers locations on remote machines, see the Distribution_Defaults 
+	# subroutine in this file, or set individual remote sudoers locations through the web panel.
 
 	return '/var/www/html/sudoers';
 
@@ -158,42 +161,102 @@ sub CGI {
 sub md5sum {
 
 	# Manually set the path to `md5sum` here, or just leave this as default and the system 
-	# will try to determine it's location through `which`
+	# will try to determine it's location through `which md5sum --skip-alias`
 
-	my $MD5Sum = `which md5sum`;
-	return $MD5Sum;
+	my $md5sum = `which md5sum --skip-alias`;
+
+	$md5sum =~ s/\n//g;
+	return $md5sum;
 
 } # sub md5sum
 
 sub sha1sum {
 
 	# Manually set the path to `sha1sum` here, or just leave this as default and the system 
-	# will try to determine it's location through `which`
+	# will try to determine it's location through `which sha1sum --skip-alias`
 
-	my $SHA1Sum = `which sha1sum`;
-	return $SHA1Sum;
+	my $sha1sum = `which sha1sum --skip-alias`;
+
+	$sha1sum =~ s/\n//g;
+	return $sha1sum;
 
 } # sub sha1sum
 
 sub cut {
 
 	# Manually set the path to `cut` here, or just leave this as default and the system 
-	# will try to determine it's location through `which`
+	# will try to determine it's location through `which cut --skip-alias`
 
-	my $Cut = `which cut`;
-	return $Cut;
+	my $cut = `which cut --skip-alias`;
+
+	$cut =~ s/\n//g;
+	return $cut;
 
 } # sub cut
 
 sub visudo {
 
 	# Manually set the path to `visudo` here, or just leave this as default and the system 
-	# will try to determine it's location through `which`
+	# will try to determine it's location through `which visudo --skip-alias`
 
-	my $VISudo = `which visudo`;
-	return $VISudo;
+	my $visudo = `which visudo --skip-alias`;
+
+	$visudo =~ s/\n//g;
+	return $visudo;
 
 } # sub visudo
+
+sub cp {
+
+	# Manually set the path to `cp` here, or just leave this as default and the system 
+	# will try to determine it's location through `which cp --skip-alias`
+
+	my $cp = `which cp --skip-alias`;
+
+	$cp =~ s/\n//g;
+	return $cp;
+
+} # sub cp
+
+sub ls {
+
+	# Manually set the path to `ls` here, or just leave this as default and the system 
+	# will try to determine it's location through `which ls --skip-alias`
+
+	my $ls = `which ls --skip-alias`;
+
+	$ls =~ s/\n//g;
+	return $ls;
+
+} # sub ls
+
+sub sudo_grep {
+
+	# Manually set the path to `grep` here, or just leave this as default and the system 
+	# will try to determine it's location through `which grep --skip-alias`
+	#
+	# Why sudo_grep and not grep? - grep is a function inside perl, but it doesn't give us 
+	# what we need, so we need to use the system's grep instead. If I name this subroutine 
+	# 'grep' it makes perl unhappy when I try to call it as grep().
+
+	my $grep = `which grep --skip-alias`;
+
+	$grep =~ s/\n//g;
+	return $grep;
+
+} # sub sudo_grep
+
+sub head {
+
+	# Manually set the path to `head` here, or just leave this as default and the system 
+	# will try to determine it's location through `which head --skip-alias`
+
+	my $head = `which head --skip-alias`;
+
+	$head =~ s/\n//g;
+	return $head;
+
+} # sub head
 
 ############################################################################################
 ########### The settings beyond this point are advanced, or shouldn't be changed ###########
