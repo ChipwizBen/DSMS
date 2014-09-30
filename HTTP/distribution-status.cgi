@@ -200,10 +200,7 @@ sub edit_host_parameters {
 		`username`
 	)
 	VALUES (
-		?,
-		?,
-		?,
-		?
+		?, ?, ?, ?
 	)");
 	
 	$Audit_Log_Submission->execute("Distribution", "Modify", "$User_Name modified Host ID $Edit_Host_Parameters_Post. The new entry is recorded as User: $User_Edit, Key Path: $Key_Path_Edit, Timeout: $Timeout_Edit seconds and Remote Sudoers Path: $Remote_Sudoers_Path_Edit.", $User_Name);
@@ -220,10 +217,7 @@ sub html_output {
 		`username`
 	)
 	VALUES (
-		?,
-		?,
-		?,
-		?
+		?, ?, ?, ?
 	)");
 
 	$Audit_Log_Submission->execute("Access Log", "View", "$User_Name accessed Distribution Status.", $User_Name);
