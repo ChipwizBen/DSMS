@@ -1,6 +1,7 @@
 1.4.1:  - Offloaded the resolution of application paths to 'common.pl' through `which` or manual 
           override.
-        - Bundled required non-core modules with package.
+        - Bundled required non-core modules with package (for easier installation in offline 
+          environments).
         - Added recommended permissions for files in README.
         - Adjusted the way new hosts send audit messages when they're added to the distribution  
           table to make it clearer that it's been added to the distribution list.
