@@ -34,6 +34,20 @@ sub html_output {
 	$Table->addRow( "Version", "Change" );
 	$Table->setRowClass (1, 'tbrow1');
 
+	## Version 1.4.0
+	$Table->addRow('1.4.0', 'Sudoers Distribution system is now in place through \'distribution.pl\'. Individual private 
+          keys, timeouts, users and remote sudoers file paths can now be specified per host.');
+	$Table->addRow('', 'Fail-safe Distribution default values are stored in \'common.pl\' so that non-administrative 
+          users cannot specify a remote host and overwrite an existing sudoers file, or SFTP to a 
+          server using an existing key (depending on the defaults set).');
+	$Table->addRow('', 'A new Distribution Status page is available to administrative users at 
+          \'distribution-status.cgi\'. Here, you can also manually edit a host\'s custom connection 
+          parameters and override the defaults.');
+	$Table->addRow('', 'Newly created hosts are now added to the new distribution table and default fail-safe 
+          parameters are set.');
+	$Table->addRow('', 'Moved \'changelog.cgi\' out of the Management menu, because it isn\'t a management tool.');
+	$Table->addRow('---', '');
+
 	## Version 1.3.1
 	$Table->addRow('1.3.1', 'Fixed a bug in the audit section of the \'sudoers-build.pl\' file where each time the system 
           generated a new sudoers file it would log the successful build to the Audit Log. If 

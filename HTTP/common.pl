@@ -26,23 +26,6 @@ sub System_Short_Name {
 
 }
 
-sub Version {
-
-	# Don't touch this.
-
-	return '1.3.1';
-
-}
-
-sub Server_Hostname {
-
-	# Don't touch this unless you want to trick the system into believing it isn't who it thinks 
-	# it is. A bit like Bruce Willis in Unbreakable.
-
-	return `hostname`;
-
-}
-
 sub Sudoers_Location {
 
 	# Note: This is not /etc/sudoers. This is the path that the system writes the temporary sudoers 
@@ -103,13 +86,39 @@ sub DB_Sudoers {
 
 }
 
+sub Distribution_Defaults {
+
+	# These are the default sudoers distribution settings for new hosts. Keep in mind that any 
+	# active host is automatically tried for sudoers pushes with their distribution settings. 
+	# Unless you are confident that all new hosts will have the same settings, you might want 
+	# to set fail-safe defaults here and manually override each host individually on the 
+	# Distribution Status page.
+	#
+	# A good fail-safe strategy would be to set $Key_Path to be /dev/null so that login to the 
+	# remote server becomes impossible. Alternatively, another good method would be to set 
+	# $Remote_Sudoers to /tmp/sudoers and have the other settings correct, so that you could 
+	# accurately test remote login, but not effect the existing sudoers file at /etc/sudoers.
+	# When you're ready for full automated sudoers replacement, set $Remote_Sudoers to 
+	# /etc/sudoers.
+
+	my $Distribution_User = 'transport';
+	my $Key_Path = '/home/transport/.ssh/id_rsa';
+	my $Timeout = '15'; # Stalled connection Timeout in seconds
+	my $Remote_Sudoers = '/tmp/sudoers';
+
+	my @Distribution_Defaults = ($Distribution_User, $Key_Path, $Timeout, $Remote_Sudoers);
+	return @Distribution_Defaults;
+
+}
+
 sub CGI {
 
 	# This contains the CGI Session parameters. The session files are stored in the specified 
-	# Session Directory. The Session Expiry is the inactivity  It's unwise to change either of 
-	# these values while the system is in use. You could cause user sessions to expire 
-	# prematurely. See the Session Expiry Values table below to see the accepted aliases, and 
-	# some examples below that.
+	# Session Directory. The Session Expiry is the time that clients must be inactive before 
+	# they are logged off automatically.  It's unwise to change either of these values whilst 
+	# the system is in use. You could cause user sessions to expire prematurely and whatever 
+	# changes they were working on will probably be lost. See the Session Expiry Values table 
+	#below to see the accepted aliases, and some examples below that.
 	#
 	# +-----------+---------------+
     # |   Session Expiry Values   |
@@ -138,8 +147,29 @@ sub CGI {
 		$Session->expire("$Session_Expiry"); # Sets expiry.
 		my $Cookie = $CGI->cookie(CGISESSID => $Session->id ); # Sets cookie. Nom nom nom.
 
-		my @CGI_Session = ($CGI, $Session, $Cookie);
+	my @CGI_Session = ($CGI, $Session, $Cookie);
 	return @CGI_Session;
+
+}
+
+############################################################################################
+########### The settings beyond this point are advanced, or shouldn't be changed ###########
+############################################################################################
+
+sub Version {
+
+	# Don't touch this.
+
+	return '1.4.0';
+
+}
+
+sub Server_Hostname {
+
+	# Don't touch this unless you want to trick the system into believing it isn't who it thinks 
+	# it is. A bit like Bruce Willis in Unbreakable.
+
+	return `hostname`;
 
 }
 

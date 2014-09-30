@@ -25,6 +25,8 @@ System Requirements
 		CGI::Carp qw(fatalsToBrowser) -- [Inclued in native RHEL package: perl-CGI, also core module]
 		CGI::Session qw(-ip-match) -- [Native RHEL package: perl-CGI-Session]
 		Date::Parse -- [Included in native RHEL package: perl-DateTime]
+		Net::SFTP::Foreign -- [Requires CPAN or self-compile]
+		Time::HiRes -- [Included in native RHEL package: perl-DateTime]
 
 Client Requirements
 	Firefox 3 or later

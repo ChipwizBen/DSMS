@@ -133,11 +133,12 @@ print <<ENDHTML;
 					<li><a href="#">Management <b style="float:right;">></b></a>
 						<ul>
 							<li><a href="account-management.cgi">Account Management</a></li>
+							<li><a href="distribution-status.cgi">Distribution Status</a></li>
 							<li><a href="access-log.cgi">Access Log</a></li>
 							<li><a href="audit-log.cgi">Audit Log</a></li>
-							<li><a href="changelog.cgi">System Changelog</a></li>
 						</ul>
 					</li>
+					<li><a href="changelog.cgi">System Changelog</a></li>
 				</ul>
 			</li>
 			<li><a href="#"><span>&nbsp; Groups</span></a>

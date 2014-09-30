@@ -226,7 +226,6 @@ sub add_host {
 	}
 
 	my $Host_Insert = $DB_Sudoers->prepare("INSERT INTO `hosts` (
-		`id`,
 		`hostname`,
 		`ip`,
 		`expires`,
@@ -234,17 +233,39 @@ sub add_host {
 		`modified_by`
 	)
 	VALUES (
-		NULL,
-		?,
-		?,
-		?,
-		?,
-		?
+		?, ?, ?, ?, ?
 	)");
 
 	$Host_Insert->execute($Host_Name_Add, $IP_Add, $Expires_Date_Add, $Active_Add, $User_Name);
 
 	my $Host_Insert_ID = $DB_Sudoers->{mysql_insertid};
+
+	# Adding to sudoers distribution database with defaults
+	my $DB_Management = DB_Management();
+	my ($Distribution_Default_User,
+		$Distribution_Default_Key_Path, 
+		$Distribution_Default_Timeout,
+		$Distribution_Default_Remote_Sudoers) = Distribution_Defaults();
+
+		my $Distribution_Insert = $DB_Management->prepare("INSERT INTO `distribution` (
+			`host_id`,
+			`user`,
+			`key_path`,
+			`timeout`,
+			`remote_sudoers_path`,
+			`last_modified`,
+			`modified_by`
+		)
+		VALUES (
+			?, ?, ?, ?, ?, NOW(), ?
+		)");
+
+
+
+		$Distribution_Insert->execute($Host_Insert_ID, $Distribution_Default_User, $Distribution_Default_Key_Path, 
+		$Distribution_Default_Timeout, $Distribution_Default_Remote_Sudoers, $User_Name);
+
+	# / Adding to sudoers distribution database with defaults
 
 	# Audit Log
 	if ($Expires_Date_Add eq '0000-00-00') {
@@ -264,13 +285,10 @@ sub add_host {
 		`username`
 	)
 	VALUES (
-		?,
-		?,
-		?,
-		?
+		?, ?, ?, ?
 	)");
 	
-	$Audit_Log_Submission->execute("Hosts", "Add", "$User_Name added $Host_Name_Add ($IP_Add), set it $Active_Add and to $Expires_Date_Add. The system assigned it Host ID $Host_Insert_ID.", $User_Name);
+	$Audit_Log_Submission->execute("Hosts", "Add", "$User_Name added $Host_Name_Add ($IP_Add), set it $Active_Add and to $Expires_Date_Add. The system assigned it Host ID $Host_Insert_ID and assigned it default sudo distribution parameters.", $User_Name);
 	# / Audit Log
 
 	return($Host_Insert_ID);

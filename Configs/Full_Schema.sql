@@ -569,6 +569,37 @@ LOCK TABLES `credentials` WRITE;
 INSERT INTO `credentials` VALUES (1,'admin','ebc21cd4ad20daa929cdfd65446c662d1454f08552c546d495eed15f3f0edcd39400565ccbebc489542ba1f528a7963e9bd2425ba0dd35370e81e92e0dd708de',';2eiR=|VyBcv0VWVi0gd=9&B,h<*;SpE.JAv)pik>g-6C!|5W#;tfsu(@0L&u@0u','noreply@','2014-09-11 10:23:21','2014-09-11 10:23:21',1,0,1,0,0,'','2014-09-10 22:23:21','Ben Schofield');
 /*!40000 ALTER TABLE `credentials` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `distribution`
+--
+
+DROP TABLE IF EXISTS `distribution`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `distribution` (
+  `host_id` int(11) NOT NULL,
+  `user` varchar(128) NOT NULL DEFAULT 'transport',
+  `key_path` varchar(255) NOT NULL DEFAULT '/home/transport/.ssh/id_rsa',
+  `timeout` int(3) NOT NULL DEFAULT '5',
+  `remote_sudoers_path` varchar(255) NOT NULL DEFAULT '/tmp/sudoers',
+  `status` varchar(1024) NOT NULL DEFAULT 'Not yet attempted connection.',
+  `last_updated` datetime NOT NULL,
+  `last_modified` datetime NOT NULL,
+  `modified_by` varchar(128) NOT NULL,
+  PRIMARY KEY (`host_id`),
+  UNIQUE KEY `host_id_UNIQUE` (`host_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `distribution`
+--
+
+LOCK TABLES `distribution` WRITE;
+/*!40000 ALTER TABLE `distribution` DISABLE KEYS */;
+/*!40000 ALTER TABLE `distribution` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -579,4 +610,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2014-09-23 14:28:12
+-- Dump completed on 2014-09-30 15:07:57
