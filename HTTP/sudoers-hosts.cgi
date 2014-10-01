@@ -288,7 +288,7 @@ sub add_host {
 	)");
 	
 	$Audit_Log_Submission->execute("Hosts", "Add", "$User_Name added $Host_Name_Add ($IP_Add), set it $Active_Add and to $Expires_Date_Add. The system assigned it Host ID $Host_Insert_ID.", $User_Name);
-	$Audit_Log_Submission->execute("Distribution", "Add", "$User_Name added $Host_Name_Add ($IP_Add) [Host ID $Host_Insert_ID] to the sudoers distribution table and assigned it default parameters.", $User_Name);
+	$Audit_Log_Submission->execute("Distribution", "Add", "$User_Name added $Host_Name_Add ($IP_Add) [Host ID $Host_Insert_ID] to the sudoers distribution system and assigned it default parameters.", $User_Name);
 
 	# / Audit Log
 
@@ -577,13 +577,11 @@ sub delete_host {
 			`username`
 		)
 		VALUES (
-			?,
-			?,
-			?,
-			?
+			?, ?, ?, ?
 		)");
 		
 		$Audit_Log_Submission->execute("Hosts", "Delete", "$User_Name deleted Host ID $Delete_Host_Confirm. The deleted entry's last values were $Hostname ($IP), set $Active and $Expires.", $User_Name);
+		$Audit_Log_Submission->execute("Distribution", "Delete", "$User_Name deleted $Hostname ($IP) [Host ID $Delete_Host_Confirm] from the sudoers distribution system.", $User_Name);
 
 	}
 	# / Audit Log
@@ -602,6 +600,13 @@ sub delete_host {
 			WHERE `host` = ?");
 		
 	$Delete_Host_From_Rules->execute($Delete_Host_Confirm);
+
+	my $DB_Management = DB_Management();
+	my $Delete_Host_From_Distribution = $DB_Management->prepare("DELETE from `distribution`
+			WHERE `host_id` = ?");
+
+	$Delete_Host_From_Distribution->execute($Delete_Host_Confirm);
+
 
 } # sub delete_host
 

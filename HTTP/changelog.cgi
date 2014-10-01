@@ -34,6 +34,18 @@ sub html_output {
 	$Table->addRow( "Version", "Change" );
 	$Table->setRowClass (1, 'tbrow1');
 
+	## Version 1.4.1
+	$Table->addRow('1.4.1', 'Offloaded the resolution of application paths to \'common.pl\' through `which` or manual 
+          override to make it more system independent.');
+	$Table->addRow('', 'Bundled required non-core modules with package (for easier installation in offline 
+          environments).');
+	$Table->addRow('', 'Added recommended permissions (as a script) for files in README.');
+	$Table->addRow('', 'Adjusted the way new hosts send audit messages when they\'re added to make it clearer that 
+          they\'ve been added to the distribution list.');
+	$Table->addRow('', 'Added fail-safe automatic restore for broken sudoers files with the latest stored valid 
+          one.');
+	$Table->addRow('---', '');
+
 	## Version 1.4.0
 	$Table->addRow('1.4.0', 'Sudoers Distribution system is now in place through \'distribution.pl\'. Individual private 
           keys, timeouts, users and remote sudoers file paths can now be specified per host.');
@@ -46,7 +58,7 @@ sub html_output {
 	$Table->addRow('', 'Newly created hosts are now added to the new distribution table and default fail-safe 
           parameters are set.');
 	$Table->addRow('', 'Moved \'changelog.cgi\' out of the Management menu, because it isn\'t a management tool.');
-	$Table->addRow('---', '');
+	$Table->addRow('<hr />', '');
 
 	## Version 1.3.1
 	$Table->addRow('1.3.1', 'Fixed a bug in the audit section of the \'sudoers-build.pl\' file where each time the system 

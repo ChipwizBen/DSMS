@@ -17,6 +17,8 @@ my $cp = cp();
 my $ls = ls();
 my $grep = sudo_grep();
 my $head = head();
+my $Owner = Owner_ID();
+my $Group = Group_ID();
 
 my $Date = strftime "%Y-%m-%d", localtime;
 
@@ -630,7 +632,9 @@ sub record_audit {
 
 	if ($Result eq 'PASSED' && $MD5_New_Checksum ne $MD5_Existing_Sudoers) {
 		my $New_Sudoers_Location = "$Sudoers_Storage/sudoers_$MD5_New_Checksum";
-		`$cp $Sudoers_Location $Sudoers_Storage/sudoers_$MD5_New_Checksum`; # Backing up sudoers
+		`$cp -dp $Sudoers_Location $New_Sudoers_Location`; # Backing up sudoers
+		chown $Owner, $Group, $New_Sudoers_Location;
+		chmod 0640, $New_Sudoers_Location;
 		$MD5_New_Checksum = "MD5: " . $MD5_New_Checksum;
 		$SHA1_Checksum = "SHA1: " . $SHA1_Checksum;
 		$Audit_Log_Submission->execute("Sudoers", "Deployment Succeeded", "Configuration changes were detected and a new sudoers file was built, passed visudo validation, and checksums as follows: $MD5_New_Checksum, $SHA1_Checksum. A copy of this sudoers has been stored at '$New_Sudoers_Location' for future reference.", 'System');
@@ -642,10 +646,14 @@ sub record_audit {
 			$Latest_Good_Sudoers_MD5 =~ s/\s//;
 		my $Check_For_Existing_Bad_Sudoers = `$ls -t $Sudoers_Storage/broken_$MD5_New_Checksum`;
 		if (!$Check_For_Existing_Bad_Sudoers) {
-			$Audit_Log_Submission->execute("Sudoers", "Deployment Failed", "Configuration changes were detected and a new sudoers file was built, but failed visudo validation. Deployment aborted, latest sudoers (MD5: $Latest_Good_Sudoers_MD5) restored.", 'System');
-			`$cp $Sudoers_Location $Sudoers_Storage/broken_$MD5_New_Checksum`; # Backing up broken sudoers
+			$Audit_Log_Submission->execute("Sudoers", "Deployment Failed", "Configuration changes were detected and a new sudoers file was built, but failed visudo validation. Deployment aborted, latest valid sudoers (MD5: $Latest_Good_Sudoers_MD5) has been restored.", 'System');
+			`$cp -dp $Sudoers_Location $Sudoers_Storage/broken_$MD5_New_Checksum`; # Backing up broken sudoers
+			chown $Owner, $Group, "$Sudoers_Storage/broken_$MD5_New_Checksum";
+			chmod 0640, "$Sudoers_Storage/broken_$MD5_New_Checksum";
 		}
-		`$cp $Sudoers_Storage/$Latest_Good_Sudoers $Sudoers_Location`; # Restoring latest working sudoers
+		`$cp -dp $Sudoers_Storage/$Latest_Good_Sudoers $Sudoers_Location`; # Restoring latest working sudoers
+		chown $Owner, $Group, $Sudoers_Location;
+		chmod 0640, $Sudoers_Location;
 	}
 	else {
 		print "New sudoers matches old sudoers. Not replacing.\n";

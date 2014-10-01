@@ -258,6 +258,31 @@ sub head {
 
 } # sub head
 
+sub Owner_ID {
+
+	# For chowning sudoers after it's created, perl's chown needs an owner ID. I could've 
+	# hard-coded this as 0 (root), but it's more flexible if you can specify an owner ID.
+
+	my $Owner = 'root';
+
+	my $Owner_ID = getpwnam $Owner;
+	return $Owner_ID;
+
+} # sub Owner_ID
+
+sub Group_ID {
+
+	# For chowning sudoers after it's created, perl's chown needs a group ID. I could've 
+	# hard-coded this to use apache, but sometimes Apache Server doesn't run under apache 
+	# (like when it runs as httpd), so here you can specify a different group user.
+
+	my $Group = 'apache';
+
+	my $Group_ID = getpwnam $Group;
+	return $Group_ID;
+
+} # sub Group_ID
+
 ############################################################################################
 ########### The settings beyond this point are advanced, or shouldn't be changed ###########
 ############################################################################################

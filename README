@@ -7,6 +7,7 @@ See the changelog file for the latest modifications.
 
 Please send bug reports or change requests to ben@nwk1.com
 
+
 System Requirements
 	RHEL/CentOS 6 or newer (Debian Squeeze/Ubuntu 14.04 also work)
 	Apache 2.2 or newer
@@ -31,18 +32,54 @@ System Requirements
 		Net::SFTP::Foreign -- [Requires CPAN or self-compile]
 		Time::HiRes -- [Included in native RHEL package: perl-DateTime]
 
-File Permissions
-*.cgi
-root:apache 610
 
-*.pl
-root:root 500
+File Permissions (from web root)
 
-env-vars, format.css, favicon.ico, resources/, resources/*, resources/*/*, resources/*/*/*
-root:apache 640
-​
-changelog, README
-root:root 644
+sudoers = Path to sudoers set in common.pl as Sudoers_Location
+sudoers-storage/ = Path to sudoers-storage/ set in common.pl as Sudoers_Storage
+
+chown root:apache *.cgi
+chmod 650 *.cgi
+
+chown root:apache common.pl
+chmod 650 common.pl
+
+chown root:root sudoers-build.pl distribution.pl
+chmod 100 sudoers-build.pl distribution.pl
+
+chown root:apache environmental-variables sudoers
+chmod 640 environmental-variables sudoers
+
+chown -R root:apache format.css favicon.ico resources/
+chmod -R 440 format.css favicon.ico resources/
+
+chown root:apache resources/ resources/imgs/ resources/imgs/buttons/
+chmod 550 resources/ resources/imgs/ resources/imgs/buttons/
+
+chown -R root:root sudoers-storage/
+chmod -R 700 sudoers-storage/
+
+
+Database Permissions
+
+Sudoers Database (all tables):
+	sudoers (user):
+		SELECT, INSERT, UPDATE, DELETE
+
+Management Database
+	Management.access_log:
+		Management (user):
+			SELECT, INSERT, UPDATE
+	Management.audit_log:
+		Management (user):
+			SELECT, INSERT, UPDATE
+	Management.credentials:
+		Management (user):
+			SELECT, INSERT, UPDATE, DELETE
+	Management.distribution:
+		Management (user):
+			SELECT, INSERT, UPDATE, DELETE
+
 
 Client Requirements
 	Firefox 3 or later

@@ -1,11 +1,11 @@
 1.4.1:  - Offloaded the resolution of application paths to 'common.pl' through `which` or manual 
-          override.
+          override to make it more system independent.
         - Bundled required non-core modules with package (for easier installation in offline 
           environments).
-        - Added recommended permissions for files in README.
-        - Adjusted the way new hosts send audit messages when they're added to the distribution  
-          table to make it clearer that it's been added to the distribution list.
-        - Added fail-safe automatic restore for broken sudoers file with the latest stored working 
+        - Added recommended permissions (as a script) for files in README.
+        - Adjusted the way new hosts send audit messages when they're added to make it clearer that 
+          they've been added to the distribution list.
+        - Added fail-safe automatic restore for broken sudoers files with the latest stored valid 
           one.
 1.4.0:  - Sudoers Distribution system is now in place through 'distribution.pl'. Individual private 
           keys, timeouts, users and remote sudoers file paths can now be specified per host.
