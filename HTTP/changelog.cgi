@@ -42,8 +42,7 @@ sub html_output {
 	$Table->addRow('', 'Added recommended permissions (as a script) for files in README.');
 	$Table->addRow('', 'Adjusted the way new hosts send audit messages when they\'re added to make it clearer that 
           they\'ve been added to the distribution list.');
-	$Table->addRow('', 'Added fail-safe automatic restore for broken sudoers files with the latest stored valid 
-          one.');
+	$Table->addRow('', 'Added fail-safe automatic restore for broken sudoers files with the latest stored valid one.');
 	$Table->addRow('---', '');
 
 	## Version 1.4.0
