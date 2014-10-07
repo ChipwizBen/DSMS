@@ -148,7 +148,7 @@ function Expire_Toggle() {
 	</tr>
 </table>
 
-<ul style='text-align: left; display: inline-block;'>
+<ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
 <li>User Names must be unique.</li>
 <li>Do not use spaces in the User Name - they will be stripped.</li>
 <li>Users with an expiry set are automatically removed from sudoers at 23:59:59
@@ -326,7 +326,7 @@ print <<ENDHTML;
 
 <input type='hidden' name='Edit_User_Post' value='$Edit_User'>
 
-<ul style='text-align: left; display: inline-block;'>
+<ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
 <li>User Names must be unique.</li>
 <li>Do not use spaces in the User Name - they will be stripped.</li>
 <li>You can only activate a modified user if you are an Approver.

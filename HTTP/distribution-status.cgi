@@ -11,6 +11,9 @@ my ($Distribution_Default_User,
 	$Distribution_Default_Key_Path, 
 	$Distribution_Default_Timeout,
 	$Distribution_Default_Remote_Sudoers) = Distribution_Defaults();
+my $Sudoers_Location = Sudoers_Location();
+my $md5sum = md5sum();
+my $cut = cut();
 
 my $Edit_Host_Parameters = $CGI->param("Edit_Host_Parameters");
 
@@ -321,6 +324,9 @@ sub html_output {
 		}
 	}
 
+	my $MD5_Checksum = `$md5sum $Sudoers_Location | $cut -d ' ' -f 1`;
+		$MD5_Checksum = "Current sudoers MD5 checksum: " . "<span style='color: #00FF00;'>$MD5_Checksum</span>";
+
 print <<ENDHTML;
 <table style="width:100%; border: solid 2px; border-color:#293E77; background-color:#808080;">
 	<tr>
@@ -409,6 +415,9 @@ print <<ENDHTML;
 			</table>
 			</form>
 		</td>
+	</tr>
+	<tr>
+		<td  align="center" colspan="2">$MD5_Checksum</td>
 	</tr>
 </table>
 

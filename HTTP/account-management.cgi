@@ -148,10 +148,20 @@ print <<ENDHTML;
 	</tr>
 </table>
 
-<p style="margin-left: 10%; margin-right: 10%;"><i>Admin Privileges</i> allow a user to modify users and permissions, including their own, and view the <b><a href='access-log.cgi'>Access Log</a></b>.</p>
-<p style="margin-left: 10%; margin-right: 10%;"><b>Note:</b> Setting <i>Can Approve Rule Changes</i> to <b>Yes</b> and setting <i>Requires Rule Change Approval</i> to <b>Yes</b> 
-means that rules created or modified by this user must also be approved by another Approver.  A user that has <i>Can Approve Rule Changes</i> set to <b>Yes</b> and <i>Requires Rule Change Approval</i> 
-set to <b>No</b> have their changes automatically approved. Nobody can approve their own rule changes if <i>Requires Rule Change Approval</i> is set to <b>Yes</b>. The user name <i>System</i> is reserved and cannot be used.</p>
+<ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
+	<li>
+		<i>Admin Privileges</i> allow a user to modify users and permissions, including their own, and view 
+		the <b><a href='access-log.cgi'>Access Log</a></b>.
+	</li>
+	<li>
+		<b>Note:</b> Setting <i>Can Approve Rule Changes</i> to <b>Yes</b> and setting <i>Requires Rule Change 
+		Approval</i> to <b>Yes</b> means that rules created or modified by this user must also be approved by 
+		another Approver.  A user that has <i>Can Approve Rule Changes</i> set to <b>Yes</b> and <i>Requires 
+		Rule Change Approval</i> set to <b>No</b> have their changes automatically approved. Nobody can approve 
+		their own rule changes if <i>Requires Rule Change Approval</i> is set to <b>Yes</b>. The user name 
+		<i>System</i> is reserved and cannot be used.
+	</li>
+</ul>
 
 <hr width="50%">
 <div style="text-align: center"><input type=submit name='ok' value='Add Account'></div>
@@ -406,10 +416,20 @@ print <<ENDHTML;
 	</tr>
 </table>
 
-<p style="margin-left: 10%; margin-right: 10%;"><i>Admin Privileges</i> allow a user to modify users and permissions, including their own, and view the <b><a href='access-log.cgi'>Access Log</a></b>.</p>
-<p style="margin-left: 10%; margin-right: 10%;"><b>Note:</b> Setting <i>Can Approve Rule Changes</i> to <b>Yes</b> and setting <i>Requires Rule Change Approval</i> to <b>Yes</b> 
-means that rules created or modified by this user must also be approved by another Approver.  A user that has <i>Can Approve Rule Changes</i> set to <b>Yes</b> and <i>Requires Rule Change Approval</i> 
-set to <b>No</b> have their Wchanges automatically approved. Nobody can approve their own rule changes if <i>Requires Rule Change Approval</i> is set to <b>Yes</b>. The user name <i>System</i> is reserved and cannot be used.</p>
+<ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
+	<li>
+		<i>Admin Privileges</i> allow a user to modify users and permissions, including their own, and view 
+		the <b><a href='access-log.cgi'>Access Log</a></b>.
+	</li>
+	<li>
+		<b>Note:</b> Setting <i>Can Approve Rule Changes</i> to <b>Yes</b> and setting <i>Requires Rule Change 
+		Approval</i> to <b>Yes</b> means that rules created or modified by this user must also be approved by 
+		another Approver.  A user that has <i>Can Approve Rule Changes</i> set to <b>Yes</b> and <i>Requires 
+		Rule Change Approval</i> set to <b>No</b> have their changes automatically approved. Nobody can approve 
+		their own rule changes if <i>Requires Rule Change Approval</i> is set to <b>Yes</b>. The user name 
+		<i>System</i> is reserved and cannot be used.
+	</li>
+</ul>
 
 <input type='hidden' name='Edit_User_Post' value='$Edit_User'>
 

@@ -272,7 +272,7 @@ print <<ENDHTML;
 	</tr>
 </table>
 
-<ul style='text-align: left; display: inline-block;'>
+<ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
 <li>Group Names must be unique.</li>
 <li>Do not use spaces in Group Names - they will be stripped.</li>
 <li>Groups with an expiry set are automatically removed from sudoers at 23:59:59
@@ -697,7 +697,7 @@ print <<ENDHTML;
 	</tr>
 </table>
 
-<ul style='text-align: left; display: inline-block;'>
+<ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
 <li>Group Names must be unique.</li>
 <li>Do not use spaces in Group Names - they will be stripped.</li>
 <li>You can only activate a modified command if you are an Approver.

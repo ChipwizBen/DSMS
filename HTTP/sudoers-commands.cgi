@@ -172,7 +172,7 @@ function Expire_Toggle() {
 	</tr>
 </table>
 
-<ul style='text-align: left; display: inline-block;'>
+<ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
 <li>Command Alias and Commands must have unique names.</li>
 <li>Commands take only full paths (e.g. <i>/sbin/service</i> instead of just <i>service</i>).</li>
 <li>Do not use spaces  or none alphanumeric characters in the Alias - they will be stripped.</li>
@@ -387,7 +387,7 @@ print <<ENDHTML;
 
 <input type='hidden' name='Edit_Command_Post' value='$Edit_Command'>
 
-<ul style='text-align: left; display: inline-block;'>
+<ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
 <li>Command Alias and Commands must have unique names.</li>
 <li>Commands take only full paths (e.g. <i>/sbin/service</i> instead of just <i>service</i>).</li>
 <li>Do not use spaces  or none alphanumeric characters in the Alias - they will be stripped.</li>

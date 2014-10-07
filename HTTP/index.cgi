@@ -52,6 +52,7 @@ ENDHTML
 		$Line =~ s/^\s*(Defaults.*)/<span style='color: #00FF00;'>$1<\/span>/g; # Environmental highlighting
 		$Line =~ s/(.*)(HOST_RULE_GROUP_\d*)(.*)/$1<span style='color: #FF8A00;'>$2<\/span>$3/g; # Host rule group highlighting
 		$Line =~ s/^(USER_RULE_GROUP_\d*)(.*)/<span style='color: #FC44FF;'>$1<\/span>$2/g; # User rule group highlighting
+		$Line =~ s/^(.*)(\%\w.*)(.*)/$1<span style='color: #25AAE1;'>$2<\/span>$3/g; # System User Group highlighting
 		$Line =~ s/(.*)=\s\((root)\)(.*)/$1= (<span style='color: #FF0000;'>$2<\/span>)$3/g; # Run_AS root highlighting
 		$Line =~ s/(.*)=\s\((ALL)\)(.*)/$1= (<span style='color: #FF0000;'>$2<\/span>)$3/g; # Run_As ALL highlighting
 		$Line =~ s/(.*)=\s\((.*)\)(.*)/$1= (<span style='color: #009400;'>$2<\/span>)$3/g; # Run_As as other highlighting
@@ -61,6 +62,8 @@ ENDHTML
 		$Line =~ s/(.*)(NOEXEC)(.*)/$1<span style='color: #25AAE1;'>$2<\/span>$3/g; # NOEXEC highlighting
 		$Line =~ s/(.*)(COMMAND_RULE_GROUP_\d*)(.*)/$1<span style='color: #FFC600;'>$2<\/span>$3/g; # Command rule group highlighting
 		$Line =~ s/(.*)(was\snot\swritten)(.*)/<span style='color: #FF0000;'>$1$2$3<\/span>/g; # Failed rule write highlighting
+		$Line =~ s/(.*)\s=\s(ALL)(.*)/$1 = <span style='color: #FF0000;'>ALL<\/span>$3/g; # Failed rule write highlighting
+		$Line =~ s/###\s(.*)\s###/<span style='color: #00ffff;'>### $1 ###<\/span>/g; # Section highlighting
 
 		if ($Line =~ m/^Host_Alias/) {
 			print "<span style='color: #FF8A00;'>$Line</span>" . "<br />";

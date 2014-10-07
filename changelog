@@ -1,3 +1,27 @@
+To all ul inputs: padding-left: 40px; padding-right: 40px;
+
+1.5.0   - Added MD5 checksum to Distribution Status for easier comparison with sudoers checksums 
+          currently on different systems.
+        - Added option to specify port in DB connection string in 'common.pl'.
+        - Added the ability to specify Unix System Groups (in addition the the existing Sudo Groups) 
+          which are usually defined in /etc/group.
+        - Added display highlighting to differentiate between Sudo Groups and System Groups across 
+          various screens.
+        - Made the sudoers special host 'ALL' (meaning all hosts) a selectable option for Host Groups 
+          and Hosts when attaching to a Rule.
+        - Made it possible to search for Rules using the Global Search tool.
+        - Made Expired Users/Hosts/Commands/Rules display as Expired instead of only Active/Inactive 
+          in the Global Search tool.
+        - Fixed an array allocation bug where Commands searched for through the Global Search tool 
+          always returned as Active.
+        - Tidied up formatting for descriptions below Add and Edit boxes - unordered lists and padding 
+          is now standard across all input boxes with multi-line descriptions.
+        - Added Upgrade.sql file to facilitate database upgrading from 1.4.1 to 1.5.0 without needing 
+          to overwrite with the Full_Schema.sql
+        - Changed Defaults Specification in environmential-variables to use the Red Hat Defaults.
+        - Added an additional 'Section Ends' comment to the end of each type section to make them 
+          clearer in very large sudoers files.
+        - Updated the syntax highlighting on 'index.cgi' to clearly mark each section's start and end.
 1.4.1:  - Offloaded the resolution of application paths to 'common.pl' through `which` or manual 
           override to make it more system independent.
         - Bundled required non-core modules with package (for easier installation in offline 
@@ -5,8 +29,7 @@
         - Added recommended permissions (as a script) for files in README.
         - Adjusted the way new hosts send audit messages when they're added to make it clearer that 
           they've been added to the distribution list.
-        - Added fail-safe automatic restore for broken sudoers files with the latest stored valid 
-          one.
+        - Added fail-safe automatic restore for broken sudoers files with the latest stored valid one.
 1.4.0:  - Sudoers Distribution system is now in place through 'distribution.pl'. Individual private 
           keys, timeouts, users and remote sudoers file paths can now be specified per host.
         - Fail-safe Distribution default values are stored in 'common.pl' so that non-administrative 

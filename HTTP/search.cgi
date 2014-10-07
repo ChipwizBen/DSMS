@@ -44,14 +44,14 @@ sub html_output {
 
 	my $Table = new HTML::Table(
 		-cols=>4,
-                -align=>'center',
-                -border=>0,
-                -rules=>'cols',
-                -evenrowclass=>'tbeven',
-                -oddrowclass=>'tbodd',
-                -width=>'90%',
-                -spacing=>0,
-                -padding=>1
+		-align=>'center',
+		-border=>0,
+		-rules=>'cols',
+		-evenrowclass=>'tbeven',
+		-oddrowclass=>'tbodd',
+		-width=>'90%',
+		-spacing=>0,
+		-padding=>1
 	);
 
 	$Table->addRow( "#", "Category", "Name", "Status", "View" );
@@ -59,7 +59,7 @@ sub html_output {
 
 print <<ENDHTML;
 
-<div id="wide-popup-box">
+<div id="search-popup-box">
 <a href="$Referer">
 <div id="blockclosebutton">
 </div>
@@ -70,7 +70,7 @@ ENDHTML
 
 ### Host Groups
 
-	my $Search_DB = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `active`
+	my $Search_DB = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `expires`, `active`
 		FROM `host_groups`
 		WHERE `id` LIKE ?
 		OR `groupname` LIKE ?
@@ -82,9 +82,19 @@ while ( my @Search = $Search_DB->fetchrow_array() ) {
 	my $ID = $Search[0];
 	my $Name = $Search[1];
 		$Name =~ s/(.*)($Search)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
-	my $Active = $Search[2];
+	my $Expires = $Search[2];
+	my $Active = $Search[3];
 
-	if ($Active) {$Active = "Active"} else {$Active = "Inactive"}
+	my $Expires_Epoch;
+	my $Today_Epoch = time;
+	if ($Expires ne '0000-00-00' && $Expires_Epoch < $Today_Epoch) {
+		$Expires = '<br /><span style=\'color: #BDBDBD\'>Expired</span>';
+	}
+	else {
+		$Expires = '';
+	}
+
+	if ($Active) {$Active = "<span style='color: #00FF00'>Active</span>"} else {$Active = "Inactive"}
 
 	$Counter++;
 
@@ -92,14 +102,14 @@ while ( my @Search = $Search_DB->fetchrow_array() ) {
 	"$Counter",
 	"Host Group",
 	"$Name",
-	"$Active",
+	"$Active$Expires",
 	"<a href='sudoers-host-groups.cgi?ID_Filter=$ID'><img src=\"resources/imgs/forward.png\" alt=\"View $Name\" ></a>"
 	);
 }
 
 ### User Groups
 
-	my $Search_DB = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `active`
+	my $Search_DB = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `system_group`, `expires`, `active`
 		FROM `user_groups`
 		WHERE `id` LIKE ?
 		OR `groupname` LIKE ?
@@ -111,9 +121,21 @@ while ( my @Search = $Search_DB->fetchrow_array() ) {
 	my $ID = $Search[0];
 	my $Name = $Search[1];
 		$Name =~ s/(.*)($Search)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
-	my $Active = $Search[2];
+	my $System_Group = $Search[2];
+	my $Expires = $Search[3];
+	my $Active = $Search[4];
 
-	if ($Active) {$Active = "Active"} else {$Active = "Inactive"}
+	my $Expires_Epoch;
+	my $Today_Epoch = time;
+	if ($Expires ne '0000-00-00' && $Expires_Epoch < $Today_Epoch) {
+		$Expires = '<br /><span style=\'color: #BDBDBD\'>Expired</span>';
+	}
+	else {
+		$Expires = '';
+	}
+
+	if ($System_Group) {$Name = '%' . $Name . ' [System Group]'}
+	if ($Active) {$Active = "<span style='color: #00FF00'>Active</span>"} else {$Active = "Inactive"}
 
 	$Counter++;
 
@@ -121,14 +143,14 @@ while ( my @Search = $Search_DB->fetchrow_array() ) {
 	"$Counter",
 	"User Group",
 	"$Name",
-	"$Active",
+	"$Active$Expires",
 	"<a href='sudoers-user-groups.cgi?ID_Filter=$ID'><img src=\"resources/imgs/forward.png\" alt=\"View $Name\" ></a>"
 	);
 }
 
 ### Command Groups
 
-	my $Search_DB = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `active`
+	my $Search_DB = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `expires`, `active`
 		FROM `command_groups`
 		WHERE `id` LIKE ?
 		OR `groupname` LIKE ?
@@ -141,8 +163,19 @@ while ( my @Search = $Search_DB->fetchrow_array() ) {
 	my $Name = $Search[1];
 		$Name =~ s/(.*)($Search)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
 	my $Active = $Search[2];
+	my $Expires = $Search[2];
+	my $Active = $Search[3];
 
-	if ($Active) {$Active = "Active"} else {$Active = "Inactive"}
+	my $Expires_Epoch;
+	my $Today_Epoch = time;
+	if ($Expires ne '0000-00-00' && $Expires_Epoch < $Today_Epoch) {
+		$Expires = '<br /><span style=\'color: #BDBDBD\'>Expired</span>';
+	}
+	else {
+		$Expires = '';
+	}
+
+	if ($Active) {$Active = "<span style='color: #00FF00'>Active</span>"} else {$Active = "Inactive"}
 
 	$Counter++;
 
@@ -150,14 +183,14 @@ while ( my @Search = $Search_DB->fetchrow_array() ) {
 	"$Counter",
 	"Command Group",
 	"$Name",
-	"$Active",
+	"$Active$Expires",
 	"<a href='sudoers-command-groups.cgi?ID_Filter=$ID'><img src=\"resources/imgs/forward.png\" alt=\"View $Name\" ></a>"
 	);
 }
 
 ### Hosts
 
-	my $Search_DB = $DB_Sudoers->prepare("SELECT `id`, `hostname`, `ip`, `active`
+	my $Search_DB = $DB_Sudoers->prepare("SELECT `id`, `hostname`, `ip`, `expires`, `active`
 		FROM `hosts`
 		WHERE `id` LIKE ?
 		OR `hostname` LIKE ?
@@ -172,9 +205,19 @@ while ( my @Search = $Search_DB->fetchrow_array() ) {
 		$Name =~ s/(.*)($Search)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
 	my $IP = $Search[2];
 		$IP =~ s/(.*)($Search)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
-	my $Active = $Search[3];
+	my $Expires = $Search[3];
+	my $Active = $Search[4];
 
-	if ($Active) {$Active = "Active"} else {$Active = "<span style='color: #FF0000'>Inactive</span>"}
+	my $Expires_Epoch;
+	my $Today_Epoch = time;
+	if ($Expires ne '0000-00-00' && $Expires_Epoch < $Today_Epoch) {
+		$Expires = '<br /><span style=\'color: #BDBDBD\'>Expired</span>';
+	}
+	else {
+		$Expires = '';
+	}
+
+	if ($Active) {$Active = "<span style='color: #00FF00'>Active</span>"} else {$Active = "<span style='color: #FF0000'>Inactive</span>"}
 
 	$Counter++;
 
@@ -182,14 +225,14 @@ while ( my @Search = $Search_DB->fetchrow_array() ) {
 	"$Counter",
 	"Host",
 	"$Name ($IP)",
-	"$Active",
+	"$Active$Expires",
 	"<a href='sudoers-hosts.cgi?ID_Filter=$ID'><img src=\"resources/imgs/forward.png\" alt=\"View $Name\" ></a>"
 	);
 }
 
 ### Users
 
-	my $Search_DB = $DB_Sudoers->prepare("SELECT `id`, `username`, `active`
+	my $Search_DB = $DB_Sudoers->prepare("SELECT `id`, `username`, `expires`, `active`
 		FROM `users`
 		WHERE `id` LIKE ?
 		OR `username` LIKE ?
@@ -201,9 +244,19 @@ while ( my @Search = $Search_DB->fetchrow_array() ) {
 	my $ID = $Search[0];
 	my $Name = $Search[1];
 		$Name =~ s/(.*)($Search)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
-	my $Active = $Search[2];
+	my $Expires = $Search[2];
+	my $Active = $Search[3];
 
-	if ($Active) {$Active = "Active"} else {$Active = "<span style='color: #FF0000'>Inactive</span>"}
+	my $Expires_Epoch;
+	my $Today_Epoch = time;
+	if ($Expires ne '0000-00-00' && $Expires_Epoch < $Today_Epoch) {
+		$Expires = '<br /><span style=\'color: #BDBDBD\'>Expired</span>';
+	}
+	else {
+		$Expires = '';
+	}
+
+	if ($Active) {$Active = "<span style='color: #00FF00'>Active</span>"} else {$Active = "<span style='color: #FF0000'>Inactive</span>"}
 
 	$Counter++;
 
@@ -211,14 +264,14 @@ while ( my @Search = $Search_DB->fetchrow_array() ) {
 	"$Counter",
 	"User",
 	"$Name",
-	"$Active",
+	"$Active$Expires",
 	"<a href='sudoers-users.cgi?ID_Filter=$ID'><img src=\"resources/imgs/forward.png\" alt=\"View $Name\" ></a>"
 	);
 }
 
 ### Commands
 
-	my $Search_DB = $DB_Sudoers->prepare("SELECT `id`, `command_alias`, `command`, `active`
+	my $Search_DB = $DB_Sudoers->prepare("SELECT `id`, `command_alias`, `command`, `expires`, `active`
 		FROM `commands`
 		WHERE `id` LIKE ?
 		OR `command_alias` LIKE ?
@@ -233,9 +286,19 @@ while ( my @Search = $Search_DB->fetchrow_array() ) {
 		$Name =~ s/(.*)($Search)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
 	my $Command = $Search[2];
 		$Command =~ s/(.*)($Search)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
-	my $Active = $Search[2];
+	my $Expires = $Search[3];
+	my $Active = $Search[4];
 
-	if ($Active) {$Active = "Active"} else {$Active = "<span style='color: #FF0000'>Inactive</span>"}
+	my $Expires_Epoch;
+	my $Today_Epoch = time;
+	if ($Expires ne '0000-00-00' && $Expires_Epoch < $Today_Epoch) {
+		$Expires = '<br /><span style=\'color: #BDBDBD\'>Expired</span>';
+	}
+	else {
+		$Expires = '';
+	}
+
+	if ($Active) {$Active = "<span style='color: #00FF00'>Active</span>"} else {$Active = "<span style='color: #FF0000'>Inactive</span>"}
 
 	$Counter++;
 
@@ -243,8 +306,48 @@ while ( my @Search = $Search_DB->fetchrow_array() ) {
 	"$Counter",
 	"Command",
 	"$Name ($Command)",
-	"$Active",
+	"$Active$Expires",
 	"<a href='sudoers-commands.cgi?ID_Filter=$ID'><img src=\"resources/imgs/forward.png\" alt=\"View $Name\" ></a>"
+	);
+}
+
+### Rules
+
+	my $Search_DB = $DB_Sudoers->prepare("SELECT `id`, `name`, `expires`, `active`, `approved`
+		FROM `rules`
+		WHERE `name` LIKE ?
+	");
+	
+	$Search_DB->execute("%$Search%");
+
+while ( my @Search = $Search_DB->fetchrow_array() ) {
+	my $ID = $Search[0];
+	my $Name = $Search[1];
+		$Name =~ s/(.*)($Search)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
+	my $Expires = $Search[2];
+	my $Active = $Search[3];
+	my $Approved = $Search[4];
+
+	my $Expires_Epoch;
+	my $Today_Epoch = time;
+	if ($Expires ne '0000-00-00' && $Expires_Epoch < $Today_Epoch) {
+		$Expires = '<br /><span style=\'color: #BDBDBD\'>Expired</span>';
+	}
+	else {
+		$Expires = '';
+	}
+
+	if ($Active) {$Active = "<span style='color: #00FF00'>Active</span>"} else {$Active = "<span style='color: #FF0000'>Inactive</span>"}
+	if ($Approved) {$Approved = "Approved"} else {$Approved = "<span style='color: #FF0000'>Unapproved</span>"}
+
+	$Counter++;
+
+	$Table->addRow(
+	"$Counter",
+	"Rule",
+	"$Name",
+	"$Active$Expires<br/>$Approved",
+	"<a href='sudoers-rules.cgi?ID_Filter=$ID'><img src=\"resources/imgs/forward.png\" alt=\"View $Name\" ></a>"
 	);
 }
 

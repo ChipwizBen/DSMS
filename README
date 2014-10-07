@@ -17,6 +17,9 @@ System Requirements
 	md5sum
 	sha1sum
 	cut
+	cp
+	head
+	ls
 	Perl v5.10 or newer (at /usr/bin/perl)
 	Perl modules:
 		strict -- [Core perl module]
@@ -29,9 +32,10 @@ System Requirements
 		CGI::Carp qw(fatalsToBrowser) -- [Inclued in native RHEL package: perl-CGI, also core module]
 		CGI::Session qw(-ip-match) -- [Native RHEL package: perl-CGI-Session]
 		Date::Parse -- [Included in native RHEL package: perl-DateTime]
-		Net::SFTP::Foreign -- [Requires CPAN or self-compile]
 		Time::HiRes -- [Included in native RHEL package: perl-DateTime]
+		Net::SFTP::Foreign -- [Requires CPAN or self-compile]
 
+setsebool -P ssh_chroot_rw_homedirs on
 
 File Permissions (from web root)
 

@@ -15,6 +15,7 @@ my $Add_User_Temp_New = $CGI->param("Add_User_Temp_New");
 my $Add_User_Temp_Existing = $CGI->param("Add_User_Temp_Existing");
 my $Group_Name_Add = $CGI->param("Group_Name_Add");
 	$Group_Name_Add =~ s/\W//g;
+my $System_Group_Toggle_Add = $CGI->param("System_Group_Toggle_Add");
 my $Expires_Toggle_Add = $CGI->param("Expires_Toggle_Add");
 my $Expires_Date_Add = $CGI->param("Expires_Date_Add");
 my $Active_Add = $CGI->param("Active_Add");
@@ -25,6 +26,7 @@ my $Edit_User_Temp_New = $CGI->param("Edit_User_Temp_New");
 my $Edit_User_Temp_Existing = $CGI->param("Edit_User_Temp_Existing");
 my $Group_Name_Edit = $CGI->param("Group_Name_Edit");
 	$Group_Name_Edit =~ s/\W//g;
+my $System_Group_Toggle_Edit = $CGI->param("System_Group_Toggle_Edit");
 my $Expires_Toggle_Edit = $CGI->param("Expires_Toggle_Edit");
 my $Expires_Date_Edit = $CGI->param("Expires_Date_Edit");
 my $Active_Edit = $CGI->param("Active_Edit");
@@ -186,6 +188,16 @@ function Expire_Toggle() {
 		document.Add_Group.Expires_Date_Add.disabled=true;
 	}
 }
+function System_Group_Toggle() {
+	if(document.Add_Group.System_Group_Toggle_Add.checked)
+	{
+		document.Add_Group.Add_User_Temp_New.disabled=true;
+	}
+	else
+	{
+		document.Add_Group.Add_User_Temp_New.disabled=false;
+	}
+}
 //-->
 </SCRIPT>
 
@@ -195,6 +207,11 @@ function Expire_Toggle() {
 	<tr>
 		<td style="text-align: right;">Group Name:</td>
 		<td colspan="2"><input type='text' name='Group_Name_Add' style="width: 300px" maxlength='128' value="$Group_Name_Add" placeholder="Group Name" required autofocus></td>
+	</tr>
+	<tr>
+		<td style="text-align: right;">System Group:</td>
+		<td><input type="checkbox" onclick="System_Group_Toggle()" name="System_Group_Toggle_Add"></td>
+		<td align="left">(See the specific definition below)</td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Add User:</td>
@@ -271,9 +288,14 @@ print <<ENDHTML;
 	</tr>
 </table>
 
-<ul style='text-align: left; display: inline-block;'>
+<ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
 <li>Group Names must be unique.</li>
 <li>Do not use spaces in Group Names - they will be stripped.</li>
+<li>A <b>System Group</b> refers to the user group on a host, usually defined in /etc/group, and 
+represented by a prefixed '%' in a traditional sudoers file. If selected, you cannot attach sudo 
+users to this group here because the group's users will be determined by the host. Leave this 
+unchecked to treat this group as a <b>Sudoers Group</b>, which is a group of users independent of 
+any groups in /etc/group, and will therefore be treated as a sudoers group on <i>any</i> host.</li>
 <li>Groups with an expiry set are automatically removed from sudoers at 23:59:59
 (or the next sudoers refresh thereafter) on the day of expiry. Expired entries are functionally
 equivalent to inactive entries. The date entry format is YYYY-MM-DD.</li>
@@ -314,6 +336,13 @@ sub add_group {
 	}
 	### / Existing Group_Name Check
 
+	if ($System_Group_Toggle_Add eq 'on') {
+		$System_Group_Toggle_Add = 1;
+		$Add_User_Temp_Existing = '';
+	}
+	else {
+		$System_Group_Toggle_Add = 0;
+	}
 	if ($Expires_Toggle_Add ne 'on') {
 		$Expires_Date_Add = '0000-00-00';
 	}
@@ -321,19 +350,17 @@ sub add_group {
 	my $Group_Insert = $DB_Sudoers->prepare("INSERT INTO `user_groups` (
 		`id`,
 		`groupname`,
+		`system_group`,
 		`expires`,
 		`active`,
 		`modified_by`
 	)
 	VALUES (
 		NULL,
-		?,
-		?,
-		?,
-		?
+		?, ?, ?, ?, ?
 	)");
 
-	$Group_Insert->execute($Group_Name_Add, $Expires_Date_Add, $Active_Add, $User_Name);
+	$Group_Insert->execute($Group_Name_Add, $System_Group_Toggle_Add, $Expires_Date_Add, $Active_Add, $User_Name);
 
 	my $Group_Insert_ID = $DB_Sudoers->{mysql_insertid};
 
@@ -361,6 +388,8 @@ sub add_group {
 	}
 
 	# Audit Log
+	if ($System_Group_Toggle_Add) {$System_Group_Toggle_Add = 'System'} else {$System_Group_Toggle_Add = 'Sudoers'}
+
 	if ($Expires_Date_Add eq '0000-00-00') {
 		$Expires_Date_Add = 'not expire';
 	}
@@ -402,13 +431,10 @@ sub add_group {
 		`username`
 	)
 	VALUES (
-		?,
-		?,
-		?,
-		?
+		?, ?, ?, ?
 	)");
 	
-	$Audit_Log_Submission->execute("User Groups", "Add", "$User_Name added $Group_Name_Add, set it $Active_Add and to $Expires_Date_Add. $User_Count users were attached$Users_Attached. The system assigned it User Group ID $Group_Insert_ID.", $User_Name);
+	$Audit_Log_Submission->execute("User Groups", "Add", "$User_Name added $Group_Name_Add as a $System_Group_Toggle_Add Group, set it $Active_Add and to $Expires_Date_Add. $User_Count users were attached$Users_Attached. The system assigned it User Group ID $Group_Insert_ID.", $User_Name);
 	# / Audit Log
 
 	return($Group_Insert_ID, $User_Count);
@@ -434,7 +460,7 @@ while ( my @Select_Links = $Select_Links->fetchrow_array() )
 		FROM `users`
 		WHERE `id` = ? ");
 	$User_Query->execute($Link);
-		
+
 	while ( (my $User_Name, my $Expires, my $Active) = my @User_Query = $User_Query->fetchrow_array() )
 	{
 
@@ -524,7 +550,7 @@ foreach my $User (@Users) {
 ### Group Details Retrieval
 
 if (!$Group_Name_Edit) {
-	my $Select_Group_Details = $DB_Sudoers->prepare("SELECT `groupname`, `expires`, `active`
+	my $Select_Group_Details = $DB_Sudoers->prepare("SELECT `groupname`, `system_group`, `expires`, `active`
 		FROM `user_groups`
 		WHERE `id` = ? "
 	);
@@ -533,21 +559,33 @@ if (!$Group_Name_Edit) {
 	while ( my @Select_Details = $Select_Group_Details->fetchrow_array() )
 	{
 		$Group_Name_Edit = @Select_Details[0];
-		$Expires_Date_Edit = @Select_Details[1];
-		$Active_Edit = @Select_Details[2];
+		$System_Group_Toggle_Edit = @Select_Details[1];
+		$Expires_Date_Edit = @Select_Details[2];
+		$Active_Edit = @Select_Details[3];
 	}
 }
 
-	my $Checked;
-	my $Disabled;
+	my $System_Group_Checked;
+	my $System_Group_Disabled;
+	if ($System_Group_Toggle_Edit == 1) {
+		$System_Group_Checked = 'checked';
+		$System_Group_Disabled = 'disabled';
+	}
+	else {
+		$System_Group_Checked = '';
+		$System_Group_Disabled = '';
+	}
+
+	my $Expires_Checked;
+	my $Expires_Disabled;
 	if ($Expires_Date_Edit eq '0000-00-00' || !$Expires_Date_Edit) {
-		$Checked = '';
-		$Disabled = 'disabled';
+		$Expires_Checked = '';
+		$Expires_Disabled = 'disabled';
 		$Expires_Date_Edit = strftime "%Y-%m-%d", localtime;
 	}
 	else {
-		$Checked = 'checked';
-		$Disabled = '';
+		$Expires_Checked = 'checked';
+		$Expires_Disabled = '';
 	}
 
 ### / Group Details Retrieval
@@ -572,6 +610,16 @@ function Expire_Toggle() {
 		document.Edit_Group.Expires_Date_Edit.disabled=true;
 	}
 }
+function System_Group_Toggle() {
+	if(document.Edit_Group.System_Group_Toggle_Edit.checked)
+	{
+		document.Edit_Group.Edit_User_Temp_New.disabled=true;
+	}
+	else
+	{
+		document.Edit_Group.Edit_User_Temp_New.disabled=false;
+	}
+}
 //-->
 </SCRIPT>
 
@@ -583,9 +631,14 @@ function Expire_Toggle() {
 		<td colspan="2"><input type='text' name='Group_Name_Edit' style="width: 300px" maxlength='128' value="$Group_Name_Edit" placeholder="Group Name" required autofocus></td>
 	</tr>
 	<tr>
+		<td style="text-align: right;">System Group:</td>
+		<td><input type="checkbox" onclick="System_Group_Toggle()" name="System_Group_Toggle_Edit" $System_Group_Checked></td>
+		<td align="left">(See the specific definition below)</td>
+	</tr>
+	<tr>
 		<td style="text-align: right;">Add User:</td>
 		<td colspan="2">
-			<select name='Edit_User_Temp_New' onchange='this.form.submit()' style="width: 300px">
+			<select name='Edit_User_Temp_New' onchange='this.form.submit()' style="width: 300px" $System_Group_Disabled>
 ENDHTML
 
 				my $User_List_Query = $DB_Sudoers->prepare("SELECT `id`, `username`, `expires`, `active`
@@ -670,8 +723,8 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">Expires:</td>
-		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Edit" $Checked></td>
-		<td><input type="text" style="width: 100%" name="Expires_Date_Edit" value="$Expires_Date_Edit" placeholder="$Expires_Date_Edit" $Disabled></td>
+		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Edit" $Expires_Checked></td>
+		<td><input type="text" style="width: 100%" name="Expires_Date_Edit" value="$Expires_Date_Edit" placeholder="$Expires_Date_Edit" $Expires_Disabled></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Active:</td>
@@ -694,9 +747,14 @@ print <<ENDHTML;
 	</tr>
 </table>
 
-<ul style='text-align: left; display: inline-block;'>
+<ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
 <li>Group Names must be unique.</li>
 <li>Do not use spaces in Group Names - they will be stripped.</li>
+<li>A <b>System Group</b> refers to the user group on a host, usually defined in /etc/group, and 
+represented by a prefixed '%' in a traditional sudoers file. If selected, you cannot attach sudo 
+users to this group here because the group's users will be determined by the host. Leave this 
+unchecked to treat this group as a <b>Sudoers Group</b>, which is a group of users independent of 
+any groups in /etc/group, and will therefore be treated as a sudoers group on <i>any</i> host.</li>
 <li>You can only activate a modified command if you are an Approver.
 If you are not an Approver and you modify this entry, it will automatically be set to Inactive.</li>
 <li>Groups with an expiry set are automatically removed from sudoers at 23:59:59
@@ -741,17 +799,30 @@ sub edit_group {
 	### / Existing Group_Name Check
 
 	if (!$User_Approver) {$Active_Edit = 0};
+
+	if ($System_Group_Toggle_Edit eq 'on') {
+		$System_Group_Toggle_Edit = 1;
+		$Edit_User_Temp_Existing = '';
+		my $Delete_Users_From_System_Group = $DB_Sudoers->prepare("DELETE from `lnk_user_groups_to_users`
+			WHERE `group` = ?");
+		$Delete_Users_From_System_Group->execute($Edit_Group);
+	}
+	else {
+		$System_Group_Toggle_Edit = 0;
+	}
+
 	if ($Expires_Toggle_Edit ne 'on') {
 		$Expires_Date_Edit = '0000-00-00';
 	}
 
 	my $Update_Group = $DB_Sudoers->prepare("UPDATE `user_groups` SET
 		`groupname` = ?,
+		`system_group` = ?,
 		`expires` = ?,
 		`active` = ?,
 		`modified_by` = ?
 		WHERE `id` = ?");
-	$Update_Group->execute($Group_Name_Edit, $Expires_Date_Edit, $Active_Edit, $User_Name, $Edit_Group);
+	$Update_Group->execute($Group_Name_Edit, $System_Group_Toggle_Edit, $Expires_Date_Edit, $Active_Edit, $User_Name, $Edit_Group);
 
 	$Edit_User_Temp_Existing =~ s/,$//;
 	my @Users = split(',', $Edit_User_Temp_Existing);
@@ -777,6 +848,8 @@ sub edit_group {
 	}
 
 	# Audit Log
+	if ($System_Group_Toggle_Edit) {$System_Group_Toggle_Edit = 'System'} else {$System_Group_Toggle_Edit = 'Sudoers'}
+
 	if ($Expires_Date_Edit eq '0000-00-00') {
 		$Expires_Date_Edit = 'does not expire';
 	}
@@ -818,13 +891,10 @@ sub edit_group {
 		`username`
 	)
 	VALUES (
-		?,
-		?,
-		?,
-		?
+		?, ?, ?, ?
 	)");
 	
-	$Audit_Log_Submission->execute("User Groups", "Modify", "$User_Name modified User Group ID $Edit_Group. The new entry is recorded as $Group_Name_Edit, set $Active_Edit and $Expires_Date_Edit. $User_Count new users were attached$Users_Attached.", $User_Name);
+	$Audit_Log_Submission->execute("User Groups", "Modify", "$User_Name modified User Group ID $Edit_Group. The new entry is recorded as $System_Group_Toggle_Edit Group $Group_Name_Edit, set $Active_Edit and $Expires_Date_Edit. $User_Count new users were attached$Users_Attached.", $User_Name);
 	# / Audit Log
 
 	return($User_Count);
@@ -934,10 +1004,7 @@ sub delete_group {
 			`username`
 		)
 		VALUES (
-			?,
-			?,
-			?,
-			?
+			?, ?, ?, ?
 		)");
 		
 		$Audit_Log_Submission->execute("User Groups", "Delete", "$User_Name deleted User Group ID $Delete_Group_Confirm. The deleted entry's last values were $Group_Name, set $Active and $Expires. It had $Users_Attached", $User_Name);
@@ -1124,14 +1191,14 @@ sub html_output {
 
 	my $Table = new HTML::Table(
 		-cols=>10,
-                -align=>'center',
-                -border=>0,
-                -rules=>'cols',
-                -evenrowclass=>'tbeven',
-                -oddrowclass=>'tbodd',
-                -width=>'100%',
-                -spacing=>0,
-                -padding=>1
+		-align=>'center',
+		-border=>0,
+		-rules=>'cols',
+		-evenrowclass=>'tbeven',
+		-oddrowclass=>'tbodd',
+		-width=>'100%',
+		-spacing=>0,
+		-padding=>1
 	);
 
 
@@ -1140,7 +1207,7 @@ sub html_output {
 		my $Total_Rows = $Select_Group_Count->rows();
 
 
-	my $Select_Groups = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `expires`, `active`, `last_modified`, `modified_by`
+	my $Select_Groups = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `system_group`, `expires`, `active`, `last_modified`, `modified_by`
 		FROM `user_groups`
 		WHERE `id` LIKE ?
 		OR `groupname` LIKE ?
@@ -1176,13 +1243,14 @@ sub html_output {
 		my $Group_Name = @Select_Groups[1];
 		my $Group_Name_Clean = $Group_Name;
 			$Group_Name =~ s/(.*)($Filter)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
-		my $Group_Expires = @Select_Groups[2];
+		my $System_Group = @Select_Groups[2];
+		my $Group_Expires = @Select_Groups[3];
 		my $Group_Expires_Clean = $Group_Expires;
 			$Group_Expires =~ s/(.*)($Filter)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
-		my $Active = @Select_Groups[3];
+		my $Active = @Select_Groups[4];
 			if ($Active == 1) {$Active = "Yes"} else {$Active = "No"};
-		my $Last_Modified = @Select_Groups[4];
-		my $Modified_By = @Select_Groups[5];
+		my $Last_Modified = @Select_Groups[5];
+		my $Modified_By = @Select_Groups[6];
 
 
 		my $Select_Links = $DB_Sudoers->prepare("SELECT `user`
@@ -1193,7 +1261,7 @@ sub html_output {
 
 		while ( my @Select_Links = $Select_Links->fetchrow_array() )
 		{
-			
+
 			my $User_ID = @Select_Links[0];
 
 			my $Select_Users = $DB_Sudoers->prepare("SELECT `username`, `expires`, `active`
@@ -1241,6 +1309,10 @@ sub html_output {
 		}
 		else {
 			$Group_Expires_Epoch = str2time("$Group_Expires_Clean"."T23:59:59");
+		}
+		if ($System_Group) {
+			$Group_Name = '%' . $Group_Name;
+			$Users = '<div style="text-align: center;">[This is a System Group. Users are defined by the host\'s /etc/group file.]</div>'
 		}
 
 		$Table->addRow(

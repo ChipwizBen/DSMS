@@ -59,7 +59,7 @@ sub write_environmentals {
 	print FILE "\n\n";
 
 
-	print FILE "### Environmental Variables ###\n\n";
+	print FILE "### Environmental Variables Section Begins ###\n\n";
 
 	open( ENVIRONMENTALS, "environmental-variables" ) or die "Can't open environmental-variables file.";
 
@@ -69,6 +69,9 @@ sub write_environmentals {
 		print FILE "$Line";
 
 	}
+
+	print FILE "\n### Environmental Variables Section Ends ###\n";
+
 	close ENVIRONMENTALS;
 
 	print FILE "\n";
@@ -80,7 +83,7 @@ sub write_host_groups {
 
 	open( FILE, ">>$Sudoers_Location" ) or die "Can't open $Sudoers_Location";
 
-	print FILE "\n### Host Groups ###\n\n";
+	print FILE "\n### Host Group Section Begins ###\n\n";
 
 	my $Select_Groups = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `expires`, `last_modified`, `modified_by`
 		FROM `host_groups`
@@ -147,6 +150,8 @@ sub write_host_groups {
 
 	}
 
+print FILE "### Host Group Section Ends ###\n\n";
+
 close FILE;
 
 } #sub write_host_groups
@@ -155,9 +160,9 @@ sub write_user_groups {
 
 	open( FILE, ">>$Sudoers_Location" ) or die "Can't open $Sudoers_Location";
 
-	print FILE "\n### User Groups ###\n\n";
+	print FILE "\n### User Group Section Begins ###\n\n";
 
-	my $Select_Groups = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `expires`, `last_modified`, `modified_by`
+	my $Select_Groups = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `system_group`, `expires`, `last_modified`, `modified_by`
 		FROM `user_groups`
 		WHERE `active` = '1'
 		AND (`expires` >= '$Date'
@@ -171,9 +176,10 @@ sub write_user_groups {
 
 		my $DBID = $Select_Groups[0];
 		my $Group_Name = $Select_Groups[1];
-		my $Expires = $Select_Groups[2];
-		my $Last_Modified = $Select_Groups[3];
-		my $Modified_By = $Select_Groups[4];
+		my $System_Group = $Select_Groups[2];
+		my $Expires = $Select_Groups[3];
+		my $Last_Modified = $Select_Groups[4];
+		my $Modified_By = $Select_Groups[5];
 
 		if ($Expires eq '0000-00-00') {
 			$Expires = 'does not expire';
@@ -215,12 +221,15 @@ sub write_user_groups {
 			}
 		}
 
+		if ($System_Group) {$Users = "%" . $Group_Name}
+
 		$Group_Name = uc($Group_Name); # Turn to uppercase so that sudo can read it correctly
 		$Users =~ s/,\s$//; # Remove trailing comma
 		print FILE "User_Alias	USER_GROUP_$Group_Name = $Users\n\n";
 
 	}
 
+print FILE "### User Group Section Ends ###\n\n";
 close FILE;
 
 } #sub write_user_groups
@@ -229,7 +238,7 @@ sub write_command_groups {
 
 	open( FILE, ">>$Sudoers_Location" ) or die "Can't open $Sudoers_Location";
 
-	print FILE "\n### Command Groups ###\n\n";
+	print FILE "\n### Command Group Section Begins ###\n\n";
 
 	my $Select_Groups = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `expires`, `last_modified`, `modified_by`
 		FROM `command_groups`
@@ -296,6 +305,7 @@ sub write_command_groups {
 
 	}
 
+print FILE "### Command Group Section Ends ###\n\n";
 close FILE;
 
 } #sub write_command_groups
@@ -304,7 +314,7 @@ sub write_commands {
 
 	open( FILE, ">>$Sudoers_Location" ) or die "Can't open $Sudoers_Location";
 
-	print FILE "\n### Commands ###\n\n";
+	print FILE "\n### Command Section Begins ###\n\n";
 
 	my $Select_Commands = $DB_Sudoers->prepare("SELECT `id`, `command_alias`, `command`, `expires`, `last_modified`, `modified_by`
 		FROM `commands`
@@ -339,6 +349,7 @@ sub write_commands {
 
 	}
 
+print FILE "### Command Section Ends ###\n\n";
 close FILE;
 
 } #sub write_commands
@@ -550,9 +561,9 @@ sub write_rules {
 
 	open( FILE, ">>$Sudoers_Location" ) or die "Can't open $Sudoers_Location";
 
-	print FILE "\n### Rules ###\n\n";
+	print FILE "\n### Rule Section Begins ###\n\n";
 
-	my $Select_Rules = $DB_Sudoers->prepare("SELECT `id`, `name`, `run_as`, `nopasswd`, `noexec`, `expires`, `last_approved`, `approved_by`, `last_modified`, `modified_by`
+	my $Select_Rules = $DB_Sudoers->prepare("SELECT `id`, `name`, `all_hosts`, `run_as`, `nopasswd`, `noexec`, `expires`, `last_approved`, `approved_by`, `last_modified`, `modified_by`
 		FROM `rules`
 		WHERE `active` = '1'
 		AND `approved` = '1'
@@ -567,21 +578,26 @@ sub write_rules {
 	{
 
 		my $DBID = $Select_Rules[0];
-		my $DB_Rule_Name = $Select_Rules[1];
-		my $Run_As = $Select_Rules[2];
-		my $NOPASSWD = $Select_Rules[3];
+		my $DB_Rule_Name = $Select_Rules[3];
+		my $ALL_Hosts = $Select_Rules[2];
+		my $Run_As = $Select_Rules[3];
+		my $NOPASSWD = $Select_Rules[4];
 			if ($NOPASSWD == 1) {$NOPASSWD = 'NOPASSWD'} else {$NOPASSWD = 'PASSWD'};
-		my $NOEXEC = $Select_Rules[4];
+		my $NOEXEC = $Select_Rules[5];
 			if ($NOEXEC == 1) {$NOEXEC = 'NOEXEC'} else {$NOEXEC = 'EXEC'};
-		my $Expires = $Select_Rules[5];
-		my $Last_Approved = $Select_Rules[6];
-		my $Approved_By = $Select_Rules[7];
-		my $Last_Modified = $Select_Rules[8];
-		my $Modified_By = $Select_Rules[9];
+		my $Expires = $Select_Rules[6];
+		my $Last_Approved = $Select_Rules[7];
+		my $Approved_By = $Select_Rules[8];
+		my $Last_Modified = $Select_Rules[9];
+		my $Modified_By = $Select_Rules[10];
 
 		my $Returned_Host_Group = &create_host_rule_groups($DBID);
 		my $Returned_User_Group = &create_user_rule_groups($DBID);
 		my $Returned_Command_Group = &create_command_rule_groups($DBID);
+
+		if ($ALL_Hosts) {
+			$Returned_Host_Group = 'ALL';
+		}
 
 		if ($Expires eq '0000-00-00') {
 			$Expires = 'does not expire';
@@ -604,6 +620,7 @@ sub write_rules {
 		}
 	}
 
+print FILE "### Rule Section Ends ###\n\n";
 close FILE;
 
 } #sub write_rules
@@ -646,7 +663,7 @@ sub record_audit {
 			$Latest_Good_Sudoers_MD5 =~ s/\s//;
 		my $Check_For_Existing_Bad_Sudoers = `$ls -t $Sudoers_Storage/broken_$MD5_New_Checksum`;
 		if (!$Check_For_Existing_Bad_Sudoers) {
-			$Audit_Log_Submission->execute("Sudoers", "Deployment Failed", "Configuration changes were detected and a new sudoers file was built, but failed visudo validation. Deployment aborted, latest valid sudoers (MD5: $Latest_Good_Sudoers_MD5) has been restored.", 'System');
+			$Audit_Log_Submission->execute("Sudoers", "Deployment Failed", "Configuration changes were detected and a new sudoers file was built, but failed visudo validation. Deployment aborted, latest valid sudoers (MD5: $Latest_Good_Sudoers_MD5) has been restored. The broken sudoers file has been stored at $Sudoers_Storage/broken_$MD5_New_Checksum for manual inspection - please report this error to your manager.", 'System');
 			`$cp -dp $Sudoers_Location $Sudoers_Storage/broken_$MD5_New_Checksum`; # Backing up broken sudoers
 			chown $Owner, $Group, "$Sudoers_Storage/broken_$MD5_New_Checksum";
 			chmod 0640, "$Sudoers_Storage/broken_$MD5_New_Checksum";

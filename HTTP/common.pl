@@ -7,7 +7,8 @@ sub System_Name {
 	# This is the system's name, used for system identification during login, written to the 
 	# sudoers file to identify which system owns that file, used in password reset emails, etc
 
-	return ' Sudoers Management System';
+	my $System_Name = ' Sudoers Management System';
+	return $System_Name;
 
 } # sub System_Name
 
@@ -17,7 +18,8 @@ sub System_Short_Name {
 	# same as the full name in System_Name if you want, but it might get busy on some screens 
 	# if your system name is long. It's advised to keep this short.
 
-	return 'DSMS';
+	my $System_Short_Name = 'DSMS';
+	return $System_Short_Name;
 
 } # sub System_Short_Name
 
@@ -32,7 +34,8 @@ sub Sudoers_Location {
 	# be /etc/sudoers. For sudoers locations on remote machines, see the Distribution_Defaults 
 	# subroutine in this file, or set individual remote sudoers locations through the web panel.
 
-	return '/var/www/html/sudoers';
+	my $Sudoers_Location = '/var/www/html/sudoers';
+	return $Sudoers_Location;
 
 } # sub Sudoers_Location
 
@@ -40,7 +43,8 @@ sub Sudoers_Storage {
 
 	# This is the directory where replaced sudoers files are stored. You do not need a trailing slash.
 
-	return '/var/www/html/sudoers-storage';
+	my $Sudoers_Storage = '/var/www/html/sudoers-storage';
+	return $Sudoers_Storage;
 
 } # sub Sudoers_Storage
 
@@ -56,11 +60,12 @@ sub DB_Management {
 	use DBI;
 
 	my $Host = 'localhost';
+	my $Port = '3306';
 	my $DB = 'Management';
 	my $User = 'Management';
 	my $Password = 'MocatadWasHere';
 
-	my $DB_Management = DBI->connect ("DBI:mysql:database=$DB:host=$Host",
+	my $DB_Management = DBI->connect ("DBI:mysql:database=$DB:host=$Host:port=$Port",
 		$User,
 		$Password)
 		or die "Can't connect to database: $DBI::errstr\n";
@@ -76,11 +81,12 @@ sub DB_Sudoers {
 	use DBI;
 
 	my $Host = 'localhost';
+	my $Port = '3306';
 	my $DB = 'sudoers';
 	my $User = 'sudoers';
 	my $Password = 'Mocatad14';
 
-	my $DB_Sudoers = DBI->connect ("DBI:mysql:database=$DB:host=$Host",
+	my $DB_Sudoers = DBI->connect ("DBI:mysql:database=$DB:host=$Host:port=$Port",
 		$User,
 		$Password)
 		or die "Can't connect to database: $DBI::errstr\n";
@@ -103,10 +109,10 @@ sub Distribution_Defaults {
 	# When you're ready for full automated sudoers replacement, set $Remote_Sudoers to 
 	# /etc/sudoers.
 
-	my $Distribution_User = 'transport';
-	my $Key_Path = '/home/transport/.ssh/id_rsa';
-	my $Timeout = '15'; # Stalled connection Timeout in seconds
-	my $Remote_Sudoers = '/tmp/sudoers';
+	my $Distribution_User = 'transport'; # Default SFTP user
+	my $Key_Path = '/home/transport/.ssh/id_rsa'; # Default private key path
+	my $Timeout = '15'; # Default stalled connection Timeout in seconds
+	my $Remote_Sudoers = '/tmp/sudoers'; # Default sudoers file location on remote systems
 
 	my @Distribution_Defaults = ($Distribution_User, $Key_Path, $Timeout, $Remote_Sudoers);
 	return @Distribution_Defaults;
@@ -291,7 +297,8 @@ sub Version {
 
 	# Don't touch this.
 
-	return '1.4.1';
+	my $Version = '1.5.0';
+	return $Version;
 
 } # sub Version
 
@@ -300,7 +307,8 @@ sub Server_Hostname {
 	# Don't touch this unless you want to trick the system into believing it isn't who it thinks 
 	# it is. A bit like Bruce Willis in Unbreakable.
 
-	return `hostname`;
+	my $Hostname = `hostname`;
+	return $Hostname;
 
 } # sub Server_Hostname
 

@@ -171,38 +171,40 @@ my $Date = strftime "%Y-%m-%d", localtime;
 
 if ($Add_Host_Group_Temp_New) {
 	if ($Add_Host_Group_Temp_Existing !~ m/^$Add_Host_Group_Temp_New,/g && $Add_Host_Group_Temp_Existing !~ m/,$Add_Host_Group_Temp_New$/g && $Add_Host_Group_Temp_Existing !~ m/,$Add_Host_Group_Temp_New,/g) {
-			$Add_Host_Group_Temp_Existing = $Add_Host_Group_Temp_Existing . $Add_Host_Group_Temp_New . ",";
-		}
+		$Add_Host_Group_Temp_Existing = $Add_Host_Group_Temp_Existing . $Add_Host_Group_Temp_New . ",";
+	}
+	if ($Add_Host_Group_Temp_New eq 'ALL') {$Add_Host_Group_Temp_Existing = 'ALL'}
 }
 
 if ($Add_Host_Temp_New) {
 	if ($Add_Host_Temp_Existing !~ m/^$Add_Host_Temp_New,/g && $Add_Host_Temp_Existing !~ m/,$Add_Host_Temp_New$/g && $Add_Host_Temp_Existing !~ m/,$Add_Host_Temp_New,/g) {
-			$Add_Host_Temp_Existing = $Add_Host_Temp_Existing . $Add_Host_Temp_New . ",";
-		}
+		$Add_Host_Temp_Existing = $Add_Host_Temp_Existing . $Add_Host_Temp_New . ",";
+	}
+	if ($Add_Host_Temp_New eq 'ALL') {$Add_Host_Temp_Existing = 'ALL'}
 }
 
 if ($Add_User_Group_Temp_New) {
 	if ($Add_User_Group_Temp_Existing !~ m/^$Add_User_Group_Temp_New,/g && $Add_User_Group_Temp_Existing !~ m/,$Add_User_Group_Temp_New$/g && $Add_User_Group_Temp_Existing !~ m/,$Add_User_Group_Temp_New,/g) {
-			$Add_User_Group_Temp_Existing = $Add_User_Group_Temp_Existing . $Add_User_Group_Temp_New . ",";
-		}
+		$Add_User_Group_Temp_Existing = $Add_User_Group_Temp_Existing . $Add_User_Group_Temp_New . ",";
+	}
 }
 
 if ($Add_User_Temp_New) {
 	if ($Add_User_Temp_Existing !~ m/^$Add_User_Temp_New,/g && $Add_User_Temp_Existing !~ m/,$Add_User_Temp_New$/g && $Add_User_Temp_Existing !~ m/,$Add_User_Temp_New,/g) {
-			$Add_User_Temp_Existing = $Add_User_Temp_Existing . $Add_User_Temp_New . ",";
-		}
+		$Add_User_Temp_Existing = $Add_User_Temp_Existing . $Add_User_Temp_New . ",";
+	}
 }
 
 if ($Add_Command_Group_Temp_New) {
 	if ($Add_Command_Group_Temp_Existing !~ m/^$Add_Command_Group_Temp_New,/g && $Add_Command_Group_Temp_Existing !~ m/,$Add_Command_Group_Temp_New$/g && $Add_Command_Group_Temp_Existing !~ m/,$Add_Command_Group_Temp_New,/g) {
-			$Add_Command_Group_Temp_Existing = $Add_Command_Group_Temp_Existing . $Add_Command_Group_Temp_New . ",";
-		}
+		$Add_Command_Group_Temp_Existing = $Add_Command_Group_Temp_Existing . $Add_Command_Group_Temp_New . ",";
+	}
 }
 
 if ($Add_Command_Temp_New) {
 	if ($Add_Command_Temp_Existing !~ m/^$Add_Command_Temp_New,/g && $Add_Command_Temp_Existing !~ m/,$Add_Command_Temp_New$/g && $Add_Command_Temp_Existing !~ m/,$Add_Command_Temp_New,/g) {
-			$Add_Command_Temp_Existing = $Add_Command_Temp_Existing . $Add_Command_Temp_New . ",";
-		}
+		$Add_Command_Temp_Existing = $Add_Command_Temp_Existing . $Add_Command_Temp_New . ",";
+	}
 }
 
 ### / Temp Selection Filters
@@ -215,47 +217,57 @@ if ($Add_Command_Temp_New) {
 my $Host_Groups;
 my @Host_Groups = split(',', $Add_Host_Group_Temp_Existing);
 
-foreach my $Host_Group (@Host_Groups) {
+if ($Add_Host_Group_Temp_Existing eq 'ALL') {
+	$Host_Groups = "<tr><td align='left' style='color: #00FF00'>ALL (Special)</td></tr>";
+}
+else {
+	foreach my $Host_Group (@Host_Groups) {
 
-	my $Host_Group_Query = $DB_Sudoers->prepare("SELECT `groupname`, `active`
-		FROM `host_groups`
-		WHERE `id` = ? ");
-	$Host_Group_Query->execute($Host_Group);
-		
-	while ( (my $Host_Group_Name, my $Active) = my @Host_Group_Query = $Host_Group_Query->fetchrow_array() )
-	{
-		if ($Active) {
-			$Host_Groups = $Host_Groups . "<tr><td align='left' style='color: #00FF00'>$Host_Group_Name</td></tr>";
-		}
-		else {
-			$Host_Groups = $Host_Groups . "<tr><td align='left' style='color: #FF0000'>$Host_Group_Name</td></tr>";
+		my $Host_Group_Query = $DB_Sudoers->prepare("SELECT `groupname`, `active`
+			FROM `host_groups`
+			WHERE `id` = ? ");
+		$Host_Group_Query->execute($Host_Group);
+
+		while ( (my $Host_Group_Name, my $Active) = my @Host_Group_Query = $Host_Group_Query->fetchrow_array() )
+		{
+			if ($Active) {
+				$Host_Groups = $Host_Groups . "<tr><td align='left' style='color: #00FF00'>$Host_Group_Name</td></tr>";
+			}
+			else {
+				$Host_Groups = $Host_Groups . "<tr><td align='left' style='color: #FF0000'>$Host_Group_Name</td></tr>";
+			}
 		}
 	}
 }
+
 
 #Hosts
 
 my $Hosts;
 my @Hosts = split(',', $Add_Host_Temp_Existing);
 
-foreach my $Host (@Hosts) {
-
-	my $Host_Query = $DB_Sudoers->prepare("SELECT `hostname`, `ip`, `active`
-		FROM `hosts`
-		WHERE `id` = ? ");
-	$Host_Query->execute($Host);
-		
-	while ( (my $Host_Name, my $IP, my $Active) = my @Host_Query = $Host_Query->fetchrow_array() )
-	{
-		if ($Active) {
-			$Hosts = $Hosts . "<tr><td align='left' style='color: #00FF00; padding-right: 15px;'>$Host_Name</td><td align='left' style='color: #00FF00'>$IP</td></tr>";
+if ($Add_Host_Temp_Existing eq 'ALL') {
+	$Hosts = "<tr><td align='left' style='color: #00FF00; padding-right: 15px;'>ALL (Special)</td><td align='left' style='color: #00FF00'>ALL (Special)</td></tr>";
+}
+else {
+	foreach my $Host (@Hosts) {
+	
+		my $Host_Query = $DB_Sudoers->prepare("SELECT `hostname`, `ip`, `active`
+			FROM `hosts`
+			WHERE `id` = ? ");
+		$Host_Query->execute($Host);
+			
+		while ( (my $Host_Name, my $IP, my $Active) = my @Host_Query = $Host_Query->fetchrow_array() )
+		{
+			if ($Active) {
+				$Hosts = $Hosts . "<tr><td align='left' style='color: #00FF00; padding-right: 15px;'>$Host_Name</td><td align='left' style='color: #00FF00'>$IP</td></tr>";
+			}
+			else {
+				$Hosts = $Hosts . "<tr><td align='left' style='color: #FF0000; padding-right: 15px;'>$Host_Name</td><td align='left' style='color: #FF0000'>$IP</td></tr>";
+			}	
 		}
-		else {
-			$Hosts = $Hosts . "<tr><td align='left' style='color: #FF0000; padding-right: 15px;'>$Host_Name</td><td align='left' style='color: #FF0000'>$IP</td></tr>";
-		}	
 	}
 }
-
 ### User Groups
 
 my $User_Groups;
@@ -263,13 +275,14 @@ my @User_Groups = split(',', $Add_User_Group_Temp_Existing);
 
 foreach my $User_Group (@User_Groups) {
 
-	my $User_Group_Query = $DB_Sudoers->prepare("SELECT `groupname`, `active`
+	my $User_Group_Query = $DB_Sudoers->prepare("SELECT `groupname`, `system_group`, `active`
 		FROM `user_groups`
 		WHERE `id` = ? ");
 	$User_Group_Query->execute($User_Group);
 		
-	while ( (my $User_Group_Name, my $Active) = my @User_Group_Query = $User_Group_Query->fetchrow_array() )
+	while ( (my $User_Group_Name, my $System_Group, my $Active) = my @User_Group_Query = $User_Group_Query->fetchrow_array() )
 	{
+		if ($System_Group) {$User_Group_Name = '%' . $User_Group_Name . ' [System Group]'}
 		if ($Active) {
 			$User_Groups = $User_Groups . "<tr><td align='left' style='color: #00FF00'>$User_Group_Name</td></tr>";
 		}
@@ -394,6 +407,7 @@ ENDHTML
 				$Host_Group_List_Query->execute( );
 
 				print "<option value='' selected>--Select a Host Group--</option>";
+				print "<option value='ALL'>All Hosts (Special sudoers option: ALL)</option>";
 
 				while ( (my $ID, my $Group_Name, my $Active) = my @Group_List_Query = $Host_Group_List_Query->fetchrow_array() )
 				{
@@ -423,6 +437,7 @@ ENDHTML
 				$Host_List_Query->execute( );
 
 				print "<option value='' selected>--Select a Host--</option>";
+				print "<option value='ALL'>All Hosts (Special sudoers option: ALL)</option>";
 
 				while ( (my $ID, my $Host_Name, my $IP, my $Active) = my @Host_List_Query = $Host_List_Query->fetchrow_array() )
 				{
@@ -446,15 +461,16 @@ print <<ENDHTML;
 ENDHTML
 
 ### User Groups
-				my $User_Group_List_Query = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `active`
+				my $User_Group_List_Query = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `system_group`, `active`
 				FROM `user_groups`
 				ORDER BY `groupname` ASC");
 				$User_Group_List_Query->execute( );
 
 				print "<option value='' selected>--Select a User Group--</option>";
 
-				while ( (my $ID, my $Group_Name, my $Active) = my @Group_List_Query = $User_Group_List_Query->fetchrow_array() )
+				while ( (my $ID, my $Group_Name, my $System_Group, my $Active) = my @Group_List_Query = $User_Group_List_Query->fetchrow_array() )
 				{
+					if ($System_Group) {$Group_Name = '%' . $Group_Name . ' [System Group]'}
 					if ($Active) {
 						print "<option value='$ID'>$Group_Name</option>";
 					}
@@ -742,9 +758,12 @@ print <<ENDHTML;
 	</tr>
 </table>
 
-<ul style='text-align: left; display: inline-block;'>
+<ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
 <li>Rule Names must be unique.</li>
 <li>Do not use spaces in Rule Names - they will be stripped.</li>
+<li>When choosing <b>ALL Hosts</b>, keep in mind that this option is explicit and will therefore 
+include Undefined Hosts, Inactive Hosts and Expired Hosts. <i>Every</i> host is applicable to this 
+rule, regardless of state.</li>
 <li>If you do not understand the Options, <span style="color: #00FF00;">defaults</span> are safest.</li>
 <li>Rules with an expiry set are automatically removed from sudoers at 23:59:59
 (or the next sudoers refresh thereafter) on the day of expiry. Expired entries are functionally
@@ -796,6 +815,16 @@ sub add_rule {
 	### / Existing Rule_Name Check
 
 	my $Approved;
+	my $ALL_Hosts;
+
+	if ($Add_Host_Group_Temp_Existing eq 'ALL' || $Add_Host_Temp_Existing eq 'ALL') {
+		$Add_Host_Group_Temp_Existing = '';
+		$Add_Host_Temp_Existing = '';
+		$ALL_Hosts = 1;
+	}
+	else {
+		$ALL_Hosts = 0;
+	}
 
 	if ($Expires_Toggle_Add ne 'on') {
 		$Expires_Date_Add = '0000-00-00';
@@ -811,8 +840,8 @@ sub add_rule {
 	}
 
 	my $Rule_Insert = $DB_Sudoers->prepare("INSERT INTO `rules` (
-		`id`,
 		`name`,
+		`all_hosts`,
 		`run_as`,
 		`nopasswd`,
 		`noexec`,
@@ -822,18 +851,10 @@ sub add_rule {
 		`modified_by`
 	)
 	VALUES (
-		NULL,
-		?,
-		?,
-		?,
-		?,
-		?,
-		?,
-		?,
-		?
+		?, ?, ?, ?, ?, ?, ?, ?, ?
 	)");
 
-	$Rule_Insert->execute($Rule_Name_Add, $Run_As_Add, $NOPASSWD_Add, $NOEXEC_Add, $Expires_Date_Add,
+	$Rule_Insert->execute($Rule_Name_Add, $ALL_Hosts, $Run_As_Add, $NOPASSWD_Add, $NOEXEC_Add, $Expires_Date_Add,
 	$Active_Add, $Approved, $User_Name);
 
 	my $Rule_Insert_ID = $DB_Sudoers->{mysql_insertid};
@@ -858,13 +879,16 @@ sub add_rule {
 		`username`
 	)
 	VALUES (
-		?,
-		?,
-		?,
-		?
+		?, ?, ?, ?
 	)");
 
-	$Audit_Log_Submission->execute("Rules", "Add", "$User_Name added $Rule_Name_Add (to be run as $Run_As_Add, with the $NOPASSWD_Add and $NOEXEC_Add flags), set it $Active_Add and to $Expires_Date_Add. The system assigned it Rule ID $Rule_Insert_ID.", $User_Name);
+	if ($ALL_Hosts) {
+			$Audit_Log_Submission->execute("Rules", "Add", "$User_Name added $Rule_Name_Add (to be run as $Run_As_Add, with the $NOPASSWD_Add and $NOEXEC_Add flags), set it $Active_Add and to $Expires_Date_Add. ALL hosts are attached to this rule. The system assigned it Rule ID $Rule_Insert_ID.", $User_Name);
+	}
+	else {
+			$Audit_Log_Submission->execute("Rules", "Add", "$User_Name added $Rule_Name_Add (to be run as $Run_As_Add, with the $NOPASSWD_Add and $NOEXEC_Add flags), set it $Active_Add and to $Expires_Date_Add. The system assigned it Rule ID $Rule_Insert_ID.", $User_Name);
+	}
+
 	# / Audit Log
 
 	if (!$User_Requires_Approval && $User_Approver) {
@@ -885,10 +909,7 @@ sub add_rule {
 			`username`
 		)
 		VALUES (
-			?,
-			?,
-			?,
-			?
+			?, ?, ?, ?
 		)");
 	
 		$Audit_Log_Submission->execute("Rules", "Approve", "$User_Name Approved their own rule: $Rule_Name_Add [Rule ID $Rule_Insert_ID].", $User_Name);
@@ -1166,12 +1187,13 @@ sub html_edit_rule {
 
 ### Rule Details
 
-my $Select_Rule = $DB_Sudoers->prepare("SELECT `name`, `run_as`, `nopasswd`, `noexec`, `expires`, `active`
+my $Select_Rule = $DB_Sudoers->prepare("SELECT `name`, `all_hosts`, `run_as`, `nopasswd`, `noexec`, `expires`, `active`
 FROM `rules`
 WHERE `id` = ?");
 $Select_Rule->execute($Edit_Rule);
 
 my $Rule_Name_Extract;
+my $ALL_Hosts_Extract;
 my $Run_As_Extract;
 my $NOPASSWD_Extract;
 my $NOEXEC_Extract;
@@ -1180,11 +1202,12 @@ my $Active_Extract;
 while (my @DB_Rule = $Select_Rule->fetchrow_array() )
 {
 	$Rule_Name_Extract = $DB_Rule[0];
-	$Run_As_Extract = $DB_Rule[1];
-	$NOPASSWD_Extract = $DB_Rule[2];
-	$NOEXEC_Extract = $DB_Rule[3];
-	$Expires_Extract = $DB_Rule[4];
-	$Active_Extract = $DB_Rule[5];
+	$ALL_Hosts_Extract = $DB_Rule[1];
+	$Run_As_Extract = $DB_Rule[2];
+	$NOPASSWD_Extract = $DB_Rule[3];
+	$NOEXEC_Extract = $DB_Rule[4];
+	$Expires_Extract = $DB_Rule[5];
+	$Active_Extract = $DB_Rule[6];
 }
 
 my $Checked;
@@ -1233,6 +1256,7 @@ while ( my @Select_Links = $Select_Links->fetchrow_array() )
 		}
 	}
 }
+if ($ALL_Hosts_Extract) {$Existing_Host_Groups = "<tr><td align='left' style='color: #00FF00'>ALL (Special)</td></tr>";}
 
 ### / Currently Attached Host Groups Retrieval and Conversion
 
@@ -1263,6 +1287,8 @@ if ($Edit_Host_Group_Temp_New) {
 my $New_Host_Groups;
 my @Host_Groups = split(',', $Edit_Host_Group_Temp_Existing);
 
+if ($Edit_Host_Group_Temp_New eq 'ALL') {$Edit_Host_Group_Temp_Existing = 'ALL'}
+
 foreach my $Host_Group (@Host_Groups) {
 
 	my $Group_Query = $DB_Sudoers->prepare("SELECT `groupname`, `active`
@@ -1281,6 +1307,7 @@ foreach my $Host_Group (@Host_Groups) {
 		}
 	}
 }
+if ($Edit_Host_Group_Temp_Existing eq 'ALL') {$New_Host_Groups = "<tr><td align='left' style='color: #00FF00'>ALL (Special)</td></tr>";}
 
 ### / Newly Attached Host Groups Retrieval and Conversion
 
@@ -1313,6 +1340,7 @@ while ( my @Select_Links = $Select_Links->fetchrow_array() )
 		}
 	}
 }
+if ($ALL_Hosts_Extract) {$Existing_Hosts = "<tr><td align='left' style='color: #00FF00'>ALL (Special)</td></tr>";}
 
 ### / Currently Attached Host Retrieval and Conversion
 
@@ -1343,6 +1371,8 @@ if ($Edit_Host_Temp_New) {
 my $New_Hosts;
 my @Hosts = split(',', $Edit_Host_Temp_Existing);
 
+if ($Edit_Host_Temp_New eq 'ALL') {$Edit_Host_Temp_Existing = 'ALL'}
+
 foreach my $Host (@Hosts) {
 
 	my $Host_Query = $DB_Sudoers->prepare("SELECT `hostname`, `active`
@@ -1360,6 +1390,7 @@ foreach my $Host (@Hosts) {
 		}
 	}
 }
+if ($Edit_Host_Temp_Existing eq 'ALL') {$New_Hosts = "<tr><td align='left' style='color: #00FF00'>ALL (Special)</td></tr>";}
 
 ### / Newly Attached Host Retrieval and Conversion
 
@@ -1377,13 +1408,14 @@ while ( my @Select_Links = $Select_Links->fetchrow_array() )
 {
 	my $Link = $Select_Links[0];
 
-	my $Group_Query = $DB_Sudoers->prepare("SELECT `groupname`, `active`
+	my $Group_Query = $DB_Sudoers->prepare("SELECT `groupname`, `system_group`, `active`
 		FROM `user_groups`
 		WHERE `id` = ? ");
 	$Group_Query->execute($Link);
 		
-	while ( (my $Group_Name, my $Active) = my @Group_Query = $Group_Query->fetchrow_array() )
+	while ( (my $Group_Name, my $System_Group, my $Active) = my @Group_Query = $Group_Query->fetchrow_array() )
 	{
+		if ($System_Group) {$Group_Name = '%' . $Group_Name . ' [System Group]'}
 		if ($Active) {
 			$Existing_User_Groups = $Existing_User_Groups . "<tr><td align='left' style='color: #00FF00'>$Group_Name</td></tr>";
 		}
@@ -1424,13 +1456,14 @@ my @User_Groups = split(',', $Edit_User_Group_Temp_Existing);
 
 foreach my $User_Group (@User_Groups) {
 
-	my $Group_Query = $DB_Sudoers->prepare("SELECT `groupname`, `active`
+	my $Group_Query = $DB_Sudoers->prepare("SELECT `groupname`, `system_group`, `active`
 		FROM `user_groups`
 		WHERE `id` = ? ");
 	$Group_Query->execute($User_Group);
 		
-	while ( (my $Group_Name, my $Active) = my @Group_Query = $Group_Query->fetchrow_array() )
+	while ( (my $Group_Name, my $System_Group, my $Active) = my @Group_Query = $Group_Query->fetchrow_array() )
 	{
+		if ($System_Group) {$Group_Name = '%' . $Group_Name . ' [System Group]'}
 		if ($Active) {
 			$New_User_Groups = $New_User_Groups . "<tr><td align='left' style='color: #00FF00'>$Group_Name</td></tr>";
 		}
@@ -1726,6 +1759,7 @@ ENDHTML
 				$Host_Group_List_Query->execute( );
 
 				print "<option value='' selected>--Select a Host Group--</option>";
+				print "<option value='ALL'>All Hosts (Special sudoers option: ALL)</option>";
 
 				while ( (my $ID, my $Group_Name, my $Active) = my @Group_List_Query = $Host_Group_List_Query->fetchrow_array() )
 				{
@@ -1755,6 +1789,7 @@ ENDHTML
 				$Host_List_Query->execute( );
 
 				print "<option value='' selected>--Select a Host--</option>";
+				print "<option value='ALL'>All Hosts (Special sudoers option: ALL)</option>";
 
 				while ( (my $ID, my $Host_Name, my $IP, my $Active) = my @Host_List_Query = $Host_List_Query->fetchrow_array() )
 				{
@@ -1778,15 +1813,16 @@ print <<ENDHTML;
 ENDHTML
 
 ### User Groups
-				my $User_Group_List_Query = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `active`
+				my $User_Group_List_Query = $DB_Sudoers->prepare("SELECT `id`, `groupname`, `system_group`, `active`
 				FROM `user_groups`
 				ORDER BY `groupname` ASC");
 				$User_Group_List_Query->execute( );
 
 				print "<option value='' selected>--Select a User Group--</option>";
 
-				while ( (my $ID, my $Group_Name, my $Active) = my @Group_List_Query = $User_Group_List_Query->fetchrow_array() )
+				while ( (my $ID, my $Group_Name, my $System_Group, my $Active) = my @Group_List_Query = $User_Group_List_Query->fetchrow_array() )
 				{
+					if ($System_Group) {$Group_Name = '%' . $Group_Name . ' [System Group]'}
 					if ($Active) {
 						print "<option value='$ID'>$Group_Name</option>";
 					}
@@ -2092,9 +2128,12 @@ print <<ENDHTML;
 	</tr>
 </table>
 
-<ul style='text-align: left; display: inline-block;'>
+<ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
 <li>Rule Names must be unique.</li>
 <li>Do not use spaces in Rule Names - they will be stripped.</li>
+<li>When choosing <b>ALL Hosts</b>, keep in mind that this option is explicit and will therefore 
+include Undefined Hosts, Inactive Hosts and Expired Hosts. <i>Every</i> host is applicable to this 
+rule, regardless of state.</li>
 <li>If you do not understand the Options, <span style="color: #00FF00;">defaults</span> are safest.</li>
 <li>Rules with an expiry set are automatically removed from sudoers at 23:59:59
 (or the next sudoers refresh thereafter) on the day of expiry. Expired entries are functionally
@@ -2147,7 +2186,43 @@ sub edit_rule {
 	}
 	### / Existing Rule_Name Check
 
+	### Existing Check for ALL Hosts Option
+	my $Existing_ALL_Hosts;
+	my $Existing_ALL_Hosts_Check = $DB_Sudoers->prepare("SELECT `all_hosts`
+		FROM `rules`
+		WHERE `id` = ?");
+
+	$Existing_ALL_Hosts_Check->execute($Edit_Rule);
+
+	while ( my @Select_ALL_Hosts = $Existing_ALL_Hosts_Check->fetchrow_array() )
+	{
+		$Existing_ALL_Hosts = $Select_ALL_Hosts[0];
+	}
+	### / Existing Check for ALL Hosts Option
+
 	my $Approved;
+	my $ALL_Hosts;
+	if ($Edit_Host_Group_Temp_Existing eq 'ALL' || $Edit_Host_Temp_Existing eq 'ALL') {
+		$Edit_Host_Group_Temp_Existing = '';
+		$Edit_Host_Temp_Existing = '';
+		$ALL_Hosts = 1;
+
+		my $Delete_Host_Group_Rule = $DB_Sudoers->prepare("DELETE from `lnk_rules_to_host_groups`
+			WHERE `rule` = ?");
+		$Delete_Host_Group_Rule->execute($Edit_Rule);
+
+		my $Delete_Host_Rule = $DB_Sudoers->prepare("DELETE from `lnk_rules_to_hosts`
+			WHERE `rule` = ?");
+		$Delete_Host_Rule->execute($Edit_Rule);
+
+	}
+	elsif ($Existing_ALL_Hosts && !$Edit_Host_Group_Temp_Existing && !$Edit_Host_Temp_Existing) {
+		$ALL_Hosts = 1;
+	}
+	else {
+		$ALL_Hosts = 0;
+	}
+
 	if (!$User_Requires_Approval && $User_Approver) {
 		$Approved = 1;
 	}
@@ -2161,6 +2236,7 @@ sub edit_rule {
 
 	my $Update_Rule = $DB_Sudoers->prepare("UPDATE `rules` SET
 		`name` = ?,
+		`all_hosts` = ?,
 		`run_as` = ?,
 		`nopasswd` = ?,
 		`noexec` = ?,
@@ -2169,7 +2245,7 @@ sub edit_rule {
 		`approved` = ?,
 		`modified_by` = ?
 		WHERE `id` = ?");
-	$Update_Rule->execute($Rule_Name_Edit, $Run_As_Edit, $NOPASSWD_Edit, $NOEXEC_Edit, $Expires_Date_Edit, $Active_Edit, $Approved, $User_Name, $Edit_Rule);
+	$Update_Rule->execute($Rule_Name_Edit, $ALL_Hosts, $Run_As_Edit, $NOPASSWD_Edit, $NOEXEC_Edit, $Expires_Date_Edit, $Active_Edit, $Approved, $User_Name, $Edit_Rule);
 
 	# Audit Log
 	if ($Expires_Date_Edit eq '0000-00-00' || !$Expires_Date_Edit) {
@@ -2191,13 +2267,15 @@ sub edit_rule {
 		`username`
 	)
 	VALUES (
-		?,
-		?,
-		?,
-		?
+		?, ?, ?, ?
 	)");
 
-	$Audit_Log_Submission->execute("Rules", "Modify", "$User_Name edited $Rule_Name_Edit [Rule ID $Edit_Rule] (to be run as $Run_As_Edit, with the $NOPASSWD_Edit and $NOEXEC_Edit flags), set it $Active_Edit and to $Expires_Date_Edit.", $User_Name);
+	if ($ALL_Hosts) {
+		$Audit_Log_Submission->execute("Rules", "Modify", "$User_Name edited $Rule_Name_Edit [Rule ID $Edit_Rule] (to be run as $Run_As_Edit, with the $NOPASSWD_Edit and $NOEXEC_Edit flags), set it $Active_Edit and to $Expires_Date_Edit. ALL hosts are attached to this rule.", $User_Name);
+	}
+	else {
+		$Audit_Log_Submission->execute("Rules", "Modify", "$User_Name edited $Rule_Name_Edit [Rule ID $Edit_Rule] (to be run as $Run_As_Edit, with the $NOPASSWD_Edit and $NOEXEC_Edit flags), set it $Active_Edit and to $Expires_Date_Edit.", $User_Name);
+	}
 	# / Audit Log
 
 
@@ -2594,20 +2672,49 @@ sub delete_rule_item {
 ### Host Groups ###
 
 if ($Delete_Host_Group_ID) {
-	my $Delete_Host_Group_Rule = $DB_Sudoers->prepare("DELETE from `lnk_rules_to_host_groups`
-		WHERE `rule` = ?
-		AND `host_group` = ?");
-	$Delete_Host_Group_Rule->execute($Delete_Rule_Item_ID, $Delete_Host_Group_ID);
 
-	# Audit Log
-	my $Select_Item = $DB_Sudoers->prepare("SELECT `groupname`
-		FROM `host_groups`
-		WHERE `id` LIKE ?");
+	if ($Delete_Host_Group_ID ne 'ALL') {
 
-	$Select_Item->execute($Delete_Host_Group_ID);
+		my $Delete_Host_Group_Rule = $DB_Sudoers->prepare("DELETE from `lnk_rules_to_host_groups`
+			WHERE `rule` = ?
+			AND `host_group` = ?");
+		$Delete_Host_Group_Rule->execute($Delete_Rule_Item_ID, $Delete_Host_Group_ID);
 
-	while (( my $Name ) = $Select_Item->fetchrow_array() )
-	{
+		# Audit Log
+		my $Select_Item = $DB_Sudoers->prepare("SELECT `groupname`
+			FROM `host_groups`
+			WHERE `id` LIKE ?");
+	
+		$Select_Item->execute($Delete_Host_Group_ID);
+	
+		while (( my $Name ) = $Select_Item->fetchrow_array() )
+		{
+			my $DB_Management = DB_Management();
+			my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+				`category`,
+				`method`,
+				`action`,
+				`username`
+			)
+			VALUES (
+				?, ?, ?, ?
+			)");
+			$Audit_Log_Submission->execute("Rules", "Delete", "$User_Name removed Host Group $Name [Host Group ID $Delete_Host_Group_ID] from Rule $Rule [Rule ID $Delete_Rule_Item_ID]", $User_Name);
+			# / Audit Log
+	
+			my $Message_Green="Host Group $Name [Host Group ID $Delete_Host_Group_ID] removed from $Rule [Rule ID $Delete_Rule_Item_ID] successfully";
+			$Session->param('Message_Green', $Message_Green); #Posting Message_Green session var
+			print "Location: sudoers-rules.cgi\n\n";
+			exit(0);
+		}
+	}
+	else {
+		my $Update_Rule = $DB_Sudoers->prepare("UPDATE `rules` SET
+			`all_hosts` = 0,
+			`modified_by` = ?
+			WHERE `id` = ?");
+		$Update_Rule->execute($User_Name, $Delete_Rule_Item_ID);
+
 		my $DB_Management = DB_Management();
 		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
 			`category`,
@@ -2616,21 +2723,16 @@ if ($Delete_Host_Group_ID) {
 			`username`
 		)
 		VALUES (
-			?,
-			?,
-			?,
-			?
+			?, ?, ?, ?
 		)");
-		$Audit_Log_Submission->execute("Rules", "Delete", "$User_Name removed Host Group $Name [Host Group ID $Delete_Host_Group_ID] from Rule $Rule [Rule ID $Delete_Rule_Item_ID]", $User_Name);
+		$Audit_Log_Submission->execute("Rules", "Delete", "$User_Name removed ALL Hosts and Host Groups from Rule $Rule [Rule ID $Delete_Rule_Item_ID]", $User_Name);
+		# / Audit Log
 
-		my $Message_Green="Host Group $Name [Host Group ID $Delete_Host_Group_ID] removed from $Rule [Rule ID $Delete_Rule_Item_ID] successfully";
+		my $Message_Green="ALL Hosts and Host Groups removed from $Rule [Rule ID $Delete_Rule_Item_ID] successfully";
 		$Session->param('Message_Green', $Message_Green); #Posting Message_Green session var
 		print "Location: sudoers-rules.cgi\n\n";
 		exit(0);
-
 	}
-	# / Audit Log
-
 }
 
 ### / Host Groups ###
@@ -2638,20 +2740,48 @@ if ($Delete_Host_Group_ID) {
 ### Hosts ###
 
 if ($Delete_Host_ID) {
-	my $Delete_Host_Rule = $DB_Sudoers->prepare("DELETE from `lnk_rules_to_hosts`
-		WHERE `rule` = ?
-		AND `host` = ?");
-	$Delete_Host_Rule->execute($Delete_Rule_Item_ID, $Delete_Host_ID);
 
-	# Audit Log
-	my $Select_Item = $DB_Sudoers->prepare("SELECT `hostname`
-		FROM `hosts`
-		WHERE `id` LIKE ?");
+	if ($Delete_Host_ID ne 'ALL') {
 
-	$Select_Item->execute($Delete_Host_ID);
+		my $Delete_Host_Rule = $DB_Sudoers->prepare("DELETE from `lnk_rules_to_hosts`
+			WHERE `rule` = ?
+			AND `host` = ?");
+		$Delete_Host_Rule->execute($Delete_Rule_Item_ID, $Delete_Host_ID);
+	
+		# Audit Log
+		my $Select_Item = $DB_Sudoers->prepare("SELECT `hostname`
+			FROM `hosts`
+			WHERE `id` LIKE ?");
+	
+		$Select_Item->execute($Delete_Host_ID);
+	
+		while (( my $Name ) = $Select_Item->fetchrow_array() )
+		{
+			my $DB_Management = DB_Management();
+			my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+				`category`,
+				`method`,
+				`action`,
+				`username`
+			)
+			VALUES (
+				?, ?, ?, ?
+			)");
+			$Audit_Log_Submission->execute("Rules", "Delete", "$User_Name removed Host $Name [Host ID $Delete_Host_ID] from Rule $Rule [Rule ID $Delete_Rule_Item_ID]", $User_Name);
+			# / Audit Log
+			my $Message_Green="Host $Name [Host ID $Delete_Host_ID] removed from $Rule [Rule ID $Delete_Rule_Item_ID] successfully";
+			$Session->param('Message_Green', $Message_Green); #Posting Message_Green session var
+			print "Location: sudoers-rules.cgi\n\n";
+			exit(0);
+		}
+	}
+	else {
+		my $Update_Rule = $DB_Sudoers->prepare("UPDATE `rules` SET
+			`all_hosts` = 0,
+			`modified_by` = ?
+			WHERE `id` = ?");
+		$Update_Rule->execute($User_Name, $Delete_Rule_Item_ID);
 
-	while (( my $Name ) = $Select_Item->fetchrow_array() )
-	{
 		my $DB_Management = DB_Management();
 		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
 			`category`,
@@ -2660,21 +2790,16 @@ if ($Delete_Host_ID) {
 			`username`
 		)
 		VALUES (
-			?,
-			?,
-			?,
-			?
+			?, ?, ?, ?
 		)");
-		$Audit_Log_Submission->execute("Rules", "Delete", "$User_Name removed Host $Name [Host ID $Delete_Host_ID] from Rule $Rule [Rule ID $Delete_Rule_Item_ID]", $User_Name);
+		$Audit_Log_Submission->execute("Rules", "Delete", "$User_Name removed ALL Hosts and Host Groups from Rule $Rule [Rule ID $Delete_Rule_Item_ID]", $User_Name);
+		# / Audit Log
 
-		my $Message_Green="Host $Name [Host ID $Delete_Host_ID] removed from $Rule [Rule ID $Delete_Rule_Item_ID] successfully";
+		my $Message_Green="ALL Hosts and Host Groups removed from $Rule [Rule ID $Delete_Rule_Item_ID] successfully";
 		$Session->param('Message_Green', $Message_Green); #Posting Message_Green session var
 		print "Location: sudoers-rules.cgi\n\n";
 		exit(0);
-
 	}
-	# / Audit Log
-
 }
 ### / Hosts ###
 
@@ -2919,7 +3044,7 @@ sub html_output {
 		my $Total_Rows = $Select_Rule_Count->rows();
 
 
-	my $Select_Rules = $DB_Sudoers->prepare("SELECT `id`, `name`, `run_as`, `nopasswd`, `noexec`, `expires`, `active`, `approved`, `last_approved`, `approved_by`, `last_modified`, `modified_by`
+	my $Select_Rules = $DB_Sudoers->prepare("SELECT `id`, `name`, `all_hosts`, `run_as`, `nopasswd`, `noexec`, `expires`, `active`, `approved`, `last_approved`, `approved_by`, `last_modified`, `modified_by`
 		FROM `rules`
 			WHERE `id` LIKE ?
 			OR `name` LIKE ?
@@ -2957,26 +3082,27 @@ sub html_output {
 		my $DB_Rule_Name = $Select_Rules[1];
 			my $DB_Rule_Name_Clean = $DB_Rule_Name;
 			$DB_Rule_Name =~ s/(.*)($Filter)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
-		my $Run_As = $Select_Rules[2];
+		my $ALL_Hosts = $Select_Rules[2];
+		my $Run_As = $Select_Rules[3];
 			my $Run_As_Clean = $Run_As;
 			$Run_As =~ s/(.*)($Filter)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
-		my $NOPASSWD = $Select_Rules[3];
+		my $NOPASSWD = $Select_Rules[4];
 			if ($NOPASSWD == 1) {$NOPASSWD = "<span style='color: #FF6100'>NOPASSWD</span>"} else {$NOPASSWD = "PASSWD"};
-		my $NOEXEC = $Select_Rules[4];
+		my $NOEXEC = $Select_Rules[5];
 			if ($NOEXEC == 1) {$NOEXEC = "NOEXEC"} else {$NOEXEC = "<span style='color: #FF6100'>EXEC</span>"};
-		my $Rule_Expires = $Select_Rules[5];
+		my $Rule_Expires = $Select_Rules[6];
 			my $Rule_Expires_Clean = $Rule_Expires;
 			$Rule_Expires =~ s/(.*)($Filter)(.*)/$1<span style='background-color: #B6B600'>$2<\/span>$3/gi;
-		my $Rule_Active = $Select_Rules[6];
+		my $Rule_Active = $Select_Rules[7];
 			if ($Rule_Active == 1) {$Rule_Active = "Yes"} else {$Rule_Active = "No"};
-		my $Approved = $Select_Rules[7];
+		my $Approved = $Select_Rules[8];
 			if ($Approved == 1) {$Approved = "Yes"} else {$Approved = "No"};
-		my $Last_Approved = $Select_Rules[8];
+		my $Last_Approved = $Select_Rules[9];
 			if ($Last_Approved eq '0000-00-00 00:00:00') {$Last_Approved = "<span style='color: #FF0000'>Unapproved</span>"} else {$Last_Approved = "<span style='color: #B6B600'>$Last_Approved</span>"};
-		my $Approved_By = $Select_Rules[9];
+		my $Approved_By = $Select_Rules[10];
 			if ($Approved_By eq undef) {$Approved_By = "<span style='color: #FF0000'>Unapproved</span>"} else {$Approved_By = "<span style='color: #B6B600'>$Approved_By</span>"};
-		my $Last_Modified = $Select_Rules[10];
-		my $Modified_By = $Select_Rules[11];
+		my $Last_Modified = $Select_Rules[11];
+		my $Modified_By = $Select_Rules[12];
 
 
 #######################################################################################################
@@ -2984,164 +3110,180 @@ sub html_output {
 		### Discover Attached Host Groups
 
 		my $Attached_Host_Groups;
-		my $Select_Host_Group_Links = $DB_Sudoers->prepare("SELECT `host_group`
-			FROM `lnk_rules_to_host_groups`
-			WHERE `rule` = ?"
-		);
-		$Select_Host_Group_Links->execute($DBID_Clean);
 
-		while ( my @Select_Links = $Select_Host_Group_Links->fetchrow_array() )
-		{
-			
-			my $Group_ID = $Select_Links[0];
+		if (!$ALL_Hosts) {
 
-			my $Select_Groups = $DB_Sudoers->prepare("SELECT `groupname`, `expires`, `active`
-				FROM `host_groups`
-				WHERE `id` = ?"
+			my $Select_Host_Group_Links = $DB_Sudoers->prepare("SELECT `host_group`
+				FROM `lnk_rules_to_host_groups`
+				WHERE `rule` = ?"
 			);
-			$Select_Groups->execute($Group_ID);
-
-			while ( my @Select_Groups = $Select_Groups->fetchrow_array() )
+			$Select_Host_Group_Links->execute($DBID_Clean);
+	
+			while ( my @Select_Links = $Select_Host_Group_Links->fetchrow_array() )
 			{
-				my $Group = $Select_Groups[0];
-				my $Group_Expires = $Select_Groups[1];
-				my $Group_Active = $Select_Groups[2];
-
-
-				### Discover Hosts Within Group
-
-				my $Select_Host_Links = $DB_Sudoers->prepare("SELECT `host`
-					FROM `lnk_host_groups_to_hosts`
-					WHERE `group` = ?"
-				);
-				$Select_Host_Links->execute($Group_ID);
-
-				my $Attached_Hosts = undef;
-				while ( my @Select_Links = $Select_Host_Links->fetchrow_array() )
-				{
-					
-					my $Host_ID = $Select_Links[0];
-
-					my $Select_Hosts = $DB_Sudoers->prepare("SELECT `hostname`, `ip`, `expires`, `active`
-						FROM `hosts`
-						WHERE `id` = ?"
-					);
-					$Select_Hosts->execute($Host_ID);
-
-					while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
-					{
-
-						my $Host = $Select_Hosts[0];
-						my $IP = $Select_Hosts[1];
-						my $Host_Expires = $Select_Hosts[2];
-						my $Host_Active = $Select_Hosts[3];
-
-						my $Expires_Epoch;
-						my $Today_Epoch = time;
-						if ($Host_Expires =~ /^0000-00-00$/) {
-							$Host_Expires = 'Never';
-						}
-						else {
-							$Expires_Epoch = str2time("$Host_Expires"."T23:59:59");
-						}
-
-						if ($Host_Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
-							$Host = "$Host ($IP) [Expired]
-"
-						}
-						elsif ($Host_Active) {
-							$Host = "$Host ($IP)
-"
-						}
-						else {
-							$Host = "$Host ($IP) [Inactive]
-"
-						};
-						$Attached_Hosts = $Attached_Hosts . $Host;
-					}
-				}
-
-				### / Discover Hosts Within Group
-						
-				my $Expires_Epoch;
-				my $Today_Epoch = time;
-				if ($Group_Expires =~ /^0000-00-00$/) {
-					$Group_Expires = 'Never';
-				}
-				else {
-					$Expires_Epoch = str2time("$Group_Expires"."T23:59:59");
-				}
-
-				if ($Group_Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
-					$Group = "<a href='sudoers-host-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Hosts in this group:\n$Attached_Hosts\"><span style='color: #B1B1B1';>$Group</span></a>
-					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
-				}
-				elsif ($Group_Active) {
-					$Group = "<a href='sudoers-host-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Hosts in this group:\n$Attached_Hosts\"><span style='color: #00FF00';>$Group</span></a>
-					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
-					}
-				else {
-					$Group = "<a href='sudoers-host-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Hosts in this group:\n$Attached_Hosts\"><span style='color: #FF0000';>$Group</span></a>
-					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
-				};
 				
-				$Attached_Host_Groups = $Attached_Host_Groups . $Group ."<br />";
-
+				my $Group_ID = $Select_Links[0];
+	
+				my $Select_Groups = $DB_Sudoers->prepare("SELECT `groupname`, `expires`, `active`
+					FROM `host_groups`
+					WHERE `id` = ?"
+				);
+				$Select_Groups->execute($Group_ID);
+	
+				while ( my @Select_Groups = $Select_Groups->fetchrow_array() )
+				{
+					my $Group = $Select_Groups[0];
+					my $Group_Expires = $Select_Groups[1];
+					my $Group_Active = $Select_Groups[2];
+	
+	
+					### Discover Hosts Within Group
+	
+					my $Select_Host_Links = $DB_Sudoers->prepare("SELECT `host`
+						FROM `lnk_host_groups_to_hosts`
+						WHERE `group` = ?"
+					);
+					$Select_Host_Links->execute($Group_ID);
+	
+					my $Attached_Hosts = undef;
+					while ( my @Select_Links = $Select_Host_Links->fetchrow_array() )
+					{
+						
+						my $Host_ID = $Select_Links[0];
+	
+						my $Select_Hosts = $DB_Sudoers->prepare("SELECT `hostname`, `ip`, `expires`, `active`
+							FROM `hosts`
+							WHERE `id` = ?"
+						);
+						$Select_Hosts->execute($Host_ID);
+	
+						while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
+						{
+	
+							my $Host = $Select_Hosts[0];
+							my $IP = $Select_Hosts[1];
+							my $Host_Expires = $Select_Hosts[2];
+							my $Host_Active = $Select_Hosts[3];
+	
+							my $Expires_Epoch;
+							my $Today_Epoch = time;
+							if ($Host_Expires =~ /^0000-00-00$/) {
+								$Host_Expires = 'Never';
+							}
+							else {
+								$Expires_Epoch = str2time("$Host_Expires"."T23:59:59");
+							}
+	
+							if ($Host_Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+								$Host = "$Host ($IP) [Expired]
+"
+							}
+							elsif ($Host_Active) {
+								$Host = "$Host ($IP)
+"
+							}
+							else {
+								$Host = "$Host ($IP) [Inactive]
+"
+							};
+							$Attached_Hosts = $Attached_Hosts . $Host;
+						}
+					}
+	
+					### / Discover Hosts Within Group
+							
+					my $Expires_Epoch;
+					my $Today_Epoch = time;
+					if ($Group_Expires =~ /^0000-00-00$/) {
+						$Group_Expires = 'Never';
+					}
+					else {
+						$Expires_Epoch = str2time("$Group_Expires"."T23:59:59");
+					}
+	
+					if ($Group_Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+						$Group = "<a href='sudoers-host-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Hosts in this group:\n$Attached_Hosts\"><span style='color: #B1B1B1';>$Group</span></a>
+						<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+					}
+					elsif ($Group_Active) {
+						$Group = "<a href='sudoers-host-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Hosts in this group:\n$Attached_Hosts\"><span style='color: #00FF00';>$Group</span></a>
+						<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+						}
+					else {
+						$Group = "<a href='sudoers-host-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Hosts in this group:\n$Attached_Hosts\"><span style='color: #FF0000';>$Group</span></a>
+						<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+					};
+					
+					$Attached_Host_Groups = $Attached_Host_Groups . $Group ."<br />";
+	
+				}
 			}
 		}
-		
+		else {
+			$Attached_Host_Groups = "<a href='#' class='tooltip' text=\"This is a special sudoers group, meaning all hosts.\"><span style='color: #00FF00'>ALL (Special)</span></a>
+						<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_Group_ID=ALL' class='tooltip' text=\"Remove ALL from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>";
+		}
+
 		### / Discover Attached Host Groups
 
 		### Discover Attached Hosts
 
 		my $Attached_Hosts;
-		my $Select_Host_Links = $DB_Sudoers->prepare("SELECT `host`
-			FROM `lnk_rules_to_hosts`
-			WHERE `rule` = ?"
-		);
-		$Select_Host_Links->execute($DBID_Clean);
 
-		while ( my @Select_Links = $Select_Host_Links->fetchrow_array() )
-		{
-			
-			my $Host_ID = $Select_Links[0];
+		if (!$ALL_Hosts) {
 
-			my $Select_Hosts = $DB_Sudoers->prepare("SELECT `hostname`, `ip`, `expires`, `active`
-				FROM `hosts`
-				WHERE `id` = ?"
+			my $Select_Host_Links = $DB_Sudoers->prepare("SELECT `host`
+				FROM `lnk_rules_to_hosts`
+				WHERE `rule` = ?"
 			);
-			$Select_Hosts->execute($Host_ID);
-
-			while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
+			$Select_Host_Links->execute($DBID_Clean);
+	
+			while ( my @Select_Links = $Select_Host_Links->fetchrow_array() )
 			{
-				my $Host = $Select_Hosts[0];
-				my $IP = $Select_Hosts[1];
-				my $Expires = $Select_Hosts[2];
-				my $Active = $Select_Hosts[3];
 
-				my $Expires_Epoch;
-				my $Today_Epoch = time;
-				if ($Expires =~ /^0000-00-00$/) {
-					$Expires = 'Never';
+				my $Host_ID = $Select_Links[0];
+	
+				my $Select_Hosts = $DB_Sudoers->prepare("SELECT `hostname`, `ip`, `expires`, `active`
+					FROM `hosts`
+					WHERE `id` = ?"
+				);
+				$Select_Hosts->execute($Host_ID);
+	
+				while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
+				{
+					my $Host = $Select_Hosts[0];
+					my $IP = $Select_Hosts[1];
+					my $Expires = $Select_Hosts[2];
+					my $Active = $Select_Hosts[3];
+	
+					my $Expires_Epoch;
+					my $Today_Epoch = time;
+					if ($Expires =~ /^0000-00-00$/) {
+						$Expires = 'Never';
+					}
+					else {
+						$Expires_Epoch = str2time("$Expires"."T23:59:59");
+					}
+	
+					if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
+						$Host = "<a href='sudoers-hosts.cgi?ID_Filter=$Host_ID' class='tooltip' text=\"$IP\"><span style='color: #B1B1B1'>$Host</span></a>
+						<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_ID=$Host_ID' class='tooltip' text=\"Remove $Host from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+					}
+					elsif ($Active) {
+						$Host = "<a href='sudoers-hosts.cgi?ID_Filter=$Host_ID' class='tooltip' text=\"$IP\"><span style='color: #00FF00'>$Host</span></a>
+						<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_ID=$Host_ID' class='tooltip' text=\"Remove $Host from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+					}
+					else {
+						$Host = "<a href='sudoers-hosts.cgi?ID_Filter=$Host_ID' class='tooltip' text=\"$IP\"><span style='color: #FF0000'>$Host</span></a>
+						<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_ID=$Host_ID' class='tooltip' text=\"Remove $Host from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+					};
+					$Attached_Hosts = $Attached_Hosts . $Host  . "<br />";
 				}
-				else {
-					$Expires_Epoch = str2time("$Expires"."T23:59:59");
-				}
-
-				if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
-					$Host = "<a href='sudoers-hosts.cgi?ID_Filter=$Host_ID' class='tooltip' text=\"$IP\"><span style='color: #B1B1B1'>$Host</span></a>
-					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_ID=$Host_ID' class='tooltip' text=\"Remove $Host from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
-				}
-				elsif ($Active) {
-					$Host = "<a href='sudoers-hosts.cgi?ID_Filter=$Host_ID' class='tooltip' text=\"$IP\"><span style='color: #00FF00'>$Host</span></a>
-					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_ID=$Host_ID' class='tooltip' text=\"Remove $Host from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
-				}
-				else {
-					$Host = "<a href='sudoers-hosts.cgi?ID_Filter=$Host_ID' class='tooltip' text=\"$IP\"><span style='color: #FF0000'>$Host</span></a>
-					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_ID=$Host_ID' class='tooltip' text=\"Remove $Host from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
-				};
-				$Attached_Hosts = $Attached_Hosts . $Host  . "<br />";
 			}
+		}
+		else {
+			$Attached_Hosts = "<a href='#' class='tooltip' text=\"This is a special sudoers group, meaning all hosts.\"><span style='color: #00FF00'>ALL (Special)</span></a>
+						<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_ID=ALL' class='tooltip' text=\"Remove ALL from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>";
 		}
 		
 		### / Discover Attached Hosts
@@ -3162,7 +3304,7 @@ sub html_output {
 			
 			my $Group_ID = $Select_Links[0];
 
-			my $Select_Groups = $DB_Sudoers->prepare("SELECT `groupname`, `expires`, `active`
+			my $Select_Groups = $DB_Sudoers->prepare("SELECT `groupname`, `system_group`, `expires`, `active`
 				FROM `user_groups`
 				WHERE `id` = ?"
 			);
@@ -3171,9 +3313,11 @@ sub html_output {
 			while ( my @Select_Groups = $Select_Groups->fetchrow_array() )
 			{
 				my $Group = $Select_Groups[0];
-				my $Group_Expires = $Select_Groups[1];
-				my $Group_Active = $Select_Groups[2];
+				my $System_Group = $Select_Groups[1];
+				my $Group_Expires = $Select_Groups[2];
+				my $Group_Active = $Select_Groups[3];
 
+				if ($System_Group) {$Group = '%' . $Group}
 
 				### Discover Users Within Group
 
@@ -3238,16 +3382,26 @@ sub html_output {
 					$Expires_Epoch = str2time("$Group_Expires"."T23:59:59");
 				}
 
+				my $Users_In_This_Group;
+				if ($System_Group) {
+					$Users_In_This_Group = 'This is a System Group. Users are defined by the host\'s /etc/group file.';
+					undef $Attached_Users;
+				}
+				else {
+					$Users_In_This_Group = 'Users in this group:';
+				}
+				
+
 				if ($Group_Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
-					$Group = "<a href='sudoers-user-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Users in this group:\n$Attached_Users\"><span style='color: #B1B1B1';>$Group</span></a>
+					$Group = "<a href='sudoers-user-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"$Users_In_This_Group\n$Attached_Users\"><span style='color: #B1B1B1';>$Group</span></a>
 					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_User_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 				}
 				elsif ($Group_Active) {
-					$Group = "<a href='sudoers-user-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Users in this group:\n$Attached_Users\"><span style='color: #00FF00';>$Group</span></a>
+					$Group = "<a href='sudoers-user-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"$Users_In_This_Group\n$Attached_Users\"><span style='color: #00FF00';>$Group</span></a>
 					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_User_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 				}
 				else {
-					$Group = "<a href='sudoers-user-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Users in this group:\n$Attached_Users\"><span style='color: #FF0000';>$Group</span></a>
+					$Group = "<a href='sudoers-user-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"$Users_In_This_Group\n$Attached_Users\"><span style='color: #FF0000';>$Group</span></a>
 					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_User_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 				};
 				

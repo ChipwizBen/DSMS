@@ -157,7 +157,7 @@ function Expire_Toggle() {
 	</tr>
 </table>
 
-<ul style='text-align: left; display: inline-block;'>
+<ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
 <li>Host Names and IPs must be unique.</li>
 <li>Do not use spaces in Host Names or IPs - they will be stripped.</li>
 <li>Hosts with an expiry set are automatically removed from sudoers at 23:59:59
@@ -385,7 +385,7 @@ print <<ENDHTML;
 
 <input type='hidden' name='Edit_Host_Post' value='$Edit_Host'>
 
-<ul style='text-align: left; display: inline-block;'>
+<ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
 <li>Host Names and IPs must be unique.</li>
 <li>Do not use spaces in Host Names or IPs - they will be stripped.</li>
 <li>You can only activate a modified host if you are an Approver. If you are not an
