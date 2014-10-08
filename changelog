@@ -22,6 +22,8 @@ To all ul inputs: padding-left: 40px; padding-right: 40px;
         - Added an additional 'Section Ends' comment to the end of each type section to make them 
           clearer in very large sudoers files.
         - Updated the syntax highlighting on 'index.cgi' to clearly mark each section's start and end.
+        - New deployments will be shipped as .tar.gz files, as tar is installed on most Linux systems 
+          by default, but unzip is not.
 1.4.1:  - Offloaded the resolution of application paths to 'common.pl' through `which` or manual 
           override to make it more system independent.
         - Bundled required non-core modules with package (for easier installation in offline 

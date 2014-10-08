@@ -3,7 +3,6 @@
 use strict;
 use Digest::SHA qw(sha512_hex);
 use MIME::Lite;
-#use Crypt::PBKDF2;
 
 require 'common.pl';
 my $System_Name = System_Name();
@@ -19,15 +18,6 @@ $Session->param('Referer', $Referer); #Posting Referer session var
 
 my $User_Name_Form = $CGI->param("Username_Form");
 my $User_Password_Form = $CGI->param("Password_Form");
-
-# my $Password = Crypt::PBKDF2->new(
-	# hash_class => 'HMACSHA2',
-	# hash_args => {
-		# sha_size => 512,
-	# },
-	# iterations => 5000,
-	# salt_len => 16,
-# };
 
 my $Login_Message;
 
@@ -170,7 +160,7 @@ $System_Name<br/>
 				
 				$Perform_Lockout_Password_Set->execute($User_Name_Form);
 
-			$Send_Email->send; # If this fails because of SELinux, you may need to consider allowing httpd to send mail: setsebool -P httpd_can_sendmail=1
+			$Send_Email->send;
 
 		}
 } # sub email_user_password_reset
