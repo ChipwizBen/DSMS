@@ -169,7 +169,8 @@ print <<ENDHTML;
 <li>The User is the SFTP subsystem user on the remote system. You should set up a dedicated user for this.</li>
 <li>The Key Path is SSH private key path of the SFTP subsystem User. Use the full system path.</li>
 <li>The Timeout is the connection timeout in seconds for stalled or unreachable hosts.</li>
-<li>The Remote Sudoers Path is the full system path of the sudoers file on $Host_Name that you intend to overwrite. This is usually /etc/sudoers, but defaults as /tmp/sudoers for new hosts as a safety catch.</li>
+<li>The Remote Sudoers Path is the full system path of the staging sudoers file on $Host_Name, which is picked up by the remote cron job.
+If the Remote Server uses chroot, make the Remote Sudoers Path relative (i.e. sudoers/sudoers instead of /home/transport/sudoers/sudoers)</li>
 </ul>
 
 <hr width="50%">

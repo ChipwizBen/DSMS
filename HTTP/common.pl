@@ -85,9 +85,9 @@ sub Distribution_Defaults {
 
 
 	my $Distribution_User = 'transport'; # Default SFTP user
-	my $Key_Path = '/home/transport/.ssh/id_rsa'; # Default private key path
+	my $Key_Path = '/root/.ssh/id_rsa'; # Default private key path
 	my $Timeout = '15'; # Default stalled connection Timeout in seconds
-	my $Remote_Sudoers = '/sudoers/sudoers'; # Default sudoers file location on remote systems
+	my $Remote_Sudoers = 'sudoers/sudoers'; # Default sudoers file location on remote systems, if using chroot use a relative path
 
 	my @Distribution_Defaults = ($Distribution_User, $Key_Path, $Timeout, $Remote_Sudoers);
 	return @Distribution_Defaults;

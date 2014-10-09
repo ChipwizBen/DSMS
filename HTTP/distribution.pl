@@ -49,7 +49,7 @@ HOST: while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
 		my $Key_Path = $Select_Parameters[1];
 		my $Timeout = $Select_Parameters[2];
 		my $Remote_Sudoers = $Select_Parameters[3];
-	
+
 		my $Error;
 
 		### Connection
@@ -66,16 +66,19 @@ HOST: while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
 			print "Connected successfully to $Hostname ($IP).\n";
 		}
 		else {
+
 			if ($Error =~ /Connection to remote server stalled/) {$Error = $Error . " 
 	Hints: 
     1) Check that the key fingerprint is stored in known_hosts
     2) Check for a route to the remote host
     3) Check that your $Timeout second Timeout value is high enough"}
+  
 			if ($Error =~ /Connection to remote server is broken/) {$Error = $Error ." 
     Hints: 
     1) Badly formatted IP address
     2) Identity file not found
     3) Not enough permissions to read identity file"}
+
 			print "$Error\n\n";
 			$Update_Status->execute($Error, $DBID);
 			next HOST;
@@ -98,9 +101,16 @@ HOST: while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
 			undef $SFTP;
 		}
 		else {
+
 			if ($Error =~ /Permission\sdenied/) {$Error = $Error . " 
     Hints: 
     1) Check that $User can write to $Remote_Sudoers"}
+
+			if ($Error =~ /Couldn't open remote file/) {$Error = $Error . " 
+	Hints: 
+    1) Check that the remote path is correct
+    2) If the Remote Server uses chroot, try making the path relative (i.e. path/sudoers instead of /path/sudoers)"}
+
 			print "$Error\n\n";
 			$Update_Status->execute($Error, $DBID);
 			undef $SFTP;
