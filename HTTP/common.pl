@@ -4,8 +4,7 @@ use strict;
 
 sub System_Name {
 
-	# This is the system's name, used for system identification during login, written to the 
-	# sudoers file to identify which system owns that file, used in password reset emails, etc
+	# This is the system's name, used for system identification during login, written to the sudoers file to identify which system owns the sudoers file, is used in password reset emails to identify the source, and other general uses.
 
 	my $System_Name = ' Sudoers Management System';
 	return $System_Name;
@@ -14,9 +13,7 @@ sub System_Name {
 
 sub System_Short_Name {
 
-	# This is the system's shortened name, which is used in short descriptions. It can be the 
-	# same as the full name in System_Name if you want, but it might get busy on some screens 
-	# if your system name is long. It's advised to keep this short.
+	# This is the system's shortened name, which is used in short descriptions. It can be the same as the full name in System_Name if you want, but it might get busy on some screens if your system name is long. It's encouraged to keep this short (less than 10 characters).
 
 	my $System_Short_Name = 'DSMS';
 	return $System_Short_Name;
@@ -25,14 +22,7 @@ sub System_Short_Name {
 
 sub Sudoers_Location {
 
-	# Note: This is not /etc/sudoers. This is the path that the system writes the temporary sudoers 
-	# file to. It _could_ be /etc/sudoers, but you ought to consider the rights that Apache will 
-	# need to overwrite that file, and the implications of giving Apache those rights. If you 
-	# want to automate it end to end, you should consider writing a temporary sudoers file, then 
-	# using a separate root cron job to overwrite /etc/sudoers, instead of directly writing to it.
-	# Of course, if you do not intend on using sudoers on the local machine, then this should NOT
-	# be /etc/sudoers. For sudoers locations on remote machines, see the Distribution_Defaults 
-	# subroutine in this file, or set individual remote sudoers locations through the web panel.
+	# This is not necessarily the location of the /etc/sudoers file. This is the path that the system writes the temporary sudoers file to. It could be /etc/sudoers, but you ought to consider the rights that Apache will need to overwrite that file, and the implications of giving Apache those rights. If you want to automate it end to end, you should consider writing a temporary sudoers file, then using a separate root cron job to overwrite /etc/sudoers, which is the recommended procedure, instead of directly writing to it. Of course, if you do not intend on using the DSMS system to manage /etc/sudoers on the local machine, then this should NOT be /etc/sudoers. For sudoers locations on remote machines, see Distribution_Defaults, or set individual remote sudoers locations through the web panel.
 
 	my $Sudoers_Location = '/var/www/html/sudoers';
 	return $Sudoers_Location;
@@ -50,12 +40,7 @@ sub Sudoers_Storage {
 
 sub DB_Management {
 
-	# This is your management database's connection information. This could be the same database as 
-	# the database in the DB_Sudoers subroutine (they have different table names), but the 
-	# management data (System Accounts, Access Log, Audit Log, etc) contain sensitive information that 
-	# normal users should not be allowed access to. This access control should also be applicable to 
-	# DBAs, which is why this data is stored in a seperate database by default to simplify access 
-	# control.
+	# This is your management database's connection information. This could be the same database as the database in the DB_Sudoers because the two schemas have different table names to facilitate a combination. However, the management data (System Accounts, Access Log, Audit Log, etc) contain sensitive information that normal users should not be allowed access to. This access control should also be applicable to database administrators, which is why this data is stored in a separate database by default to simplify access control.
 
 	use DBI;
 
@@ -63,7 +48,7 @@ sub DB_Management {
 	my $Port = '3306';
 	my $DB = 'Management';
 	my $User = 'Management';
-	my $Password = 'MocatadWasHere';
+	my $Password = '<Password>';
 
 	my $DB_Management = DBI->connect ("DBI:mysql:database=$DB:host=$Host:port=$Port",
 		$User,
@@ -75,16 +60,15 @@ sub DB_Management {
 
 sub DB_Sudoers {
 
-	# This is your sudoers database's connection information. This is where your sudoers data is 
-	# stored. Yours faithfully, Captain Obvious.
+	#  This is your Sudoers database's connection information. This is where your sudoers data is stored.
 
 	use DBI;
 
 	my $Host = 'localhost';
 	my $Port = '3306';
-	my $DB = 'sudoers';
-	my $User = 'sudoers';
-	my $Password = 'Mocatad14';
+	my $DB = 'Sudoers';
+	my $User = 'Sudoers';
+	my $Password = '<Password>';
 
 	my $DB_Sudoers = DBI->connect ("DBI:mysql:database=$DB:host=$Host:port=$Port",
 		$User,
@@ -96,23 +80,14 @@ sub DB_Sudoers {
 
 sub Distribution_Defaults {
 
-	# These are the default sudoers distribution settings for new hosts. Keep in mind that any 
-	# active host is automatically tried for sudoers pushes with their distribution settings. 
-	# Unless you are confident that all new hosts will have the same settings, you might want 
-	# to set fail-safe defaults here and manually override each host individually on the 
-	# Distribution Status page.
-	#
-	# A good fail-safe strategy would be to set $Key_Path to be /dev/null so that login to the 
-	# remote server becomes impossible. Alternatively, another good method would be to set 
-	# $Remote_Sudoers to /tmp/sudoers and have the other settings correct, so that you could 
-	# accurately test remote login, but not effect the existing sudoers file at /etc/sudoers.
-	# When you're ready for full automated sudoers replacement, set $Remote_Sudoers to 
-	# /etc/sudoers.
+	# These are the default sudoers distribution settings for new hosts. Keep in mind that any active host is automatically tried for sudoers pushes with their distribution settings. Unless you are confident that all new hosts will have the same settings, you might want to set fail-safe defaults here and manually override each host individually on the Distribution Status page.
+	# A good fail-safe strategy would be to set $Key_Path to be /dev/null so that login to the Remote Server becomes impossible. Alternatively, another good method would be to set $Remote_Sudoers to /sudoers/sudoers (which reflects the chroot recommendations), so that you could accurately test remote login, but not affect the existing sudoers file at /etc/sudoers. This is also dependent on your Cron Configuration on the Remote Server.
+
 
 	my $Distribution_User = 'transport'; # Default SFTP user
 	my $Key_Path = '/home/transport/.ssh/id_rsa'; # Default private key path
 	my $Timeout = '15'; # Default stalled connection Timeout in seconds
-	my $Remote_Sudoers = '/tmp/sudoers'; # Default sudoers file location on remote systems
+	my $Remote_Sudoers = '/sudoers/sudoers'; # Default sudoers file location on remote systems
 
 	my @Distribution_Defaults = ($Distribution_User, $Key_Path, $Timeout, $Remote_Sudoers);
 	return @Distribution_Defaults;
@@ -121,25 +96,20 @@ sub Distribution_Defaults {
 
 sub CGI {
 
-	# This contains the CGI Session parameters. The session files are stored in the specified 
-	# Session Directory. The Session Expiry is the time that clients must be inactive before 
-	# they are logged off automatically.  It's unwise to change either of these values whilst 
-	# the system is in use. You could cause user sessions to expire prematurely and whatever 
-	# changes they were working on will probably be lost. See the Session Expiry Values table 
-	#below to see the accepted aliases, and some examples below that.
+	# This contains the CGI Session parameters. The session files are stored in the specified $Session_Directory. The $Session_Expiry is the time that clients must be inactive before they are logged off automatically.  It's unwise to change either of these values whilst the system is in use. Doing so could cause user sessions to expire prematurely and any changes they were working on will probably be lost. 
 	#
 	# +-----------+---------------+
     # |   Session Expiry Values   |
 	# +-----------+---------------+
-    # |   alias   |   meaning     |
+    # |   Alias   |  Definition   |
 	# +-----------+---------------+
-	# |     s     |   Second      |
-	# |     m     |   Minute      |
-	# |     h     |   Hour        |
-	# |     d     |   Day         |
-	# |     w     |   Week        |
-	# |     M     |   Month       |
-	# |     y     |   Year        |
+	# |     s     |   Seconds     |
+	# |     m     |   Minutes     |
+	# |     h     |   Hours       |
+	# |     d     |   Days        |
+	# |     w     |   Weeks       |
+	# |     M     |   Months      |
+	# |     y     |   Years       |
 	# +-----------+---------------+
 	# 
     # '+1h';  # Set to +1h to expire after 1 hour (default)
@@ -167,7 +137,7 @@ sub CGI {
 sub md5sum {
 
 	# Manually set the path to `md5sum` here, or just leave this as default and the system 
-	# will try to determine it's location through `which md5sum --skip-alias`
+	# will try to determine its location through `which md5sum --skip-alias`
 
 	my $md5sum = `which md5sum --skip-alias`;
 
@@ -179,7 +149,7 @@ sub md5sum {
 sub sha1sum {
 
 	# Manually set the path to `sha1sum` here, or just leave this as default and the system 
-	# will try to determine it's location through `which sha1sum --skip-alias`
+	# will try to determine its location through `which sha1sum --skip-alias`
 
 	my $sha1sum = `which sha1sum --skip-alias`;
 
@@ -191,7 +161,7 @@ sub sha1sum {
 sub cut {
 
 	# Manually set the path to `cut` here, or just leave this as default and the system 
-	# will try to determine it's location through `which cut --skip-alias`
+	# will try to determine its location through `which cut --skip-alias`
 
 	my $cut = `which cut --skip-alias`;
 
@@ -203,7 +173,7 @@ sub cut {
 sub visudo {
 
 	# Manually set the path to `visudo` here, or just leave this as default and the system 
-	# will try to determine it's location through `which visudo --skip-alias`
+	# will try to determine its location through `which visudo --skip-alias`
 
 	my $visudo = `which visudo --skip-alias`;
 
@@ -215,7 +185,7 @@ sub visudo {
 sub cp {
 
 	# Manually set the path to `cp` here, or just leave this as default and the system 
-	# will try to determine it's location through `which cp --skip-alias`
+	# will try to determine its location through `which cp --skip-alias`
 
 	my $cp = `which cp --skip-alias`;
 
@@ -227,7 +197,7 @@ sub cp {
 sub ls {
 
 	# Manually set the path to `ls` here, or just leave this as default and the system 
-	# will try to determine it's location through `which ls --skip-alias`
+	# will try to determine its location through `which ls --skip-alias`
 
 	my $ls = `which ls --skip-alias`;
 
@@ -239,7 +209,7 @@ sub ls {
 sub sudo_grep {
 
 	# Manually set the path to `grep` here, or just leave this as default and the system 
-	# will try to determine it's location through `which grep --skip-alias`
+	# will try to determine its location through `which grep --skip-alias`
 	#
 	# Why sudo_grep and not grep? - grep is a function inside perl, but it doesn't give us 
 	# what we need, so we need to use the system's grep instead. If I name this subroutine 
@@ -255,7 +225,7 @@ sub sudo_grep {
 sub head {
 
 	# Manually set the path to `head` here, or just leave this as default and the system 
-	# will try to determine it's location through `which head --skip-alias`
+	# will try to determine its location through `which head --skip-alias`
 
 	my $head = `which head --skip-alias`;
 
@@ -266,8 +236,7 @@ sub head {
 
 sub Owner_ID {
 
-	# For chowning sudoers after it's created, perl's chown needs an owner ID. I could've 
-	# hard-coded this as 0 (root), but it's more flexible if you can specify an owner ID.
+	# For changing the ownership of the sudoers file after it's created, we need to specify an owner. It is recommended to keep this as the default, which is ‘root’.
 
 	my $Owner = 'root';
 
@@ -295,7 +264,7 @@ sub Group_ID {
 
 sub Version {
 
-	# Don't touch this.
+	# This is where the DSMS System discovers its version number, which assists with both manual and automated Upgrading, among other things. You should not modify this value.
 
 	my $Version = '1.5.0';
 	return $Version;
@@ -305,7 +274,7 @@ sub Version {
 sub Server_Hostname {
 
 	# Don't touch this unless you want to trick the system into believing it isn't who it thinks 
-	# it is. A bit like Bruce Willis in Unbreakable.
+	# it is.
 
 	my $Hostname = `hostname`;
 	return $Hostname;
@@ -314,7 +283,7 @@ sub Server_Hostname {
 
 sub Random_Alpha_Numeric_Password {
 
-	# Don't touch this. Seriously, leave it.
+	# Don't touch this.
 
 	my $Random_Value;
 	my $Password_Length = $_[0];
@@ -346,7 +315,7 @@ sub Random_Alpha_Numeric_Password {
 
 sub Salt {
 
-	#Don't touch this. DO NOT TOUCH IT.
+	#Do not touch this. DO. NOT. TOUCH. THIS.
 
 	my $Random_Value;
 	my $Salt_Length = $_[0];

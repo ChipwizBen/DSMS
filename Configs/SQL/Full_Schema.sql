@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 5.5.38, for debian-linux-gnu (x86_64)
 --
--- Host: localhost    Database: sudoers
+-- Host: localhost    Database: Sudoers
 -- ------------------------------------------------------
 -- Server version	5.1.73
 
@@ -16,12 +16,12 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Current Database: `sudoers`
+-- Current Database: `Sudoers`
 --
 
-CREATE DATABASE /*!32312 IF NOT EXISTS*/ `sudoers` /*!40100 DEFAULT CHARACTER SET latin1 */;
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `Sudoers` /*!40100 DEFAULT CHARACTER SET latin1 */;
 
-USE `sudoers`;
+USE `Sudoers`;
 
 --
 -- Table structure for table `command_groups`
