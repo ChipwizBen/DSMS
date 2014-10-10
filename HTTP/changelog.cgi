@@ -34,6 +34,39 @@ sub html_output {
 	$Table->addRow( "Version", "Change" );
 	$Table->setRowClass (1, 'tbrow1');
 
+	## Version 1.5.0
+	$Table->addRow('1.5.0', 'Added MD5 checksum to Distribution Status for easier comparison with sudoers checksums 
+          currently on different systems.');
+	$Table->addRow('', 'Added option to specify port in DB connection string in \'common.pl\'.');
+	$Table->addRow('', 'Added the ability to specify Unix System Groups (in addition the the existing Sudo Groups) 
+          which are usually defined in /etc/group.');
+	$Table->addRow('', 'Added display highlighting to differentiate between Sudo Groups and System Groups across 
+          various screens.');
+	$Table->addRow('', 'Made the sudoers special host \'ALL\' (meaning all hosts) a selectable option for Host Groups 
+          and Hosts when attaching to a Rule.');
+	$Table->addRow('', 'Made it possible to search for Rules using the Global Search tool.');
+	$Table->addRow('', 'Made Expired Users/Hosts/Commands/Rules display as Expired instead of only Active/Inactive 
+          in the Global Search tool.');
+	$Table->addRow('', 'Fixed an array allocation bug where Commands searched for through the Global Search tool 
+          always returned as Active.');
+    $Table->addRow('', 'Tidied up formatting for descriptions below Add and Edit boxes - unordered lists and padding 
+          is now standard across all input boxes with multi-line descriptions.');
+    $Table->addRow('', 'Added Upgrade.sql file to facilitate database upgrading from 1.4.1 to 1.5.0 without needing 
+          to overwrite with the Full_Schema.sql');
+    $Table->addRow('', 'Added Default_Users.sql file to simplify MySQL installation process.');
+    $Table->addRow('', 'Changed Defaults Specification in environmential-variables to use the Red Hat Defaults.');
+    $Table->addRow('', 'Added an additional \'Section Ends\' comment to the end of each type section to make them 
+          clearer in very large sudoers files.');
+    $Table->addRow('', 'Updated the syntax highlighting on \'index.cgi\' to clearly mark each section\'s start and end.');
+    $Table->addRow('', 'New deployments will be shipped as .tar.gz files, as tar is installed on most Linux systems 
+          by default, but unzip is not.');
+    $Table->addRow('', 'README file has been dropped in favor of new full system installation and management 
+          documentation.');
+	$Table->addRow('', '$Remote_Sudoers default value in \'common.pl\' updated with new path to reflect new SFTP chroot 
+          recommendations, plus added option for relative paths.');
+	$Table->addRow('', 'Added an extra error handler for distribution file push failures.');
+	$Table->addRow('<hr />', '');
+
 	## Version 1.4.1
 	$Table->addRow('1.4.1', 'Offloaded the resolution of application paths to \'common.pl\' through `which` or manual 
           override to make it more system independent.');
