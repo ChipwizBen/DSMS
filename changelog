@@ -17,7 +17,7 @@
         - Added Upgrade.sql file to facilitate database upgrading from 1.4.1 to 1.5.0 without needing 
           to overwrite with the Full_Schema.sql
         - Added Default_Users.sql file to simplify MySQL installation process.
-        - Changed Defaults Specification in environmential-variables to use the Red Hat Defaults.
+        - Changed Defaults Specification in environmental-variables to use the Red Hat Defaults.
         - Added an additional 'Section Ends' comment to the end of each type section to make them 
           clearer in very large sudoers files.
         - Updated the syntax highlighting on 'index.cgi' to clearly mark each section's start and end.
