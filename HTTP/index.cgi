@@ -8,7 +8,6 @@ my ($CGI, $Session, $Cookie) = CGI();
 
 my $Sudoers_Location = Sudoers_Location();
 my $md5sum = md5sum();
-my $sha1sum = sha1sum();
 my $cut = cut();
 
 my $User_Name = $Session->param("User_Name"); #Accessing User_Name session var
@@ -30,20 +29,16 @@ Consider setting the sudoers file location in 'common.pl' or generating a sudoer
 If this is your first time running this system, first create some <a href='sudoers-hosts.cgi'>Hosts</a>, <a href='sudoers-users.cgi'>Users</a> and <a href='sudoers-commands.cgi'>Commands</a> and then attach those to <a href='sudoers-rules.cgi'>Rules</a> before running 'sudoers-build.pl'.";
 
 my $MD5_Checksum;
-my $SHA1_Checksum;
 if (!$Sudoers_Not_Found) {
 	$MD5_Checksum = `$md5sum $Sudoers_Location | $cut -d ' ' -f 1`;
 		$MD5_Checksum = "MD5: " . $MD5_Checksum;
-	$SHA1_Checksum = `$sha1sum $Sudoers_Location | $cut -d ' ' -f 1`;
-		$SHA1_Checksum = "SHA1: " . $SHA1_Checksum;
 }
 
 print <<ENDHTML;
 
 <div id='full-page-block'>
 <h2 style='text-align: center;'>Current Sudoers File</h2>
-<p style='text-align: center;'>$MD5_Checksum <br />
-$SHA1_Checksum</p>
+<p style='text-align: center;'>$MD5_Checksum</p>
 ENDHTML
 
 	foreach my $Line (<SUDOERS>) {

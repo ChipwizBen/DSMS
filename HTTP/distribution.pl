@@ -73,11 +73,11 @@ HOST: while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
     2) Check for a route to the remote host
     3) Check that your $Timeout second Timeout value is high enough"}
   
-			if ($Error =~ /Connection to remote server is broken/) {$Error = $Error ." 
+			elsif ($Error =~ /Connection to remote server is broken/) {$Error = $Error ." 
     Hints: 
     1) Badly formatted IP address
-    2) Identity file not found
-    3) Not enough permissions to read identity file"}
+    2) Key identity file not found
+    3) Not enough permissions to read key identity file"}
 
 			print "$Error\n\n";
 			$Update_Status->execute($Error, $DBID);
@@ -106,7 +106,7 @@ HOST: while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
     Hints: 
     1) Check that $User can write to $Remote_Sudoers"}
 
-			if ($Error =~ /Couldn't open remote file/) {$Error = $Error . " 
+			elsif ($Error =~ /Couldn't open remote file/) {$Error = $Error . " 
 	Hints: 
     1) Check that the remote path is correct
     2) If the Remote Server uses chroot, try making the path relative (i.e. path/sudoers instead of /path/sudoers)"}

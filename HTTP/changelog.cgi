@@ -65,6 +65,8 @@ sub html_output {
 	$Table->addRow('', '$Remote_Sudoers default value in \'common.pl\' updated with new path to reflect new SFTP chroot 
           recommendations, plus added option for relative paths.');
 	$Table->addRow('', 'Added an extra error handler for distribution file push failures.');
+	$Table->addRow('', 'Dropped sha1sum from system, as it duplicated tasks already performed by md5sum.');
+	$Table->addRow('', 'Global Search now correctly displays 0 returned results when no matches are found.');
 	$Table->addRow('<hr />', '');
 
 	## Version 1.4.1

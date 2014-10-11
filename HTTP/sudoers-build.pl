@@ -10,7 +10,6 @@ my $Sudoers_Storage = Sudoers_Storage();
 my $System_Name = System_Name();
 my $Version = Version();
 my $md5sum = md5sum();
-my $sha1sum = sha1sum();
 my $cut = cut();
 my $visudo = visudo();
 my $cp = cp();
@@ -644,8 +643,6 @@ sub record_audit {
 		$MD5_New_Checksum =~ s/\s//g;
 	my $MD5_Existing_Sudoers = `$md5sum $Sudoers_Storage/sudoers_$MD5_New_Checksum | $cut -d ' ' -f 1`;
 		$MD5_Existing_Sudoers =~ s/\s//g;
-	my $SHA1_Checksum = `$sha1sum $Sudoers_Location | $cut -d ' ' -f 1`;
-		$SHA1_Checksum =~ s/\s//g;
 
 	if ($Result eq 'PASSED' && $MD5_New_Checksum ne $MD5_Existing_Sudoers) {
 		my $New_Sudoers_Location = "$Sudoers_Storage/sudoers_$MD5_New_Checksum";
@@ -653,8 +650,7 @@ sub record_audit {
 		chown $Owner, $Group, $New_Sudoers_Location;
 		chmod 0640, $New_Sudoers_Location;
 		$MD5_New_Checksum = "MD5: " . $MD5_New_Checksum;
-		$SHA1_Checksum = "SHA1: " . $SHA1_Checksum;
-		$Audit_Log_Submission->execute("Sudoers", "Deployment Succeeded", "Configuration changes were detected and a new sudoers file was built, passed visudo validation, and checksums as follows: $MD5_New_Checksum, $SHA1_Checksum. A copy of this sudoers has been stored at '$New_Sudoers_Location' for future reference.", 'System');
+		$Audit_Log_Submission->execute("Sudoers", "Deployment Succeeded", "Configuration changes were detected and a new sudoers file was built, passed visudo validation, and MD5 checksums as follows: $MD5_New_Checksum. A copy of this sudoers has been stored at '$New_Sudoers_Location' for future reference.", 'System');
 	}
 	elsif ($Result eq 'FAILED') {
 		my $Latest_Good_Sudoers = `$ls -t $Sudoers_Storage | $grep 'sudoers_' | $head -1`;

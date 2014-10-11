@@ -28,6 +28,8 @@
         - $Remote_Sudoers default value in 'common.pl' updated with new path to reflect new SFTP chroot 
           recommendations, plus added option for relative paths.
         - Added an extra error handler for distribution file push failures.
+        - Dropped sha1sum from system, as it duplicated tasks already performed by md5sum.
+        - Global Search now correctly displays 0 returned results when no matches are found.
 1.4.1:  - Offloaded the resolution of application paths to 'common.pl' through `which` or manual 
           override to make it more system independent.
         - Bundled required non-core modules with package (for easier installation in offline 

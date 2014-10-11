@@ -40,7 +40,7 @@ if ($Search) {
 
 sub html_output {
 
-	my $Counter;
+	my $Counter = 0;
 
 	my $Table = new HTML::Table(
 		-cols=>4,
@@ -338,7 +338,7 @@ while ( my @Search = $Search_DB->fetchrow_array() ) {
 	}
 
 	if ($Active) {$Active = "<span style='color: #00FF00'>Active</span>"} else {$Active = "<span style='color: #FF0000'>Inactive</span>"}
-	if ($Approved) {$Approved = "Approved"} else {$Approved = "<span style='color: #FF0000'>Unapproved</span>"}
+	if ($Approved) {$Approved = "<span style='color: #00FF00'>Approved</span>"} else {$Approved = "<span style='color: #FF0000'>Unapproved</span>"}
 
 	$Counter++;
 

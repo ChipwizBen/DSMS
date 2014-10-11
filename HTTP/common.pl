@@ -146,18 +146,6 @@ sub md5sum {
 
 } # sub md5sum
 
-sub sha1sum {
-
-	# Manually set the path to `sha1sum` here, or just leave this as default and the system 
-	# will try to determine its location through `which sha1sum --skip-alias`
-
-	my $sha1sum = `which sha1sum --skip-alias`;
-
-	$sha1sum =~ s/\n//g;
-	return $sha1sum;
-
-} # sub sha1sum
-
 sub cut {
 
 	# Manually set the path to `cut` here, or just leave this as default and the system 
