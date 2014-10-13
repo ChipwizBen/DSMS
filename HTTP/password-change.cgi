@@ -63,10 +63,7 @@ sub change_password {
 				`username`
 			)
 			VALUES (
-				?,
-				?,
-				?,
-				?
+				?, ?, ?, ?
 			)");
 		
 			$Audit_Log_Submission->execute("Account Management", "Modify", "$User_Name changed their own password.", $User_Name);
