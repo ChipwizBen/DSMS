@@ -779,6 +779,22 @@ sub edit_group {
 
 	}
 
+	### Revoke Rule Approval ###
+
+	my $Update_Rule = $DB_Sudoers->prepare("UPDATE `rules`
+	INNER JOIN `lnk_rules_to_command_groups`
+	ON `rules`.`id` = `lnk_rules_to_command_groups`.`rule`
+	SET
+	`approved` = '0',
+	`approved_by` = 'Approval Revoked by $User_Name when modifying Command Group ID $Edit_Group'
+	WHERE `lnk_rules_to_command_groups`.`command_group` = ?");
+
+	my $Rules_Revoked = $Update_Rule->execute($Edit_Group);
+
+	if ($Rules_Revoked eq '0E0') {$Rules_Revoked = 0}
+
+	### / Revoke Rule Approval ###
+
 	# Audit Log
 	if ($Expires_Date_Edit eq '0000-00-00') {
 		$Expires_Date_Edit = 'does not expire';
@@ -821,12 +837,12 @@ sub edit_group {
 		`username`
 	)
 	VALUES (
-		?,
-		?,
-		?,
-		?
+		?, ?, ?, ?
 	)");
-	
+
+	if ($Rules_Revoked > 0) {
+		$Audit_Log_Submission->execute("Rules", "Revoke", "$User_Name modified Command Group ID $Edit_Group, which caused the revocation of $Rules_Revoked Rules to protect the integrity of remote systems.", $User_Name);
+	}
 	$Audit_Log_Submission->execute("Command Groups", "Modify", "$User_Name modified Command Group ID $Edit_Group. The new entry is recorded as $Group_Name_Edit, set $Active_Edit and $Expires_Date_Edit. $Command_Alias_Count new commands were attached$Commands_Attached.", $User_Name);
 	# / Audit Log
 
@@ -879,6 +895,22 @@ ENDHTML
 } # sub html_delete_group
 
 sub delete_group {
+
+	### Revoke Rule Approval ###
+
+	my $Update_Rule = $DB_Sudoers->prepare("UPDATE `rules`
+	INNER JOIN `lnk_rules_to_command_groups`
+	ON `rules`.`id` = `lnk_rules_to_command_groups`.`rule`
+	SET
+	`approved` = '0',
+	`approved_by` = 'Approval Revoked by $User_Name when deleting Command Group ID $Delete_Group_Confirm'
+	WHERE `lnk_rules_to_command_groups`.`command_group` = ?");
+
+	my $Rules_Revoked = $Update_Rule->execute($Delete_Group_Confirm);
+
+	if ($Rules_Revoked eq '0E0') {$Rules_Revoked = 0}
+
+	### / Revoke Rule Approval ###
 
 	# Audit Log
 	my $Select_Links = $DB_Sudoers->prepare("SELECT `command`
@@ -937,12 +969,12 @@ sub delete_group {
 			`username`
 		)
 		VALUES (
-			?,
-			?,
-			?,
-			?
+			?, ?, ?, ?
 		)");
-		
+
+		if ($Rules_Revoked > 0) {
+			$Audit_Log_Submission->execute("Rules", "Revoke", "$User_Name deleted Command Group ID $Delete_Group_Confirm, which caused the revocation of $Rules_Revoked Rules to protect the integrity of remote systems.", $User_Name);
+		}
 		$Audit_Log_Submission->execute("Command Groups", "Delete", "$User_Name deleted Command Group ID $Delete_Group_Confirm. The deleted entry's last values were $Group_Name, set $Active and $Expires. It had $Commands_Attached", $User_Name);
 
 	}
@@ -967,6 +999,22 @@ sub delete_group {
 
 sub delete_command {
 
+	### Revoke Rule Approval ###
+
+	my $Update_Rule = $DB_Sudoers->prepare("UPDATE `rules`
+	INNER JOIN `lnk_rules_to_command_groups`
+	ON `rules`.`id` = `lnk_rules_to_command_groups`.`rule`
+	SET
+	`approved` = '0',
+	`approved_by` = 'Approval Revoked by $User_Name when modifying Command Group ID $Delete_Command_From_Group_ID'
+	WHERE `lnk_rules_to_command_groups`.`command_group` = ?");
+
+	my $Rules_Revoked = $Update_Rule->execute($Delete_Command_From_Group_ID);
+
+	if ($Rules_Revoked eq '0E0') {$Rules_Revoked = 0}
+
+	### / Revoke Rule Approval ###
+
 	# Audit Log
 	my $Select_Commands = $DB_Sudoers->prepare("SELECT `command_alias`, `command`
 		FROM `commands`
@@ -985,12 +1033,12 @@ sub delete_command {
 			`username`
 		)
 		VALUES (
-			?,
-			?,
-			?,
-			?
+			?, ?, ?, ?
 		)");
-		
+
+		if ($Rules_Revoked > 0) {
+			$Audit_Log_Submission->execute("Rules", "Revoke", "$User_Name deleted Command ID $Delete_Command_ID from Command Group ID $Delete_Command_From_Group_ID, which caused the revocation of $Rules_Revoked Rules to protect the integrity of remote systems.", $User_Name);
+		}
 		$Audit_Log_Submission->execute("Command Groups", "Delete", "$User_Name removed $Command_Alias ($Command) [Command ID $Delete_Command_ID] from Command Group $Delete_Command_From_Group_Name [Command Group ID $Delete_Command_From_Group_ID].", $User_Name);
 
 	}

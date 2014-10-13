@@ -455,6 +455,22 @@ sub edit_command {
 	}
 	### / Existing Command Check
 
+	### Revoke Rule Approval ###
+
+	my $Update_Rule = $DB_Sudoers->prepare("UPDATE `rules`
+	INNER JOIN `lnk_rules_to_commands`
+	ON `rules`.`id` = `lnk_rules_to_commands`.`rule`
+	SET
+	`approved` = '0',
+	`approved_by` = 'Approval Revoked by $User_Name when modifying Command ID $Edit_Command_Post'
+	WHERE `lnk_rules_to_commands`.`command` = ?");
+
+	my $Rules_Revoked = $Update_Rule->execute($Edit_Command_Post);
+
+	if ($Rules_Revoked eq '0E0') {$Rules_Revoked = 0}
+
+	### / Revoke Rule Approval ###
+
 	if (!$User_Approver) {$Active_Edit = 0};
 
 	if ($Expires_Toggle_Edit ne 'on') {
@@ -489,12 +505,12 @@ sub edit_command {
 		`username`
 	)
 	VALUES (
-		?,
-		?,
-		?,
-		?
+		?, ?, ?, ?
 	)");
-	
+
+	if ($Rules_Revoked > 0) {
+		$Audit_Log_Submission->execute("Rules", "Revoke", "$User_Name modified Command ID $Edit_Command_Post, which caused the revocation of $Rules_Revoked Rules to protect the integrity of remote systems.", $User_Name);
+	}
 	$Audit_Log_Submission->execute("Commands", "Modify", "$User_Name modified Command ID $Edit_Command_Post. The new entry is recorded as $Command_Alias_Edit ($Command_Edit), set $Active_Edit and $Expires_Date_Edit.", $User_Name);
 	# / Audit Log
 
@@ -552,6 +568,22 @@ ENDHTML
 
 sub delete_command {
 
+	### Revoke Rule Approval ###
+
+	my $Update_Rule = $DB_Sudoers->prepare("UPDATE `rules`
+	INNER JOIN `lnk_rules_to_commands`
+	ON `rules`.`id` = `lnk_rules_to_commands`.`rule`
+	SET
+	`approved` = '0',
+	`approved_by` = 'Approval Revoked by $User_Name when deleting Command ID $Delete_Command_Confirm'
+	WHERE `lnk_rules_to_commands`.`command` = ?");
+
+	my $Rules_Revoked = $Update_Rule->execute($Delete_Command_Confirm);
+
+	if ($Rules_Revoked eq '0E0') {$Rules_Revoked = 0}
+
+	### / Revoke Rule Approval ###
+
 	# Audit Log
 	my $Select_Commands = $DB_Sudoers->prepare("SELECT `command_alias`, `command`, `expires`, `active`
 		FROM `commands`
@@ -579,12 +611,12 @@ sub delete_command {
 			`username`
 		)
 		VALUES (
-			?,
-			?,
-			?,
-			?
+			?, ?, ?, ?
 		)");
-		
+
+		if ($Rules_Revoked > 0) {
+			$Audit_Log_Submission->execute("Rules", "Revoke", "$User_Name deleted Command ID $Delete_Command_Confirm, which caused the revocation of $Rules_Revoked Rules to protect the integrity of remote systems.", $User_Name);
+		}
 		$Audit_Log_Submission->execute("Commands", "Delete", "$User_Name deleted Command ID $Delete_Command_Confirm. The deleted entry's last values were $Command_Alias ($Command), set $Active and $Expires.", $User_Name);
 
 	}

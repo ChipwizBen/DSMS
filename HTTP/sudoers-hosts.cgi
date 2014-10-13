@@ -459,6 +459,22 @@ sub edit_host {
 		$Expires_Date_Edit = '0000-00-00';
 	}
 
+	### Revoke Rule Approval ###
+
+	my $Update_Rule = $DB_Sudoers->prepare("UPDATE `rules`
+	INNER JOIN `lnk_rules_to_hosts`
+	ON `rules`.`id` = `lnk_rules_to_hosts`.`rule`
+	SET
+	`approved` = '0',
+	`approved_by` = 'Approval Revoked by $User_Name when modifying Host ID $Edit_Host_Post'
+	WHERE `lnk_rules_to_hosts`.`host` = ?");
+
+	my $Rules_Revoked = $Update_Rule->execute($Edit_Host_Post);
+
+	if ($Rules_Revoked eq '0E0') {$Rules_Revoked = 0}
+
+	### / Revoke Rule Approval ###
+
 	my $Update_Host = $DB_Sudoers->prepare("UPDATE `hosts` SET
 		`hostname` = ?,
 		`ip` = ?,
@@ -487,12 +503,13 @@ sub edit_host {
 		`username`
 	)
 	VALUES (
-		?,
-		?,
-		?,
-		?
+		?, ?, ?, ?
 	)");
-	
+
+	if ($Rules_Revoked > 0) {
+		$Audit_Log_Submission->execute("Rules", "Revoke", "$User_Name modified Host ID $Edit_Host_Post, which caused the revocation of $Rules_Revoked Rules to protect the integrity of remote systems.", $User_Name);
+	}
+
 	$Audit_Log_Submission->execute("Hosts", "Modify", "$User_Name modified Host ID $Edit_Host_Post. The new entry is recorded as $Host_Name_Edit ($IP_Edit), set $Active_Edit and $Expires_Date_Edit.", $User_Name);
 	# / Audit Log
 
@@ -557,6 +574,22 @@ sub delete_host {
 
 	$Select_Hosts->execute($Delete_Host_Confirm);
 
+	### Revoke Rule Approval ###
+
+	my $Update_Rule = $DB_Sudoers->prepare("UPDATE `rules`
+	INNER JOIN `lnk_rules_to_hosts`
+	ON `rules`.`id` = `lnk_rules_to_hosts`.`rule`
+	SET
+	`approved` = '0',
+	`approved_by` = 'Approval Revoked by $User_Name when deleting Host ID $Delete_Host_Confirm'
+	WHERE `lnk_rules_to_hosts`.`host` = ?");
+
+	my $Rules_Revoked = $Update_Rule->execute($Delete_Host_Confirm);
+
+	if ($Rules_Revoked eq '0E0') {$Rules_Revoked = 0}
+
+	### / Revoke Rule Approval ###
+
 	while (( my $Hostname, my $IP, my $Expires, my $Active ) = $Select_Hosts->fetchrow_array() )
 	{
 
@@ -568,7 +601,7 @@ sub delete_host {
 		}
 	
 		if ($Active) {$Active = 'Active'} else {$Active = 'Inactive'}
-	
+
 		my $DB_Management = DB_Management();
 		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
 			`category`,
@@ -579,7 +612,10 @@ sub delete_host {
 		VALUES (
 			?, ?, ?, ?
 		)");
-		
+
+		if ($Rules_Revoked > 0) {
+			$Audit_Log_Submission->execute("Rules", "Revoke", "$User_Name deleted Host ID $Delete_Host_Confirm, which caused the revocation of $Rules_Revoked Rules to protect the integrity of remote systems.", $User_Name);
+		}
 		$Audit_Log_Submission->execute("Hosts", "Delete", "$User_Name deleted Host ID $Delete_Host_Confirm. The deleted entry's last values were $Hostname ($IP), set $Active and $Expires.", $User_Name);
 		$Audit_Log_Submission->execute("Distribution", "Delete", "$User_Name deleted $Hostname ($IP) [Host ID $Delete_Host_Confirm] from the sudoers distribution system.", $User_Name);
 

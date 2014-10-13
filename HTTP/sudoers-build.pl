@@ -21,6 +21,24 @@ my $Group = Group_ID();
 
 my $Date = strftime "%Y-%m-%d", localtime;
 
+# Safety check for unapproved Rules
+
+	my $Select_Rules = $DB_Sudoers->prepare("SELECT `id`
+		FROM `rules`
+		WHERE `active` = '1'
+		AND `approved` = '0'"
+	);
+
+	$Select_Rules->execute();
+	my $Rows = $Select_Rules->rows();
+
+	if ($Rows > 0) {
+		print "You have Rules pending approval. Please either approve or delete unapproved Rules before continuing. Exiting...\n";
+		exit(1);
+	}
+
+# / Safety check for unapproved Rules
+
 &write_environmentals;
 &write_host_groups;
 &write_user_groups;
@@ -577,7 +595,7 @@ sub write_rules {
 	{
 
 		my $DBID = $Select_Rules[0];
-		my $DB_Rule_Name = $Select_Rules[3];
+		my $DB_Rule_Name = $Select_Rules[1];
 		my $ALL_Hosts = $Select_Rules[2];
 		my $Run_As = $Select_Rules[3];
 		my $NOPASSWD = $Select_Rules[4];

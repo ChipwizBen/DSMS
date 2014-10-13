@@ -4,6 +4,7 @@ use strict;
 
 require 'common.pl';
 my $DB_Management = DB_Management();
+my $DB_Sudoers = DB_Sudoers();
 my ($CGI, $Session, $Cookie) = CGI();
 
 my $Sudoers_Location = Sudoers_Location();
@@ -31,14 +32,57 @@ If this is your first time running this system, first create some <a href='sudoe
 my $MD5_Checksum;
 if (!$Sudoers_Not_Found) {
 	$MD5_Checksum = `$md5sum $Sudoers_Location | $cut -d ' ' -f 1`;
-		$MD5_Checksum = "MD5: " . $MD5_Checksum;
 }
+
+my $Rules_Require_Approval;
+my $Select_Rules = $DB_Sudoers->prepare("SELECT `id`
+	FROM `rules`
+	WHERE `active` = '1'
+	AND `approved` = '0'"
+);
+
+$Select_Rules->execute();
+my $Rows = $Select_Rules->rows();
+
+if ($Rows > 0) {
+	$Rules_Require_Approval ="<div style='background-color: #FF0000; width: 100%; font-size: 20px; text-align: center;'>
+	You have Rules pending approval. Distribution is on hold.
+	</div>
+";
+}
+else {
+	$Rules_Require_Approval = '';
+}
+
+
+
+my $Sudoers_Modification_Stamp = (stat($Sudoers_Location))[9];
+my $Sudoers_Modification_Time  = localtime($Sudoers_Modification_Stamp);
 
 print <<ENDHTML;
 
 <div id='full-page-block'>
-<h2 style='text-align: center;'>Current Sudoers File</h2>
-<p style='text-align: center;'>$MD5_Checksum</p>
+$Rules_Require_Approval
+<h2 style='text-align: center;'>Currently Distributed Sudoers File</h2>
+<table align="center" style='font-size: 14px;'>
+	<tr>
+		<td>
+			Built:
+		</td>
+		<td style='color: #00FF00;'>
+			$Sudoers_Modification_Time
+		</td>
+	</tr>
+	<tr>
+		<td>
+			MD5:
+		</td>
+		<td style='color: #00FF00;'>
+			$MD5_Checksum
+		</td>
+	</tr>
+</table>
+<br />
 ENDHTML
 
 	foreach my $Line (<SUDOERS>) {

@@ -51,10 +51,7 @@ sub html_output {
 		`username`
 	)
 	VALUES (
-		?,
-		?,
-		?,
-		?
+		?, ?, ?, ?
 	)");
 
 	$Audit_Log_Submission->execute("Audit Log", "View", "$User_Name accessed the Audit Log.", $User_Name);
@@ -89,7 +86,7 @@ sub html_output {
 		LIMIT 0 , $Rows_Returned");
 
 	$Select_Logs->execute("%$User_Name_Filter%", "%$Category_Filter%", "%$Method_Filter%", "%$Filter%", "%$Filter%", "%$Filter%", "%$Filter%", "%$Filter%", "%$Filter%" );
-	
+
 	my $Rows = $Select_Logs->rows();
 
 	my $Select_Logs_Count = $DB_Management->prepare("SELECT `id` FROM `audit_log`");
@@ -136,6 +133,9 @@ sub html_output {
 		}
 		elsif ($Method_Clean eq 'Approve') {
 			$Table->setCellClass (-1, 3, 'tbrowdarkgreen');
+		}
+		elsif ($Method_Clean eq 'Revoke') {
+			$Table->setCellClass (-1, 3, 'tbrowerror');
 		}
 
 		$Table->setColWidth(1, '1px');

@@ -169,11 +169,10 @@ textarea:focus {
 
 #strip {
 	position: absolute;
-	margin-left: 2pc;
-	margin-right: 2pc;
+	margin-left: 5px;
+	margin-right: 5px;
 	left: 0;
 	right: 0;
-	top: 35px;
 	width: auto;
 	min-width: 1000px;
 	}
@@ -229,6 +228,7 @@ textarea:focus {
 	z-index: 10;
 	}
 
+
 /*
 -----Buttons-----
 */
@@ -267,12 +267,12 @@ textarea:focus {
 	width: auto;
 }
 
-
 .tooltip:hover:after {
 	background: #333333;
 	background: rgba(0,0,0.8);
 	border-radius: 5px;
-	bottom: 24px;
+	bottom: 20px;
+	left:0;
 	color: #FFFFFF;
 	content: attr(text);
 	padding: 5px 15px;
@@ -286,13 +286,12 @@ textarea:focus {
 	border-color: #333333 transparent;
 	border-width: 10px 10px 0 10px;
 	bottom: 0px;
+	top:-10px;
 	content: "";
 	left: 10px;
 	position: absolute;
 	z-index: 99;
 }
-
-
 
 
 /*
@@ -367,9 +366,9 @@ textarea:focus {
 	margin: 0px 0px 0px 0px;
 	padding: 0px 0px 0px 0px;
 	z-index: 100;
-	transition: color 1s linear;
-	-webkit-transition: color 1s linear;
-	-moz-transition: color 1s linear;
+	transition: color 0.3s linear;
+	-webkit-transition: color 0.3s linear;
+	-moz-transition: color 0.3s linear;
 	}
 
 #navigation li ul li {
@@ -560,6 +559,7 @@ textarea:focus {
 	z-index: 1;
 	}
 
+
 /*
 -----Table-----
 */
@@ -570,9 +570,6 @@ table {
 	font-weight: bold;
 	border-radius: 10px;	
 	-webkit-border-radius: 10px;
-	transition: all 0.3s linear;
-	-webkit-transition: all 0.3s linear;
-	-moz-transition: all 0.3s linear;
 	}
 
 .tbrow1 {
@@ -858,6 +855,7 @@ table {
 	-webkit-box-shadow: -100px -100px 10px 10000px rgba(87, 87, 87, 0.85);
 	z-index: 80;
 	}
+
 
 /*
 -----Link Footer-----

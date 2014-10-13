@@ -798,6 +798,22 @@ sub edit_group {
 	}
 	### / Existing Group_Name Check
 
+	### Revoke Rule Approval ###
+
+	my $Update_Rule = $DB_Sudoers->prepare("UPDATE `rules`
+	INNER JOIN `lnk_rules_to_user_groups`
+	ON `rules`.`id` = `lnk_rules_to_user_groups`.`rule`
+	SET
+	`approved` = '0',
+	`approved_by` = 'Approval Revoked by $User_Name when modifying User Group ID $Edit_Group'
+	WHERE `lnk_rules_to_user_groups`.`user_group` = ?");
+
+	my $Rules_Revoked = $Update_Rule->execute($Edit_Group);
+
+	if ($Rules_Revoked eq '0E0') {$Rules_Revoked = 0}
+
+	### / Revoke Rule Approval ###
+
 	if (!$User_Approver) {$Active_Edit = 0};
 
 	if ($System_Group_Toggle_Edit eq 'on') {
@@ -893,7 +909,10 @@ sub edit_group {
 	VALUES (
 		?, ?, ?, ?
 	)");
-	
+
+	if ($Rules_Revoked > 0) {
+		$Audit_Log_Submission->execute("Rules", "Revoke", "$User_Name modified User Group ID $Edit_Group, which caused the revocation of $Rules_Revoked Rules to protect the integrity of remote systems.", $User_Name);
+	}
 	$Audit_Log_Submission->execute("User Groups", "Modify", "$User_Name modified User Group ID $Edit_Group. The new entry is recorded as $System_Group_Toggle_Edit Group $Group_Name_Edit, set $Active_Edit and $Expires_Date_Edit. $User_Count new users were attached$Users_Attached.", $User_Name);
 	# / Audit Log
 
@@ -946,6 +965,22 @@ ENDHTML
 } # sub html_delete_group
 
 sub delete_group {
+
+	### Revoke Rule Approval ###
+
+	my $Update_Rule = $DB_Sudoers->prepare("UPDATE `rules`
+	INNER JOIN `lnk_rules_to_user_groups`
+	ON `rules`.`id` = `lnk_rules_to_user_groups`.`rule`
+	SET
+	`approved` = '0',
+	`approved_by` = 'Approval Revoked by $User_Name when deleting User Group ID $Delete_Group_Confirm'
+	WHERE `lnk_rules_to_user_groups`.`user_group` = ?");
+
+	my $Rules_Revoked = $Update_Rule->execute($Delete_Group_Confirm);
+
+	if ($Rules_Revoked eq '0E0') {$Rules_Revoked = 0}
+
+	### / Revoke Rule Approval ###
 
 	# Audit Log
 	my $Select_Links = $DB_Sudoers->prepare("SELECT `user`
@@ -1006,7 +1041,10 @@ sub delete_group {
 		VALUES (
 			?, ?, ?, ?
 		)");
-		
+
+		if ($Rules_Revoked > 0) {
+			$Audit_Log_Submission->execute("Rules", "Revoke", "$User_Name deleted User Group ID $Delete_Group_Confirm, which caused the revocation of $Rules_Revoked Rules to protect the integrity of remote systems.", $User_Name);
+		}
 		$Audit_Log_Submission->execute("User Groups", "Delete", "$User_Name deleted User Group ID $Delete_Group_Confirm. The deleted entry's last values were $Group_Name, set $Active and $Expires. It had $Users_Attached", $User_Name);
 
 	}
@@ -1031,6 +1069,22 @@ sub delete_group {
 
 sub delete_user {
 
+	### Revoke Rule Approval ###
+
+	my $Update_Rule = $DB_Sudoers->prepare("UPDATE `rules`
+	INNER JOIN `lnk_rules_to_user_groups`
+	ON `rules`.`id` = `lnk_rules_to_user_groups`.`rule`
+	SET
+	`approved` = '0',
+	`approved_by` = 'Approval Revoked by $User_Name when modifying User Group ID $Delete_User_From_Group_ID'
+	WHERE `lnk_rules_to_user_groups`.`user_group` = ?");
+
+	my $Rules_Revoked = $Update_Rule->execute($Delete_User_From_Group_ID);
+
+	if ($Rules_Revoked eq '0E0') {$Rules_Revoked = 0}
+
+	### / Revoke Rule Approval ###
+
 	# Audit Log
 	my $Select_Users = $DB_Sudoers->prepare("SELECT `username`
 		FROM `users`
@@ -1049,12 +1103,12 @@ sub delete_user {
 			`username`
 		)
 		VALUES (
-			?,
-			?,
-			?,
-			?
+			?, ?, ?, ?
 		)");
-		
+
+		if ($Rules_Revoked > 0) {
+			$Audit_Log_Submission->execute("Rules", "Revoke", "$User_Name deleted User ID $Delete_User_ID from User Group ID $Delete_User_From_Group_ID, which caused the revocation of $Rules_Revoked Rules to protect the integrity of remote systems.", $User_Name);
+		}
 		$Audit_Log_Submission->execute("User Groups", "Delete", "$User_Name removed $Username [User ID $Delete_User_ID] from User Group $Delete_User_From_Group_Name [User Group ID $Delete_User_From_Group_ID].", $User_Name);
 
 	}

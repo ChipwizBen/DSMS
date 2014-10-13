@@ -370,6 +370,22 @@ sub edit_user {
 	}
 	### / Existing User_Name Check
 
+	### Revoke Rule Approval ###
+
+	my $Update_Rule = $DB_Sudoers->prepare("UPDATE `rules`
+	INNER JOIN `lnk_rules_to_users`
+	ON `rules`.`id` = `lnk_rules_to_users`.`rule`
+	SET
+	`approved` = '0',
+	`approved_by` = 'Approval Revoked by $User_Name when modifying User ID $Edit_User_Post'
+	WHERE `lnk_rules_to_users`.`user` = ?");
+
+	my $Rules_Revoked = $Update_Rule->execute($Edit_User_Post);
+
+	if ($Rules_Revoked eq '0E0') {$Rules_Revoked = 0}
+
+	### / Revoke Rule Approval ###
+
 	if (!$User_Approver) {$Active_Edit = 0};
 	if ($Expires_Toggle_Edit ne 'on') {
 		$Expires_Date_Edit = '0000-00-00';
@@ -402,12 +418,12 @@ sub edit_user {
 		`username`
 	)
 	VALUES (
-		?,
-		?,
-		?,
-		?
+		?, ?, ?, ?
 	)");
-	
+
+	if ($Rules_Revoked > 0) {
+		$Audit_Log_Submission->execute("Rules", "Revoke", "$User_Name modified User ID $Edit_User_Post, which caused the revocation of $Rules_Revoked Rules to protect the integrity of remote systems.", $User_Name);
+	}
 	$Audit_Log_Submission->execute("Users", "Modify", "$User_Name modified User ID $Edit_User_Post. The new entry is recorded as $User_Name_Edit, set $Active_Edit and $Expires_Date_Edit.", $User_Name);
 	# / Audit Log
 
@@ -460,6 +476,22 @@ ENDHTML
 
 sub delete_user {
 
+	### Revoke Rule Approval ###
+
+	my $Update_Rule = $DB_Sudoers->prepare("UPDATE `rules`
+	INNER JOIN `lnk_rules_to_users`
+	ON `rules`.`id` = `lnk_rules_to_users`.`rule`
+	SET
+	`approved` = '0',
+	`approved_by` = 'Approval Revoked by $User_Name when deleting User ID $Delete_User_Confirm'
+	WHERE `lnk_rules_to_users`.`user` = ?");
+
+	my $Rules_Revoked = $Update_Rule->execute($Delete_User_Confirm);
+
+	if ($Rules_Revoked eq '0E0') {$Rules_Revoked = 0}
+
+	### / Revoke Rule Approval ###
+
 	# Audit Log
 	my $Select_Users = $DB_Sudoers->prepare("SELECT `username`, `expires`, `active`
 		FROM `users`
@@ -487,12 +519,13 @@ sub delete_user {
 			`username`
 		)
 		VALUES (
-			?,
-			?,
-			?,
-			?
+			?, ?, ?, ?
 		)");
-		
+
+		if ($Rules_Revoked > 0) {
+			$Audit_Log_Submission->execute("Rules", "Revoke", "$User_Name deleted User ID $Delete_User_Confirm, which caused the revocation of $Rules_Revoked Rules to protect the integrity of remote systems.", $User_Name);
+		}
+
 		$Audit_Log_Submission->execute("Users", "Delete", "$User_Name deleted User ID $Delete_User_Confirm. The deleted entry's last values were $Username, set $Active and $Expires.", $User_Name);
 
 	}

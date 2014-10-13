@@ -2223,11 +2223,13 @@ sub edit_rule {
 		$ALL_Hosts = 0;
 	}
 
+	my $Approved_By = $User_Name;
 	if (!$User_Requires_Approval && $User_Approver) {
 		$Approved = 1;
 	}
 	else {
 		$Approved = 0;
+		$Approved_By =~ 'Approval Revoked';
 	}
 
 	if ($Expires_Toggle_Edit ne 'on') {
@@ -2243,9 +2245,10 @@ sub edit_rule {
 		`expires` = ?,
 		`active` = ?,
 		`approved` = ?,
+		`approved_by` = ?,
 		`modified_by` = ?
 		WHERE `id` = ?");
-	$Update_Rule->execute($Rule_Name_Edit, $ALL_Hosts, $Run_As_Edit, $NOPASSWD_Edit, $NOEXEC_Edit, $Expires_Date_Edit, $Active_Edit, $Approved, $User_Name, $Edit_Rule);
+	$Update_Rule->execute($Rule_Name_Edit, $ALL_Hosts, $Run_As_Edit, $NOPASSWD_Edit, $NOEXEC_Edit, $Expires_Date_Edit, $Active_Edit, $Approved, $Approved_By, $User_Name, $Edit_Rule);
 
 	# Audit Log
 	if ($Expires_Date_Edit eq '0000-00-00' || !$Expires_Date_Edit) {
@@ -2311,10 +2314,7 @@ sub edit_rule {
 				`username`
 			)
 			VALUES (
-				?,
-				?,
-				?,
-				?
+				?, ?, ?, ?
 			)");
 			$Audit_Log_Submission->execute("Rules", "Modify", "$User_Name added Host Group $Name [Host Group ID $Host_Group] to Rule $Rule_Name_Edit [Rule ID $Edit_Rule]", $User_Name);
 		}
@@ -2354,10 +2354,7 @@ sub edit_rule {
 				`username`
 			)
 			VALUES (
-				?,
-				?,
-				?,
-				?
+				?, ?, ?, ?
 			)");
 			$Audit_Log_Submission->execute("Rules", "Modify", "$User_Name added Host $Name [Host ID $Host] to Rule $Rule_Name_Add [Rule ID $Edit_Rule]", $User_Name);
 		}
@@ -2397,10 +2394,7 @@ sub edit_rule {
 				`username`
 			)
 			VALUES (
-				?,
-				?,
-				?,
-				?
+				?, ?, ?, ?
 			)");
 			$Audit_Log_Submission->execute("Rules", "Modify", "$User_Name added User Group $Name [User Group ID $User_Group] to Rule $Rule_Name_Edit [Rule ID $Edit_Rule]", $User_Name);
 		}
@@ -2527,10 +2521,7 @@ sub edit_rule {
 				`username`
 			)
 			VALUES (
-				?,
-				?,
-				?,
-				?
+				?, ?, ?, ?
 			)");
 			$Audit_Log_Submission->execute("Rules", "Modify", "$User_Name added Command $Name [Command ID $Command] to Rule $Rule_Name_Add [Rule ID $Edit_Rule]", $User_Name);
 		}
@@ -2617,10 +2608,7 @@ sub delete_rule {
 			`username`
 		)
 		VALUES (
-			?,
-			?,
-			?,
-			?
+			?, ?, ?, ?
 		)");
 		$Audit_Log_Submission->execute("Rules", "Delete", "$User_Name deleted Rule ID $Delete_Rule_Confirm. The deleted entry's last values were $Rule_Name, run as $Run_As with flags $NOPASSWD and $NOEXEC, set $Active and $Expires.", $User_Name);
 	}
@@ -2668,6 +2656,16 @@ sub delete_rule_item {
 	my $Rule = $Select_Rule->fetchrow_array();
 
 ### / Find Rule Name ###
+
+### Revoke Rule Approval ###
+
+	my $Update_Rule = $DB_Sudoers->prepare("UPDATE `rules` SET
+		`approved` = '0',
+		`approved_by` = 'Approval Revoked by $User_Name when modifying this rule.'
+		WHERE `id` = ?");
+	$Update_Rule->execute($Delete_Rule_Item_ID);
+
+### / Revoke Rule Approval ###
 
 ### Host Groups ###
 
@@ -3100,7 +3098,9 @@ sub html_output {
 		my $Last_Approved = $Select_Rules[9];
 			if ($Last_Approved eq '0000-00-00 00:00:00') {$Last_Approved = "<span style='color: #FF0000'>Unapproved</span>"} else {$Last_Approved = "<span style='color: #B6B600'>$Last_Approved</span>"};
 		my $Approved_By = $Select_Rules[10];
-			if ($Approved_By eq undef) {$Approved_By = "<span style='color: #FF0000'>Unapproved</span>"} else {$Approved_By = "<span style='color: #B6B600'>$Approved_By</span>"};
+			if ($Approved_By eq undef) {$Approved_By = "<span style='color: #FF0000'>Unapproved</span>"}
+			elsif ($Approved_By =~ /^Approval Revoked by /) {$Approved_By = "<span style='color: #FF6100'>$Approved_By</span>"}
+			else {$Approved_By = "<span style='color: #B6B600'>$Approved_By</span>"};
 		my $Last_Modified = $Select_Rules[11];
 		my $Modified_By = $Select_Rules[12];
 

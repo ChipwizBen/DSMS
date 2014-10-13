@@ -743,6 +743,22 @@ sub edit_group {
 	}
 	### / Existing Group_Name Check
 
+	### Revoke Rule Approval ###
+
+	my $Update_Rule = $DB_Sudoers->prepare("UPDATE `rules`
+	INNER JOIN `lnk_rules_to_host_groups`
+	ON `rules`.`id` = `lnk_rules_to_host_groups`.`rule`
+	SET
+	`approved` = '0',
+	`approved_by` = 'Approval Revoked by $User_Name when modifying Host Group ID $Edit_Group'
+	WHERE `lnk_rules_to_host_groups`.`host_group` = ?");
+
+	my $Rules_Revoked = $Update_Rule->execute($Edit_Group);
+
+	if ($Rules_Revoked eq '0E0') {$Rules_Revoked = 0}
+
+	### / Revoke Rule Approval ###
+
 	if (!$User_Approver) {$Active_Edit = 0};
 	if ($Expires_Toggle_Edit ne 'on') {
 		$Expires_Date_Edit = '0000-00-00';
@@ -821,12 +837,13 @@ sub edit_group {
 		`username`
 	)
 	VALUES (
-		?,
-		?,
-		?,
-		?
+		?, ?, ?, ?
 	)");
-	
+
+	if ($Rules_Revoked > 0) {
+		$Audit_Log_Submission->execute("Rules", "Revoke", "$User_Name modified Host Group ID $Edit_Group, which caused the revocation of $Rules_Revoked Rules to protect the integrity of remote systems.", $User_Name);
+	}
+
 	$Audit_Log_Submission->execute("Host Groups", "Modify", "$User_Name modified Host Group ID $Edit_Group. The new entry is recorded as $Group_Name_Edit, set $Active_Edit and $Expires_Date_Edit. $Host_Count new hosts were attached$Hosts_Attached.", $User_Name);
 	# / Audit Log
 
@@ -909,6 +926,22 @@ sub delete_group {
 
 	$Select_Hosts->execute($Delete_Group_Confirm);
 
+	### Revoke Rule Approval ###
+
+	my $Update_Rule = $DB_Sudoers->prepare("UPDATE `rules`
+	INNER JOIN `lnk_rules_to_host_groups`
+	ON `rules`.`id` = `lnk_rules_to_host_groups`.`rule`
+	SET
+	`approved` = '0',
+	`approved_by` = 'Approval Revoked by $User_Name when deleting Host Group ID $Delete_Group_Confirm'
+	WHERE `lnk_rules_to_host_groups`.`host_group` = ?");
+
+	my $Rules_Revoked = $Update_Rule->execute($Delete_Group_Confirm);
+
+	if ($Rules_Revoked eq '0E0') {$Rules_Revoked = 0}
+
+	### / Revoke Rule Approval ###
+
 	while (( my $Group_Name, my $Expires, my $Active ) = $Select_Hosts->fetchrow_array() )
 	{
 
@@ -937,12 +970,12 @@ sub delete_group {
 			`username`
 		)
 		VALUES (
-			?,
-			?,
-			?,
-			?
+			?, ?, ?, ?
 		)");
-		
+
+		if ($Rules_Revoked > 0) {
+			$Audit_Log_Submission->execute("Rules", "Revoke", "$User_Name deleted Host Group ID $Delete_Group_Confirm, which caused the revocation of $Rules_Revoked Rules to protect the integrity of remote systems.", $User_Name);
+		}
 		$Audit_Log_Submission->execute("Host Groups", "Delete", "$User_Name deleted Host Group ID $Delete_Group_Confirm. The deleted entry's last values were $Group_Name, set $Active and $Expires. It had $Hosts_Attached", $User_Name);
 
 	}
@@ -967,6 +1000,22 @@ sub delete_group {
 
 sub delete_host {
 
+	### Revoke Rule Approval ###
+
+	my $Update_Rule = $DB_Sudoers->prepare("UPDATE `rules`
+	INNER JOIN `lnk_rules_to_host_groups`
+	ON `rules`.`id` = `lnk_rules_to_host_groups`.`rule`
+	SET
+	`approved` = '0',
+	`approved_by` = 'Approval Revoked by $User_Name when modifying Host Group ID $Delete_Host_From_Group_ID'
+	WHERE `lnk_rules_to_host_groups`.`host_group` = ?");
+
+	my $Rules_Revoked = $Update_Rule->execute($Delete_Host_From_Group_ID);
+
+	if ($Rules_Revoked eq '0E0') {$Rules_Revoked = 0}
+
+	### / Revoke Rule Approval ###
+
 	# Audit Log
 	my $Select_Hosts = $DB_Sudoers->prepare("SELECT `hostname`, `ip`
 		FROM `hosts`
@@ -985,12 +1034,12 @@ sub delete_host {
 			`username`
 		)
 		VALUES (
-			?,
-			?,
-			?,
-			?
+			?, ?, ?, ?
 		)");
-		
+
+		if ($Rules_Revoked > 0) {
+			$Audit_Log_Submission->execute("Rules", "Revoke", "$User_Name deleted Host ID $Delete_Host_ID from Host Group ID $Delete_Host_From_Group_ID, which caused the revocation of $Rules_Revoked Rules to protect the integrity of remote systems.", $User_Name);
+		}
 		$Audit_Log_Submission->execute("Host Groups", "Delete", "$User_Name removed $Hostname ($IP) [Host ID $Delete_Host_ID] from Host Group $Delete_Host_From_Group_Name [Host Group ID $Delete_Host_From_Group_ID].", $User_Name);
 
 	}

@@ -1,3 +1,5 @@
+Fix unapproved bug
+
 1.5.0   - Added MD5 checksum to Distribution Status for easier comparison with sudoers checksums 
           currently on different systems.
         - Added option to specify port in DB connection string in 'common.pl'.
@@ -13,7 +15,8 @@
         - Fixed an array allocation bug where Commands searched for through the Global Search tool 
           always returned as Active.
         - Tidied up formatting for descriptions below Add and Edit boxes - unordered lists and padding 
-          is now standard across all input boxes with multi-line descriptions.
+          is now standard across all input boxes with multi-line descriptions. 2pc left and right 
+          padding is now 5px to better suit smaller screens. 
         - Added Upgrade.sql file to facilitate database upgrading from 1.4.1 to 1.5.0 without needing 
           to overwrite with the Full_Schema.sql
         - Added Default_Users.sql file to simplify MySQL installation process.
@@ -30,6 +33,7 @@
         - Added an extra error handler for distribution file push failures.
         - Dropped sha1sum from system, as it duplicated tasks already performed by md5sum.
         - Global Search now correctly displays 0 returned results when no matches are found.
+        - Added Rule approval auto-revocation when any attached items are modified or deleted.
 1.4.1:  - Offloaded the resolution of application paths to 'common.pl' through `which` or manual 
           override to make it more system independent.
         - Bundled required non-core modules with package (for easier installation in offline 
