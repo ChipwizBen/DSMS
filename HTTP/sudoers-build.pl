@@ -76,9 +76,9 @@ sub write_environmentals {
 	print FILE "\n\n";
 
 
-	print FILE "### Environmental Variables Section Begins ###\n\n";
+	print FILE "### Environmental Defaults Section Begins ###\n\n";
 
-	open( ENVIRONMENTALS, "environmental-variables" ) or die "Can't open environmental-variables file.";
+	open( ENVIRONMENTALS, "environmental-defaults" ) or die "Can't open environmental-defaults file.";
 
 	LINE: foreach my $Line (<ENVIRONMENTALS>) {
 
@@ -87,7 +87,7 @@ sub write_environmentals {
 
 	}
 
-	print FILE "\n### Environmental Variables Section Ends ###\n";
+	print FILE "\n### Environmental Defaults Section Ends ###\n";
 
 	close ENVIRONMENTALS;
 
@@ -632,7 +632,7 @@ sub write_rules {
 		}
 		else {
 			print FILE "#######\n";
-			print FILE "####### $DB_Rule_Name (ID: $DBID) was not written because the rule is not complete. It lacks either defined hosts, users or commands #######\n";
+			print FILE "####### $DB_Rule_Name (ID: $DBID) was not written because the rule is not complete. It lacks defined Hosts, Users or Commands. #######\n";
 			print FILE "#######\n\n";
 		}
 	}

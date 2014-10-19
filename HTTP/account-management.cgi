@@ -127,7 +127,7 @@ print <<ENDHTML;
 		<td colspan="2"><input type='Email' name='Email_Add' style='width:250px;' maxlength='128' placeholder="email\@domain.co.nz" required></td>
 	</tr>
 	<tr>
-		<td style="text-align: right;">Admin Privileges:</td>
+		<td style="text-align: right;">Administrator Privileges:</td>
 		<td style="text-align: right;"><input type="radio" name="Admin_Add" value="1"> Yes</td>
 		<td style="text-align: right;"><input type="radio" name="Admin_Add" value="0" checked> No</td>
 	</tr>
@@ -150,7 +150,7 @@ print <<ENDHTML;
 
 <ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
 	<li>
-		<i>Admin Privileges</i> allow a user to modify users and permissions, including their own, and view 
+		<i>Administrator Privileges</i> allow a user to modify users and permissions, including their own, and view 
 		the <b><a href='access-log.cgi'>Access Log</a></b>.
 	</li>
 	<li>
@@ -267,7 +267,7 @@ sub add_user {
 	$User_Insert->execute($User_Name_Add, $Password_Add, $Salt, $Email_Add, $Admin_Add, $Approver_Add, $Requires_Approval_Add, $Lockout_Add, $User_Name);
 
 	# Audit Log
-	if ($Admin_Add) {$Admin_Add = 'has Admin Privileges'} else {$Admin_Add = 'has no Admin Privileges'}
+	if ($Admin_Add) {$Admin_Add = 'has Administrator Privileges'} else {$Admin_Add = 'has no Administrator Privileges'}
 	if ($Approver_Add) {$Approver_Add = "$User_Name_Add can Approve the Rules created by others"} else {$Approver_Add = "$User_Name_Add can not Approve the Rules created by others"}
 	if ($Requires_Approval_Add) {$Requires_Approval_Add = "$User_Name_Add"."'s "."Rules require approval"} else {$Requires_Approval_Add = "$User_Name_Add"."'s "."Rules do not require approval"}
 	if ($Lockout_Add) {$Lockout_Add = "$User_Name_Add is locked out"} else {$Lockout_Add = "$User_Name_Add is not locked out"}
@@ -281,10 +281,7 @@ sub add_user {
 		`username`
 	)
 	VALUES (
-		?,
-		?,
-		?,
-		?
+		?, ?, ?, ?
 	)");
 
 	$Audit_Log_Submission->execute("Account Management", "Add", "$User_Name added a new system account as Account ID $Account_Insert_ID: $User_Name_Add ($Email_Add). $User_Name_Add $Admin_Add, $Approver_Add, $Requires_Approval_Add and $Lockout_Add.", $User_Name);
@@ -336,7 +333,7 @@ print <<ENDHTML;
 		<td colspan="2"><input type='email' name='Email_Edit' value='$Email_Extract' style='width:250px;' maxlength='128' placeholder="$Email_Extract" required></td>
 	</tr>
 	<tr>
-		<td style="text-align: right;">Admin Privileges:</td>
+		<td style="text-align: right;">Administrator Privileges:</td>
 ENDHTML
 
 if ($Admin_Extract == 1) {
@@ -418,7 +415,7 @@ print <<ENDHTML;
 
 <ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
 	<li>
-		<i>Admin Privileges</i> allow a user to modify users and permissions, including their own, and view 
+		<i>Administrator Privileges</i> allow a user to modify users and permissions, including their own, and view 
 		the <b><a href='access-log.cgi'>Access Log</a></b>.
 	</li>
 	<li>
@@ -528,7 +525,7 @@ sub edit_user {
 		$Update_Credentials->execute($User_Name_Edit, $Password_Edit, $Salt, $Email_Edit, $Admin_Edit, $Approver_Edit, $Requires_Approval_Edit, $Lockout_Edit, $User_Name, $Edit_User_Post);
 
 		# Audit Log
-		if ($Admin_Edit) {$Admin_Edit = 'has Admin Privileges'} else {$Admin_Edit = 'has no Admin Privileges'}
+		if ($Admin_Edit) {$Admin_Edit = 'has Administrator Privileges'} else {$Admin_Edit = 'has no Administrator Privileges'}
 		if ($Approver_Edit) {$Approver_Edit = "$User_Name_Edit can Approve the Rules created by others"} else {$Approver_Edit = "$User_Name_Edit can not Approve the Rules created by others"}
 		if ($Requires_Approval_Edit) {$Requires_Approval_Edit = "$User_Name_Edit"."'s "."Rules require approval"} else {$Requires_Approval_Edit = "$User_Name_Edit"."'s "."Rules do not require approval"}
 		if ($Lockout_Edit) {$Lockout_Edit = "$User_Name_Edit is locked out"} else {$Lockout_Edit = "$User_Name_Edit is not locked out"}
@@ -540,12 +537,9 @@ sub edit_user {
 			`username`
 		)
 		VALUES (
-			?,
-			?,
-			?,
-			?
+			?, ?, ?, ?
 		)");
-	
+
 		$Audit_Log_Submission->execute("Account Management", "Modify", "$User_Name edited a system account with Account ID $Edit_User_Post: $User_Name_Edit ($Email_Edit). $User_Name_Edit $Admin_Edit, $Approver_Edit, $Requires_Approval_Edit and $Lockout_Edit. $User_Name also changed $User_Name_Edit"."'s "."password.", $User_Name);
 		#/ Audit Log
 
@@ -565,7 +559,7 @@ sub edit_user {
 		$Update_Credentials->execute($User_Name_Edit, $Email_Edit, $Admin_Edit, $Approver_Edit, $Requires_Approval_Edit, $Lockout_Edit, $User_Name, $Edit_User_Post);
 
 		# Audit Log
-		if ($Admin_Edit) {$Admin_Edit = 'has Admin Privileges'} else {$Admin_Edit = 'has no Admin Privileges'}
+		if ($Admin_Edit) {$Admin_Edit = 'has Administrator Privileges'} else {$Admin_Edit = 'has no Administrator Privileges'}
 		if ($Approver_Edit) {$Approver_Edit = "$User_Name_Edit can Approve the Rules created by others"} else {$Approver_Edit = "$User_Name_Edit can not Approve the Rules created by others"}
 		if ($Requires_Approval_Edit) {$Requires_Approval_Edit = "$User_Name_Edit"."'s "."Rules require approval"} else {$Requires_Approval_Edit = "$User_Name_Edit"."'s "."Rules do not require approval"}
 		if ($Lockout_Edit) {$Lockout_Edit = "$User_Name_Edit is locked out"} else {$Lockout_Edit = "$User_Name_Edit is not locked out"}
@@ -577,10 +571,7 @@ sub edit_user {
 			`username`
 		)
 		VALUES (
-			?,
-			?,
-			?,
-			?
+			?, ?, ?, ?
 		)");
 
 		$Audit_Log_Submission->execute("Account Management", "Modify", "$User_Name edited a system account with Account ID $Edit_User_Post: $User_Name_Edit ($Email_Edit). $User_Name_Edit $Admin_Edit, $Approver_Edit, $Requires_Approval_Edit and $Lockout_Edit. $User_Name_Edit"."'s "."password was not changed.", $User_Name);
@@ -670,7 +661,7 @@ sub delete_user {
 		my $Requires_Approval_Extract = $DB_User[6];
 		my $Lockout_Extract = $DB_User[7];
 
-		if ($Admin_Extract) {$Admin_Extract = 'had Admin Privileges'} else {$Admin_Extract = 'had no Admin Privileges'}
+		if ($Admin_Extract) {$Admin_Extract = 'had Administrator Privileges'} else {$Admin_Extract = 'had no Administrator Privileges'}
 		if ($Approver_Extract) {$Approver_Extract = "$User_Name_Extract could Approve the Rules created by others"} else {$Approver_Extract = "$User_Name_Extract could not Approve the Rules created by others"}
 		if ($Requires_Approval_Extract) {$Requires_Approval_Extract = "$User_Name_Extract"."'s "."Rules required approval"} else {$Requires_Approval_Extract = "$User_Name_Extract"."'s "."Rules did not require approval"}
 		if ($Lockout_Extract) {$Lockout_Extract = "$User_Name_Extract was locked out"} else {$Lockout_Extract = "$User_Name_Extract was not locked out"}
@@ -682,10 +673,7 @@ sub delete_user {
 			`username`
 		)
 		VALUES (
-			?,
-			?,
-			?,
-			?
+			?, ?, ?, ?
 		)");
 	
 		$Audit_Log_Submission->execute("Account Management", "Delete", "$User_Name deleted a system account with Account ID $Delete_User_Confirm: $User_Name_Extract ($Email_Extract). $User_Name_Extract $Admin_Extract, $Approver_Extract, $Requires_Approval_Extract and $Lockout_Extract.", $User_Name);
@@ -731,7 +719,7 @@ my $Table = new HTML::Table(
 	-padding=>1 );
 
 
-$Table->addRow ( "User Name", "Email Address", "Last Login", "Last Active", "Admin", "Approver", "Requires Approval", "Lockout", "Last Modified", "Modified By", "Edit", "Delete" );
+$Table->addRow ( "User Name", "Email Address", "Last Login", "Last Active", "Administrator", "Approver", "Requires Approval", "Lockout", "Last Modified", "Modified By", "Edit", "Delete" );
 $Table->setRowClass (1, 'tbrow1');
 
 my $Select_Users = $DB_Management->prepare("SELECT `id`, `username`, `email`, `last_login`, `last_active`,  `admin`, `approver`, `requires_approval`, `lockout`, `last_modified`, `modified_by`

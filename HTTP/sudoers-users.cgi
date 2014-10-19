@@ -376,6 +376,7 @@ sub edit_user {
 	INNER JOIN `lnk_rules_to_users`
 	ON `rules`.`id` = `lnk_rules_to_users`.`rule`
 	SET
+	`modified_by` = '$User_Name',
 	`approved` = '0',
 	`approved_by` = 'Approval Revoked by $User_Name when modifying User ID $Edit_User_Post'
 	WHERE `lnk_rules_to_users`.`user` = ?");
@@ -482,6 +483,7 @@ sub delete_user {
 	INNER JOIN `lnk_rules_to_users`
 	ON `rules`.`id` = `lnk_rules_to_users`.`rule`
 	SET
+	`modified_by` = '$User_Name',
 	`approved` = '0',
 	`approved_by` = 'Approval Revoked by $User_Name when deleting User ID $Delete_User_Confirm'
 	WHERE `lnk_rules_to_users`.`user` = ?");

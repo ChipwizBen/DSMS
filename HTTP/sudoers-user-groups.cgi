@@ -804,6 +804,7 @@ sub edit_group {
 	INNER JOIN `lnk_rules_to_user_groups`
 	ON `rules`.`id` = `lnk_rules_to_user_groups`.`rule`
 	SET
+	`modified_by` = '$User_Name',
 	`approved` = '0',
 	`approved_by` = 'Approval Revoked by $User_Name when modifying User Group ID $Edit_Group'
 	WHERE `lnk_rules_to_user_groups`.`user_group` = ?");
@@ -972,6 +973,7 @@ sub delete_group {
 	INNER JOIN `lnk_rules_to_user_groups`
 	ON `rules`.`id` = `lnk_rules_to_user_groups`.`rule`
 	SET
+	`modified_by` = '$User_Name',
 	`approved` = '0',
 	`approved_by` = 'Approval Revoked by $User_Name when deleting User Group ID $Delete_Group_Confirm'
 	WHERE `lnk_rules_to_user_groups`.`user_group` = ?");
@@ -1075,6 +1077,7 @@ sub delete_user {
 	INNER JOIN `lnk_rules_to_user_groups`
 	ON `rules`.`id` = `lnk_rules_to_user_groups`.`rule`
 	SET
+	`modified_by` = '$User_Name',
 	`approved` = '0',
 	`approved_by` = 'Approval Revoked by $User_Name when modifying User Group ID $Delete_User_From_Group_ID'
 	WHERE `lnk_rules_to_user_groups`.`user_group` = ?");

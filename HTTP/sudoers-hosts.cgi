@@ -465,6 +465,7 @@ sub edit_host {
 	INNER JOIN `lnk_rules_to_hosts`
 	ON `rules`.`id` = `lnk_rules_to_hosts`.`rule`
 	SET
+	`modified_by` = '$User_Name',
 	`approved` = '0',
 	`approved_by` = 'Approval Revoked by $User_Name when modifying Host ID $Edit_Host_Post'
 	WHERE `lnk_rules_to_hosts`.`host` = ?");
@@ -580,6 +581,7 @@ sub delete_host {
 	INNER JOIN `lnk_rules_to_hosts`
 	ON `rules`.`id` = `lnk_rules_to_hosts`.`rule`
 	SET
+	`modified_by` = '$User_Name',
 	`approved` = '0',
 	`approved_by` = 'Approval Revoked by $User_Name when deleting Host ID $Delete_Host_Confirm'
 	WHERE `lnk_rules_to_hosts`.`host` = ?");

@@ -461,6 +461,7 @@ sub edit_command {
 	INNER JOIN `lnk_rules_to_commands`
 	ON `rules`.`id` = `lnk_rules_to_commands`.`rule`
 	SET
+	`modified_by` = '$User_Name',
 	`approved` = '0',
 	`approved_by` = 'Approval Revoked by $User_Name when modifying Command ID $Edit_Command_Post'
 	WHERE `lnk_rules_to_commands`.`command` = ?");
@@ -574,6 +575,7 @@ sub delete_command {
 	INNER JOIN `lnk_rules_to_commands`
 	ON `rules`.`id` = `lnk_rules_to_commands`.`rule`
 	SET
+	`modified_by` = '$User_Name',
 	`approved` = '0',
 	`approved_by` = 'Approval Revoked by $User_Name when deleting Command ID $Delete_Command_Confirm'
 	WHERE `lnk_rules_to_commands`.`command` = ?");

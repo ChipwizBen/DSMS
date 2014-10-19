@@ -2660,6 +2660,7 @@ sub delete_rule_item {
 ### Revoke Rule Approval ###
 
 	my $Update_Rule = $DB_Sudoers->prepare("UPDATE `rules` SET
+		`modified_by` = '$User_Name',
 		`approved` = '0',
 		`approved_by` = 'Approval Revoked by $User_Name when modifying this rule.'
 		WHERE `id` = ?");

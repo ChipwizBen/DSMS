@@ -1,5 +1,3 @@
-Fix unapproved bug
-
 1.5.0   - Added MD5 checksum to Distribution Status for easier comparison with sudoers checksums 
           currently on different systems.
         - Added option to specify port in DB connection string in 'common.pl'.
@@ -20,7 +18,9 @@ Fix unapproved bug
         - Added Upgrade.sql file to facilitate database upgrading from 1.4.1 to 1.5.0 without needing 
           to overwrite with the Full_Schema.sql
         - Added Default_Users.sql file to simplify MySQL installation process.
-        - Changed Defaults Specification in environmental-variables to use the Red Hat Defaults.
+        - Changed environmental-variables to environmental-defaults to avoid confusion with shell 
+          environmental variables.
+        - Changed Defaults Specification in environmental-defaults to use the Red Hat Defaults.
         - Added an additional 'Section Ends' comment to the end of each type section to make them 
           clearer in very large sudoers files.
         - Updated the syntax highlighting on 'index.cgi' to clearly mark each section's start and end.
@@ -34,6 +34,8 @@ Fix unapproved bug
         - Dropped sha1sum from system, as it duplicated tasks already performed by md5sum.
         - Global Search now correctly displays 0 returned results when no matches are found.
         - Added Rule approval auto-revocation when any attached items are modified or deleted.
+        - Added a Maintenance Mode to facilitate installations and upgrades. Maintenance Mode is 
+          controlled through common.pl.
 1.4.1:  - Offloaded the resolution of application paths to 'common.pl' through `which` or manual 
           override to make it more system independent.
         - Bundled required non-core modules with package (for easier installation in offline 

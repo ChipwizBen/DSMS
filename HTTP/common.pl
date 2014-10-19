@@ -2,6 +2,21 @@
 
 use strict;
 
+&Maintenance_Mode;
+
+sub Maintenance_Mode {
+
+	# This is a system toggle to turn on or off Maintenance Mode. When Maintenance Mode is on, users are prevented from making system changes, or accessing the system.
+
+	my $Maintenance_Mode = 'On';
+
+	if ($Maintenance_Mode =~ /on/i) {
+		print "Location: maintenance.cgi\n\n";
+		exit(0);
+	}
+
+}
+
 sub System_Name {
 
 	# This is the system's name, used for system identification during login, written to the sudoers file to identify which system owns the sudoers file, is used in password reset emails to identify the source, and other general uses.

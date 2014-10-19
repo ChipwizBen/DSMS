@@ -49,10 +49,7 @@ sub html_output {
 		`username`
 	)
 	VALUES (
-		?,
-		?,
-		?,
-		?
+		?, ?, ?, ?
 	)");
 
 	$Audit_Log_Submission->execute("Access Log", "View", "$User_Name accessed the Access Log.", $User_Name);
@@ -60,14 +57,14 @@ sub html_output {
 
 	my $Table = new HTML::Table(
 		-cols=>11,
-                -align=>'center',
-                -border=>0,
-                -rules=>'cols',
-                -evenrowclass=>'tbeven',
-                -oddrowclass=>'tbodd',
-                -width=>'100%',
-                -spacing=>0,
-                -padding=>1
+		-align=>'center',
+		-border=>0,
+		-rules=>'cols',
+		-evenrowclass=>'tbeven',
+		-oddrowclass=>'tbodd',
+		-width=>'100%',
+		-spacing=>0,
+		-padding=>1
 	);
 
 
@@ -98,7 +95,7 @@ sub html_output {
 		$Select_Logs_Count->execute( );
 		my $Total_Rows = $Select_Logs_Count->rows();
 
-	$Table->addRow( "ID", "IP", "Hostname", "Agent", "Script", "Referer", "Query", "Method", "HTTPS", "User Name", "Time" );
+	$Table->addRow( "ID", "IP", "Hostname", "User Agent", "Script", "Referer", "Query", "Method", "HTTPS", "User Name", "Time" );
 	$Table->setRowClass (1, 'tbrow1');
 	
 	my $Row_Count=1;
@@ -152,6 +149,7 @@ sub html_output {
 		$Table->setColWidth(10, '110px');
 		$Table->setColWidth(11, '110px');
 
+		$Table->setColAlign(8, 'center');
 		$Table->setColAlign(9, 'center');
 		$Table->setColAlign(10, 'center');
 		$Table->setColAlign(11, 'center');

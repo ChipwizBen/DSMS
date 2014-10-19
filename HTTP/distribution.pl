@@ -72,12 +72,13 @@ HOST: while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
     1) Check that the key fingerprint is stored in known_hosts
     2) Check for a route to the remote host
     3) Check that your $Timeout second Timeout value is high enough"}
-  
+
 			elsif ($Error =~ /Connection to remote server is broken/) {$Error = $Error ." 
     Hints: 
-    1) Badly formatted IP address
-    2) Key identity file not found
-    3) Not enough permissions to read key identity file"}
+    1) Incorrect user name
+    2) Badly formatted IP address
+    3) Key identity file not found
+    4) Insufficient permissions to read key identity file"}
 
 			print "$Error\n\n";
 			$Update_Status->execute($Error, $DBID);

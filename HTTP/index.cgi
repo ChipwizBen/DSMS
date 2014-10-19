@@ -30,8 +30,16 @@ Consider setting the sudoers file location in 'common.pl' or generating a sudoer
 If this is your first time running this system, first create some <a href='sudoers-hosts.cgi'>Hosts</a>, <a href='sudoers-users.cgi'>Users</a> and <a href='sudoers-commands.cgi'>Commands</a> and then attach those to <a href='sudoers-rules.cgi'>Rules</a> before running 'sudoers-build.pl'.";
 
 my $MD5_Checksum;
+my $MD5_HTML;
+my $Built_HTML;
+my $Sudoers_Modification_Stamp;
+my $Sudoers_Modification_Time;
 if (!$Sudoers_Not_Found) {
+	$MD5_HTML = 'MD5:';
 	$MD5_Checksum = `$md5sum $Sudoers_Location | $cut -d ' ' -f 1`;
+	$Built_HTML = 'Built:';
+	$Sudoers_Modification_Stamp = (stat($Sudoers_Location))[9];
+	$Sudoers_Modification_Time  = localtime($Sudoers_Modification_Stamp);
 }
 
 my $Rules_Require_Approval;
@@ -54,11 +62,6 @@ else {
 	$Rules_Require_Approval = '';
 }
 
-
-
-my $Sudoers_Modification_Stamp = (stat($Sudoers_Location))[9];
-my $Sudoers_Modification_Time  = localtime($Sudoers_Modification_Stamp);
-
 print <<ENDHTML;
 
 <div id='full-page-block'>
@@ -67,7 +70,7 @@ $Rules_Require_Approval
 <table align="center" style='font-size: 14px;'>
 	<tr>
 		<td>
-			Built:
+			$Built_HTML
 		</td>
 		<td style='color: #00FF00;'>
 			$Sudoers_Modification_Time
@@ -75,7 +78,7 @@ $Rules_Require_Approval
 	</tr>
 	<tr>
 		<td>
-			MD5:
+			$MD5_HTML
 		</td>
 		<td style='color: #00FF00;'>
 			$MD5_Checksum
@@ -100,9 +103,10 @@ ENDHTML
 		$Line =~ s/(.*):(EXEC)(.*)/$1:<span style='color: #FF0000;'>$2<\/span>$3/g; # EXEC highlighting
 		$Line =~ s/(.*)(NOEXEC)(.*)/$1<span style='color: #25AAE1;'>$2<\/span>$3/g; # NOEXEC highlighting
 		$Line =~ s/(.*)(COMMAND_RULE_GROUP_\d*)(.*)/$1<span style='color: #FFC600;'>$2<\/span>$3/g; # Command rule group highlighting
-		$Line =~ s/(.*)(was\snot\swritten)(.*)/<span style='color: #FF0000;'>$1$2$3<\/span>/g; # Failed rule write highlighting
-		$Line =~ s/(.*)\s=\s(ALL)(.*)/$1 = <span style='color: #FF0000;'>ALL<\/span>$3/g; # Failed rule write highlighting
-		$Line =~ s/###\s(.*)\s###/<span style='color: #00ffff;'>### $1 ###<\/span>/g; # Section highlighting
+		$Line =~ s/(^#######\s)(.*)(\s#######$)/<span style='color: #FF0000;'>$1<\/span><span style='color: #00FFFF;'>$2<\/span><span style='color: #FF0000;'>$3<\/span>/g; # Failed rule text highlighting
+		$Line =~ s/(^#######$)/<span style='color: #FF0000;'>$1<\/span>/g; # Failed rule tag highlighting
+		$Line =~ s/(.*)\s=\s(ALL)(.*)/$1 = <span style='color: #FF0000;'>ALL<\/span>$3/g; # ALL highlighting
+		$Line =~ s/^###\s(.*)\s###/<span style='color: #00FFFF;'>### $1 ###<\/span>/g; # Section highlighting
 
 		if ($Line =~ m/^Host_Alias/) {
 			print "<span style='color: #FF8A00;'>$Line</span>" . "<br />";

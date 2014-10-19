@@ -144,19 +144,19 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">User:</td>
-		<td style="text-align: left;" colspan="2"><input type='text' name='User_Edit' value='$User' size='15' maxlength='128' placeholder="$User" required></td>
+		<td style="text-align: left;" colspan="2"><input type='text' style='width: 200px;' name='User_Edit' value='$User' maxlength='128' placeholder="$User" required></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Key Path:</td>
-		<td style="text-align: left;" colspan="2"><input type='text' name='Key_Path_Edit' value='$Key_Path' size='35' maxlength='255' placeholder="$Key_Path" required></td>
+		<td style="text-align: left;" colspan="2"><input type='text' style='width: 300px;' name='Key_Path_Edit' value='$Key_Path' maxlength='255' placeholder="$Key_Path" required></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Timeout:</td>
-		<td style="text-align: left;" colspan="2"><input type='number' name='Timeout_Edit' value='$Timeout' size='5' maxlength='3' placeholder="$Timeout" required>&nbsp;&nbsp;seconds</td>
+		<td style="text-align: left;" colspan="2"><input type='number' style='width: 50px;' name='Timeout_Edit' value='$Timeout' maxlength='3' placeholder="$Timeout" required>&nbsp;&nbsp;seconds</td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Remote Sudoers Path:</td>
-		<td style="text-align: left;" colspan="2"><input type='text' name='Remote_Sudoers_Path_Edit' value='$Remote_Sudoers_Path' size='35' maxlength='255' placeholder="$Remote_Sudoers_Path" required></td>
+		<td style="text-align: left;" colspan="2"><input type='text' style='width: 300px;' name='Remote_Sudoers_Path_Edit' value='$Remote_Sudoers_Path' maxlength='255' placeholder="$Remote_Sudoers_Path" required></td>
 	</tr>
 </table>
 
@@ -165,7 +165,7 @@ print <<ENDHTML;
 <input type='hidden' name='IP_Edit' value='$IP'>
 <input type='hidden' name='Edit_Host_Parameters_Post' value='$Edit_Host_Parameters'>
 
-<ul style='text-align: left; display: inline-block;'>
+<ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
 <li>The User is the SFTP subsystem user on the remote system. You should set up a dedicated user for this.</li>
 <li>The Key Path is SSH private key path of the SFTP subsystem User. Use the full system path.</li>
 <li>The Timeout is the connection timeout in seconds for stalled or unreachable hosts.</li>
