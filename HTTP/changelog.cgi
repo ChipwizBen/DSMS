@@ -50,10 +50,13 @@ sub html_output {
 	$Table->addRow('', 'Fixed an array allocation bug where Commands searched for through the Global Search tool 
           always returned as Active.');
     $Table->addRow('', 'Tidied up formatting for descriptions below Add and Edit boxes - unordered lists and padding 
-          is now standard across all input boxes with multi-line descriptions.');
+          is now standard across all input boxes with multi-line descriptions. 2pc left and right 
+          padding is now 5px to better suit smaller screens.');
     $Table->addRow('', 'Added Upgrade.sql file to facilitate database upgrading from 1.4.1 to 1.5.0 without needing 
           to overwrite with the Full_Schema.sql');
     $Table->addRow('', 'Added Default_Users.sql file to simplify MySQL installation process.');
+    $Table->addRow('', 'Changed environmental-variables to environmental-defaults to avoid confusion with shell 
+          environmental variables.');
     $Table->addRow('', 'Changed Defaults Specification in environmential-variables to use the Red Hat Defaults.');
     $Table->addRow('', 'Added an additional \'Section Ends\' comment to the end of each type section to make them 
           clearer in very large sudoers files.');
@@ -67,6 +70,9 @@ sub html_output {
 	$Table->addRow('', 'Added an extra error handler for distribution file push failures.');
 	$Table->addRow('', 'Dropped sha1sum from system, as it duplicated tasks already performed by md5sum.');
 	$Table->addRow('', 'Global Search now correctly displays 0 returned results when no matches are found.');
+	$Table->addRow('', 'Added Rule approval auto-revocation when any attached items are modified or deleted.');
+	$Table->addRow('', 'Added a Maintenance Mode to facilitate installations and upgrades. Maintenance Mode is 
+          controlled through common.pl.');
 	$Table->addRow('<hr />', '');
 
 	## Version 1.4.1

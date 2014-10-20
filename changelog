@@ -14,7 +14,7 @@
           always returned as Active.
         - Tidied up formatting for descriptions below Add and Edit boxes - unordered lists and padding 
           is now standard across all input boxes with multi-line descriptions. 2pc left and right 
-          padding is now 5px to better suit smaller screens. 
+          padding is now 5px to better suit smaller screens.
         - Added Upgrade.sql file to facilitate database upgrading from 1.4.1 to 1.5.0 without needing 
           to overwrite with the Full_Schema.sql
         - Added Default_Users.sql file to simplify MySQL installation process.
