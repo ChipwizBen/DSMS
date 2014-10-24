@@ -13,16 +13,22 @@ my $Add_User = $CGI->param("Add_User");
 my $Edit_User = $CGI->param("Edit_User");
 
 my $User_Name_Add = $CGI->param("User_Name_Add");
-	$User_Name_Add =~ s/\W//g;
+	$User_Name_Add =~ s/\s//g;
+	$User_Name_Add =~ s/[^a-zA-Z0-9\-\.\_]//g;
 my $Expires_Toggle_Add = $CGI->param("Expires_Toggle_Add");
 my $Expires_Date_Add = $CGI->param("Expires_Date_Add");
+	$Expires_Date_Add =~ s/\s//g;
+	$Expires_Date_Add =~ s/[^0-9\-]//g;
 my $Active_Add = $CGI->param("Active_Add");
 
 my $Edit_User_Post = $CGI->param("Edit_User_Post");
 my $User_Name_Edit = $CGI->param("User_Name_Edit");
-	$User_Name_Edit =~ s/\W//g;
+	$User_Name_Edit =~ s/\s//g;
+	$User_Name_Edit =~ s/[^a-zA-Z0-9\-\.\_]//g;
 my $Expires_Toggle_Edit = $CGI->param("Expires_Toggle_Edit");
 my $Expires_Date_Edit = $CGI->param("Expires_Date_Edit");
+	$Expires_Date_Edit =~ s/\s//g;
+	$Expires_Date_Edit =~ s/[^0-9\-]//g;
 my $Active_Edit = $CGI->param("Active_Edit");
 
 my $Delete_User = $CGI->param("Delete_User");
@@ -31,6 +37,10 @@ my $User_Name_Delete = $CGI->param("User_Name_Delete");
 
 my $Show_Links = $CGI->param("Show_Links");
 my $Show_Links_Name = $CGI->param("Show_Links_Name");
+
+my $View_Notes = $CGI->param("View_Notes");
+my $New_Note = $CGI->param("New_Note");
+my $New_Note_ID = $CGI->param("New_Note_ID");
 
 my $User_Name = $Session->param("User_Name");
 my $User_Admin = $Session->param("User_Admin");
@@ -94,6 +104,20 @@ elsif ($Show_Links) {
 	require "footer.cgi";
 	&html_show_links;
 }
+elsif ($View_Notes) {
+	require "header.cgi";
+	&html_output;
+	require "footer.cgi";
+	&html_notes;
+}
+elsif ($New_Note && $New_Note_ID) {
+	&add_note;
+	require "header.cgi";
+	&html_output;
+	require "footer.cgi";
+	$View_Notes = $New_Note_ID;
+	&html_notes;
+}
 else {
 	require "header.cgi"; ## no critic
 	&html_output;
@@ -149,8 +173,7 @@ function Expire_Toggle() {
 </table>
 
 <ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
-<li>User Names must be unique.</li>
-<li>Do not use spaces in the User Name - they will be stripped.</li>
+<li>User Names must be unique and POSIX compliant.</li>
 <li>Users with an expiry set are automatically removed from sudoers at 23:59:59
 (or the next sudoers refresh thereafter) on the day of expiry. Expired entries are functionally
 equivalent to inactive entries. The date entry format is YYYY-MM-DD.</li>
@@ -327,8 +350,7 @@ print <<ENDHTML;
 <input type='hidden' name='Edit_User_Post' value='$Edit_User'>
 
 <ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
-<li>User Names must be unique.</li>
-<li>Do not use spaces in the User Name - they will be stripped.</li>
+<li>User Names must be unique and POSIX compliant.</li>
 <li>You can only activate a modified user if you are an Approver.
 If you are not an Approver and you modify this entry, it will automatically be set to Inactive.</li>
 <li>Users with an expiry set are automatically removed from sudoers at 23:59:59
@@ -669,10 +691,121 @@ ENDHTML
 
 } # sub html_show_links
 
+sub html_notes {
+
+	my $Table = new HTML::Table(
+		-cols=>4,
+		-align=>'center',
+		-border=>0,
+		-rules=>'cols',
+		-evenrowclass=>'tbeven',
+		-oddrowclass=>'tbodd',
+		-width=>'90%',
+		-spacing=>0,
+		-padding=>1
+	);
+
+	$Table->addRow( "#", "Note", "Time", "Added By");
+	$Table->setRowClass (1, 'tbrow1');
+
+	### Discover Sudo User Name
+	my $Sudo_User_Name;
+	my $Select_Sudo_User_Name = $DB_Sudoers->prepare("SELECT `username`
+	FROM `users`
+	WHERE `id` = ?");
+
+	$Select_Sudo_User_Name->execute($View_Notes);
+	$Sudo_User_Name = $Select_Sudo_User_Name->fetchrow_array();
+	### / Discover Sudo User Name
+
+	### Discover Note Count
+	my $Select_Note_Count = $DB_Sudoers->prepare("SELECT COUNT(*)
+		FROM `notes`
+		WHERE `type_id` = '03'
+		AND `item_id` = ?"
+	);
+	$Select_Note_Count->execute($View_Notes);
+	my $Note_Count = $Select_Note_Count->fetchrow_array();
+	### / Discover Note Count
+
+	my $Select_Notes = $DB_Sudoers->prepare("SELECT `note`, `last_modified`, `modified_by`
+	FROM `notes`
+	WHERE `type_id` = '03'
+	AND `item_id` = ?
+	ORDER BY `last_modified` DESC");
+
+	$Select_Notes->execute($View_Notes);
+
+	my $Row_Count=$Note_Count;
+	while ( my @Notes = $Select_Notes->fetchrow_array() )
+	{
+		my $Note = $Notes[0];
+		my $Last_Modified = $Notes[1];
+		my $Modified_By = $Notes[2];
+		
+		$Table->addRow($Row_Count, $Note, $Last_Modified, $Modified_By);
+		$Row_Count--;
+	}
+
+	$Table->setColWidth(1, '1px');
+	$Table->setColWidth(3, '110px');
+	$Table->setColWidth(4, '110px');
+
+	$Table->setColAlign(1, 'center');
+	$Table->setColAlign(3, 'center');
+	$Table->setColAlign(4, 'center');
+
+print <<ENDHTML;
+<div id="wide-popup-box">
+<a href="sudoers-users.cgi">
+<div id="blockclosebutton">
+</div>
+</a>
+
+<h3 align="center">Notes for $Sudo_User_Name</h3>
+<form action='sudoers-users.cgi' method='post'>
+
+<table align='center'>
+	<tr>
+		<td><textarea name='New_Note' placeholder='Add a new note' autofocus></textarea></td>
+	</tr>
+	<tr>
+		<td><div style="text-align: center"><input type='submit' name='Submit' value='Submit New Note'></div></td>
+	</tr>
+</table>
+
+<hr width="50%">
+
+<input type='hidden' name='New_Note_ID' value='$View_Notes'>
+</form>
+
+<p>$Note_Count existing notes found, latest first.</p>
+
+$Table
+
+ENDHTML
+
+} # sub html_notes
+
+sub add_note {
+
+	my $Note_Submission = $DB_Sudoers->prepare("INSERT INTO `notes` (
+		`type_id`,
+		`item_id`,
+		`note`,
+		`modified_by`
+	)
+	VALUES (
+		?, ?, ?, ?
+	)");
+	$Note_Submission->execute(03, $New_Note_ID, $New_Note, $User_Name);
+
+} # sub add_note
+
 sub html_output {
 
 	my $Table = new HTML::Table(
-		-cols=>9,
+		-cols=>10,
 		-align=>'center',
 		-border=>0,
 		-rules=>'cols',
@@ -682,7 +815,6 @@ sub html_output {
 		-spacing=>0,
 		-padding=>1
 	);
-
 
 	my $Select_User_Count = $DB_Sudoers->prepare("SELECT `id` FROM `users`");
 		$Select_User_Count->execute( );
@@ -707,7 +839,7 @@ sub html_output {
 
 	my $Rows = $Select_Users->rows();
 
-	$Table->addRow( "ID", "User Name", "Expires", "Active", "Last Modified", "Modified By", "Show Links", "Edit", "Delete" );
+	$Table->addRow( "ID", "User Name", "Expires", "Active", "Last Modified", "Modified By", "Show Links", "Notes", "Edit", "Delete" );
 	$Table->setRowClass (1, 'tbrow1');
 
 	my $User_Row_Count=1;
@@ -732,6 +864,18 @@ sub html_output {
 		my $Last_Modified = @Select_Users[4];
 		my $Modified_By = @Select_Users[5];
 
+		### Discover Note Count
+
+		my $Select_Note_Count = $DB_Sudoers->prepare("SELECT COUNT(*)
+			FROM `notes`
+			WHERE `type_id` = '03'
+			AND `item_id` = ?"
+		);
+		$Select_Note_Count->execute($DBID_Clean);
+		my $Note_Count = $Select_Note_Count->fetchrow_array();
+
+		### / Discover Note Count
+
 		my $Expires_Epoch;
 		my $Today_Epoch = time;
 		if ($Expires_Clean =~ /^0000-00-00$/) {
@@ -749,6 +893,13 @@ sub html_output {
 			"$Last_Modified",
 			"$Modified_By",
 			"<a href='sudoers-users.cgi?Show_Links=$DBID_Clean&Show_Links_Name=$DB_User_Name_Clean'><img src=\"resources/imgs/linked.png\" alt=\"Linked Objects to User ID $DBID_Clean\" ></a>",
+			"<a href='sudoers-users.cgi?View_Notes=$DBID_Clean'>
+				<div style='position: relative; background: url(\"resources/imgs/view-notes.png\") no-repeat; width: 22px; height: 22px;'> 
+					<p style='position: absolute; width: 22px; text-align: center; font-weight: bold; color: #FF0000;'>
+						$Note_Count
+					</p>
+				</div>
+			</a>",
 			"<a href='sudoers-users.cgi?Edit_User=$DBID_Clean'><img src=\"resources/imgs/edit.png\" alt=\"Edit User ID $DBID_Clean\" ></a>",
 			"<a href='sudoers-users.cgi?Delete_User=$DBID_Clean'><img src=\"resources/imgs/delete.png\" alt=\"Delete User ID $DBID_Clean\" ></a>"
 		);
@@ -775,9 +926,10 @@ sub html_output {
 	$Table->setColWidth(7, '1px');
 	$Table->setColWidth(8, '1px');
 	$Table->setColWidth(9, '1px');
+	$Table->setColWidth(10, '1px');
 
 	$Table->setColAlign(1, 'center');
-	for (3..9) {
+	for (3..10) {
 		$Table->setColAlign($_, 'center');
 	}
 

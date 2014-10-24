@@ -4,6 +4,7 @@ use strict;
 use POSIX qw(strftime);
 
 require 'common.pl';
+my $DB_Management = DB_Management();
 my $DB_Sudoers = DB_Sudoers();
 my $Sudoers_Location = Sudoers_Location();
 my $Sudoers_Storage = Sudoers_Storage();
@@ -20,6 +21,23 @@ my $Owner = Owner_ID();
 my $Group = Group_ID();
 
 my $Date = strftime "%Y-%m-%d", localtime;
+
+# Safety check for other running build processes
+
+	my $Select_Locks = $DB_Management->prepare("SELECT `sudoers-build` FROM `lock`");
+	$Select_Locks->execute();
+	while ( my $Sudoers_Build_Lock = $Select_Locks->fetchrow_array() )
+	{
+		if ($Sudoers_Build_Lock != 0) {
+			print "Another build process is running. Exiting...\n";
+			exit(1);
+		}
+		else {
+			$DB_Management->do("UPDATE `lock` SET `sudoers-build` = '1'");
+		}
+	}
+
+# / Safety check for other running build processes
 
 # Safety check for unapproved Rules
 
@@ -50,14 +68,16 @@ my $Sudoers_Check = `$visudo -c -f $Sudoers_Location`;
 
 if ($Sudoers_Check =~ m/$Sudoers_Location:\sparsed\sOK/) {
 	$Sudoers_Check = "Sudoers check passed!\n";
+	$DB_Management->do("UPDATE `lock` SET `sudoers-build` = '0'");
 	&record_audit('PASSED');
 	print $Sudoers_Check;
 	exit(0);
 }
 else {
 	$Sudoers_Check = "Sudoers check failed, no changes made. Latest working sudoers file restored.\n";
-	print $Sudoers_Check;
+	$DB_Management->do("UPDATE `lock` SET `sudoers-build` = '0'");
 	&record_audit('FAILED');
+	print $Sudoers_Check;
 	exit(1);
 }
 
@@ -163,8 +183,14 @@ sub write_host_groups {
 
 		$Group_Name = uc($Group_Name); # Turn to uppercase so that sudo can read it correctly
 		$Hosts =~ s/,\s$//; # Remove trailing comma
-		print FILE "Host_Alias	HOST_GROUP_$Group_Name = $Hosts\n\n";
-
+		if ($Hosts) {
+			print FILE "Host_Alias	HOST_GROUP_$Group_Name = $Hosts\n\n";
+		}
+		else {
+			print FILE "#######\n";
+			print FILE "####### $Group_Name (ID: $DBID) was not included because it does not have any attached Hosts. #######\n";
+			print FILE "#######\n\n";
+		}
 	}
 
 print FILE "### Host Group Section Ends ###\n\n";
@@ -242,8 +268,14 @@ sub write_user_groups {
 
 		$Group_Name = uc($Group_Name); # Turn to uppercase so that sudo can read it correctly
 		$Users =~ s/,\s$//; # Remove trailing comma
-		print FILE "User_Alias	USER_GROUP_$Group_Name = $Users\n\n";
-
+		if ($Users) {
+			print FILE "User_Alias	USER_GROUP_$Group_Name = $Users\n\n";
+		}
+		else {
+			print FILE "#######\n";
+			print FILE "####### $Group_Name (ID: $DBID) was not included because it does not have any attached Users. #######\n";
+			print FILE "#######\n\n";
+		}
 	}
 
 print FILE "### User Group Section Ends ###\n\n";
@@ -318,8 +350,14 @@ sub write_command_groups {
 		$Group_Name = uc($Group_Name); # Turn to uppercase so that sudo can read it correctly
 		$Commands = uc($Commands); # Turn to uppercase so that sudo can read it correctly
 		$Commands =~ s/,\s$//; # Remove trailing comma
-		print FILE "Cmnd_Alias	COMMAND_GROUP_$Group_Name = $Commands\n\n";
-
+		if ($Commands) {
+			print FILE "Cmnd_Alias	COMMAND_GROUP_$Group_Name = $Commands\n\n";
+		}
+		else {
+			print FILE "#######\n";
+			print FILE "####### $Group_Name (ID: $DBID) was not included because it does not have any attached Commands. #######\n";
+			print FILE "#######\n\n";
+		}
 	}
 
 print FILE "### Command Group Section Ends ###\n\n";
@@ -646,7 +684,6 @@ sub record_audit {
 
 	my $Result = $_[0];
 
-	my $DB_Management = DB_Management();
 	my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
 		`category`,
 		`method`,

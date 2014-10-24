@@ -56,6 +56,11 @@ a img:hover {
 	filter:alpha(opacity=40); /* For IE8 and earlier */
 	}
 
+a div:hover {
+	opacity:0.4;
+	filter:alpha(opacity=40); /* For IE8 and earlier */
+	}
+
 form {
 	display: inline;
 	}	

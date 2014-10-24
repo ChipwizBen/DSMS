@@ -21,6 +21,8 @@ my $Add_Rule_Final = $CGI->param("Add_Rule_Final");
 	my $NOEXEC_Add = $CGI->param("NOEXEC_Add");
 	my $Expires_Toggle_Add = $CGI->param("Expires_Toggle_Add");
 	my $Expires_Date_Add = $CGI->param("Expires_Date_Add");
+		$Expires_Date_Add =~ s/\s//g;
+		$Expires_Date_Add =~ s/[^0-9\-]//g;
 	my $Active_Add = $CGI->param("Active_Add");
 
 	my $Add_Host_Group_Temp_New = $CGI->param("Add_Host_Group_Temp_New");
@@ -49,6 +51,8 @@ my $Edit_Rule_Final = $CGI->param("Edit_Rule_Final");
 	my $NOEXEC_Edit = $CGI->param("NOEXEC_Edit");
 	my $Expires_Toggle_Edit = $CGI->param("Expires_Toggle_Edit");
 	my $Expires_Date_Edit = $CGI->param("Expires_Date_Edit");
+		$Expires_Date_Edit =~ s/\s//g;
+		$Expires_Date_Edit =~ s/[^0-9\-]//g;
 	my $Active_Edit = $CGI->param("Active_Edit");
 
 	my $Edit_Host_Group_Temp_New = $CGI->param("Edit_Host_Group_Temp_New");
@@ -81,6 +85,10 @@ my $Delete_Rule_Item_ID = $CGI->param("Delete_Rule_Item_ID");
 
 my $Approve_Rule_ID = $CGI->param("Approve_Rule_ID");
 my $Approve_Rule_Name = $CGI->param("Approve_Rule_Name");
+
+my $View_Notes = $CGI->param("View_Notes");
+my $New_Note = $CGI->param("New_Note");
+my $New_Note_ID = $CGI->param("New_Note_ID");
 
 my $User_Name = $Session->param("User_Name");
 my $User_Admin = $Session->param("User_Admin");
@@ -151,6 +159,20 @@ elsif ($Approve_Rule_ID && $User_Approver) {
 	$Session->param('Message_Green', $Message_Green); #Posting Message_Green session var
 	print "Location: sudoers-rules.cgi\n\n";
 	exit(0);
+}
+elsif ($View_Notes) {
+	require "header.cgi";
+	&html_output;
+	require "footer.cgi";
+	&html_notes;
+}
+elsif ($New_Note && $New_Note_ID) {
+	&add_note;
+	require "header.cgi";
+	&html_output;
+	require "footer.cgi";
+	$View_Notes = $New_Note_ID;
+	&html_notes;
 }
 else {
 	require "header.cgi"; ## no critic
@@ -759,8 +781,7 @@ print <<ENDHTML;
 </table>
 
 <ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
-<li>Rule Names must be unique.</li>
-<li>Do not use spaces in Rule Names - they will be stripped.</li>
+<li>Rule Names must be unique and contain only a-z, A-Z, 0-9 and _ characters.</li>
 <li>When choosing <b>ALL Hosts</b>, keep in mind that this option is explicit and will therefore 
 include Undefined Hosts, Inactive Hosts and Expired Hosts. <i>Every</i> host is applicable to this 
 rule, regardless of state.</li>
@@ -2129,8 +2150,7 @@ print <<ENDHTML;
 </table>
 
 <ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
-<li>Rule Names must be unique.</li>
-<li>Do not use spaces in Rule Names - they will be stripped.</li>
+<li>Rule Names must be unique and contain only a-z, A-Z, 0-9 and _ characters.</li>
 <li>When choosing <b>ALL Hosts</b>, keep in mind that this option is explicit and will therefore 
 include Undefined Hosts, Inactive Hosts and Expired Hosts. <i>Every</i> host is applicable to this 
 rule, regardless of state.</li>
@@ -2223,9 +2243,10 @@ sub edit_rule {
 		$ALL_Hosts = 0;
 	}
 
-	my $Approved_By = $User_Name;
+	my $Approved_By;
 	if (!$User_Requires_Approval && $User_Approver) {
 		$Approved = 1;
+		$Approved_By = $User_Name;
 	}
 	else {
 		$Approved = 0;
@@ -2529,7 +2550,7 @@ sub edit_rule {
 
 	}
 
-} # sub html_edit_rule
+} # sub edit_rule
 
 sub html_delete_rule {
 
@@ -3023,10 +3044,121 @@ sub approve_rule {
 
 } # approve_rule
 
+sub html_notes {
+
+	my $Table = new HTML::Table(
+		-cols=>4,
+		-align=>'center',
+		-border=>0,
+		-rules=>'cols',
+		-evenrowclass=>'tbeven',
+		-oddrowclass=>'tbodd',
+		-width=>'90%',
+		-spacing=>0,
+		-padding=>1
+	);
+
+	$Table->addRow( "#", "Note", "Time", "Added By");
+	$Table->setRowClass (1, 'tbrow1');
+
+	### Discover Rule Name
+	my $Rule_Name;
+	my $Select_Rule_Name = $DB_Sudoers->prepare("SELECT `name`
+	FROM `rules`
+	WHERE `id` = ?");
+
+	$Select_Rule_Name->execute($View_Notes);
+	$Rule_Name = $Select_Rule_Name->fetchrow_array();
+	### / Discover Rule Name
+
+	### Discover Note Count
+	my $Select_Note_Count = $DB_Sudoers->prepare("SELECT COUNT(*)
+		FROM `notes`
+		WHERE `type_id` = '07'
+		AND `item_id` = ?"
+	);
+	$Select_Note_Count->execute($View_Notes);
+	my $Note_Count = $Select_Note_Count->fetchrow_array();
+	### / Discover Note Count
+
+	my $Select_Notes = $DB_Sudoers->prepare("SELECT `note`, `last_modified`, `modified_by`
+	FROM `notes`
+	WHERE `type_id` = '07'
+	AND `item_id` = ?
+	ORDER BY `last_modified` DESC");
+
+	$Select_Notes->execute($View_Notes);
+
+	my $Row_Count=$Note_Count;
+	while ( my @Notes = $Select_Notes->fetchrow_array() )
+	{
+		my $Note = $Notes[0];
+		my $Last_Modified = $Notes[1];
+		my $Modified_By = $Notes[2];
+		
+		$Table->addRow($Row_Count, $Note, $Last_Modified, $Modified_By);
+		$Row_Count--;
+	}
+
+	$Table->setColWidth(1, '1px');
+	$Table->setColWidth(3, '110px');
+	$Table->setColWidth(4, '110px');
+
+	$Table->setColAlign(1, 'center');
+	$Table->setColAlign(3, 'center');
+	$Table->setColAlign(4, 'center');
+
+print <<ENDHTML;
+<div id="wide-popup-box">
+<a href="sudoers-rules.cgi">
+<div id="blockclosebutton">
+</div>
+</a>
+
+<h3 align="center">Notes for $Rule_Name</h3>
+<form action='sudoers-rules.cgi' method='post'>
+
+<table align='center'>
+	<tr>
+		<td><textarea name='New_Note' placeholder='Add a new note' autofocus></textarea></td>
+	</tr>
+	<tr>
+		<td><div style="text-align: center"><input type='submit' name='Submit' value='Submit New Note'></div></td>
+	</tr>
+</table>
+
+<hr width="50%">
+
+<input type='hidden' name='New_Note_ID' value='$View_Notes'>
+</form>
+
+<p>$Note_Count existing notes found, latest first.</p>
+
+$Table
+
+ENDHTML
+
+} # sub html_notes
+
+sub add_note {
+
+	my $Note_Submission = $DB_Sudoers->prepare("INSERT INTO `notes` (
+		`type_id`,
+		`item_id`,
+		`note`,
+		`modified_by`
+	)
+	VALUES (
+		?, ?, ?, ?
+	)");
+	$Note_Submission->execute(07, $New_Note_ID, $New_Note, $User_Name);
+
+} # sub add_note
+
 sub html_output {
 
 	my $Table = new HTML::Table(
-		-cols=>18,
+		-cols=>19,
 		-align=>'center',
 		-border=>0,
 		-rules=>'cols',
@@ -3063,7 +3195,7 @@ sub html_output {
 
 	$Table->addRow( "ID", "Rule Name", "Attached Host Groups", "Attached Hosts", "Attached User Groups",
 	"Attached Users", "Attached Command Groups", "Attached Commands", "Run As", "Tags", "Expires", "Active", "Approved", "Last Modified<br /><span style='color: #B6B600'>Last Approved</span>",
-	"Modified By<br /><span style='color: #B6B600'>Approved By</span>", "Approve", "Edit", "Delete" );
+	"Modified By<br /><span style='color: #B6B600'>Approved By</span>", "Approve", "Notes", "Edit", "Delete" );
 	$Table->setRowClass (1, 'tbrow1');
 	$Table->autoGrow ('false');
 
@@ -3633,6 +3765,20 @@ sub html_output {
 		
 		### / Discover Attached Commands
 
+		### Discover Note Count
+
+		my $Select_Note_Count = $DB_Sudoers->prepare("SELECT COUNT(*)
+			FROM `notes`
+			WHERE `type_id` = '07'
+			AND `item_id` = ?"
+		);
+		$Select_Note_Count->execute($DBID_Clean);
+		my $Note_Count = $Select_Note_Count->fetchrow_array();
+
+		### / Discover Note Count
+
+
+
 #######################################################################################################
 
 		my $Expires_Epoch;
@@ -3663,6 +3809,13 @@ sub html_output {
 				"$Last_Modified<br />$Last_Approved",
 				"$Modified_By<br />$Approved_By",
 				"<a href='sudoers-rules.cgi?Approve_Rule_ID=$DBID_Clean&Approve_Rule_Name=$DB_Rule_Name_Clean'><img src=\"resources/imgs/buttons/confirm.png\" alt=\"Approve Rule ID $DBID_Clean\" ></a>",
+				"<a href='sudoers-rules.cgi?View_Notes=$DBID_Clean'>
+					<div style='position: relative; background: url(\"resources/imgs/view-notes.png\") no-repeat; width: 22px; height: 22px;'> 
+						<p style='position: absolute; width: 22px; text-align: center; font-weight: bold; color: #FF0000;'>
+							$Note_Count
+						</p>
+					</div>
+				</a>",
 				"<a href='sudoers-rules.cgi?Edit_Rule=$DBID_Clean'><img src=\"resources/imgs/edit.png\" alt=\"Edit Rule ID $DBID_Clean\" ></a>",
 				"<a href='sudoers-rules.cgi?Delete_Rule=$DBID_Clean'><img src=\"resources/imgs/delete.png\" alt=\"Delete Rule ID $DBID_Clean\" ></a>"
 			);
@@ -3685,6 +3838,13 @@ sub html_output {
 				"$Last_Modified<br />$Last_Approved",
 				"$Modified_By<br />$Approved_By",
 				"<img src=\"resources/imgs/buttons/confirm-dim.png\" alt=\"You cannot approve this rule\" >",
+				"<a href='sudoers-rules.cgi?View_Notes=$DBID_Clean'>
+					<div style='position: relative; background: url(\"resources/imgs/view-notes.png\") no-repeat; width: 22px; height: 22px;'> 
+						<p style='position: absolute; width: 22px; text-align: center; font-weight: bold; color: #FF0000;'>
+							$Note_Count
+						</p>
+					</div>
+				</a>",
 				"<a href='sudoers-rules.cgi?Edit_Rule=$DBID_Clean'><img src=\"resources/imgs/edit.png\" alt=\"Edit Rule ID $DBID_Clean\" ></a>",
 				"<a href='sudoers-rules.cgi?Delete_Rule=$DBID_Clean'><img src=\"resources/imgs/delete.png\" alt=\"Delete Rule ID $DBID_Clean\" ></a>"
 			);
@@ -3725,9 +3885,10 @@ sub html_output {
 	$Table->setColWidth(16, '1px');
 	$Table->setColWidth(17, '1px');
 	$Table->setColWidth(18, '1px');
+	$Table->setColWidth(19, '1px');
 
 	$Table->setColAlign(1, 'center');
-	for (9 .. 18) {
+	for (9 .. 19) {
 		$Table->setColAlign($_, 'center');
 	}
 

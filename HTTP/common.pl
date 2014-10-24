@@ -99,12 +99,13 @@ sub Distribution_Defaults {
 	# A good fail-safe strategy would be to set $Key_Path to be /dev/null so that login to the Remote Server becomes impossible. Alternatively, another good method would be to set $Remote_Sudoers to /sudoers/sudoers (which reflects the chroot recommendations), so that you could accurately test remote login, but not affect the existing sudoers file at /etc/sudoers. This is also dependent on your Cron Configuration on the Remote Server.
 
 
+	my $Distribution_SFTP_Port = '22'; # Default SFTP port
 	my $Distribution_User = 'transport'; # Default SFTP user
 	my $Key_Path = '/root/.ssh/id_rsa'; # Default private key path
 	my $Timeout = '15'; # Default stalled connection Timeout in seconds
 	my $Remote_Sudoers = 'upload/sudoers'; # Default sudoers file location on remote systems, if using chroot use a relative path
 
-	my @Distribution_Defaults = ($Distribution_User, $Key_Path, $Timeout, $Remote_Sudoers);
+	my @Distribution_Defaults = ($Distribution_SFTP_Port, $Distribution_User, $Key_Path, $Timeout, $Remote_Sudoers);
 	return @Distribution_Defaults;
 
 } # sub Distribution_Defaults
@@ -269,7 +270,7 @@ sub Version {
 
 	# This is where the DSMS System discovers its version number, which assists with both manual and automated Upgrading, among other things. You should not modify this value.
 
-	my $Version = '1.5.0';
+	my $Version = '1.6.0';
 	return $Version;
 
 } # sub Version

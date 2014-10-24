@@ -36,7 +36,7 @@ HOST: while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
 		WHERE `host_id` = ?");
 	# / Preparing for status output write
 
-	my $Select_Parameters = $DB_Management->prepare("SELECT `user`, `key_path`, `timeout`, `remote_sudoers_path`
+	my $Select_Parameters = $DB_Management->prepare("SELECT `sftp_port`, `user`, `key_path`, `timeout`, `remote_sudoers_path`
 		FROM `distribution`
 		WHERE `host_id` = ?");
 
@@ -45,25 +45,27 @@ HOST: while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
 	while ( my @Select_Parameters = $Select_Parameters->fetchrow_array() )
 	{
 
-		my $User = $Select_Parameters[0];
-		my $Key_Path = $Select_Parameters[1];
-		my $Timeout = $Select_Parameters[2];
-		my $Remote_Sudoers = $Select_Parameters[3];
+		my $SFTP_Port = $Select_Parameters[0];
+		my $User = $Select_Parameters[1];
+		my $Key_Path = $Select_Parameters[2];
+		my $Timeout = $Select_Parameters[3];
+		my $Remote_Sudoers = $Select_Parameters[4];
 
 		my $Error;
 
 		### Connection
-		print "Attempting to connect to $Hostname with $User\@$IP and key $Key_Path...\n";
+		print "Attempting to connect to $Hostname with $User\@$IP:$SFTP_Port and key $Key_Path...\n";
 
 		my $SFTP = Net::SFTP::Foreign->new(
 			"$User\@$IP",
+			port => "$SFTP_Port",
 			key_path => "$Key_Path",
 			timeout => "$Timeout"
 		);
 		$SFTP->error and $Error = "Connection Failed: " . $SFTP->error;
 
 		if ($SFTP->status == 0) {
-			print "Connected successfully to $Hostname ($IP).\n";
+			print "Connected successfully to $Hostname ($IP) on port $SFTP_Port.\n";
 		}
 		else {
 
@@ -76,7 +78,7 @@ HOST: while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
 			elsif ($Error =~ /Connection to remote server is broken/) {$Error = $Error ." 
     Hints: 
     1) Incorrect user name
-    2) Badly formatted IP address
+    2) Incorrect IP address or port
     3) Key identity file not found
     4) Insufficient permissions to read key identity file"}
 

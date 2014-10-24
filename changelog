@@ -1,3 +1,10 @@
+1.6.0   - Fixed bug that stripped hyphens from hostnames. Also allowed user names to contain hyphens,
+          periods and underscores to match POSIX requirements.
+        - Fixed bug which allowed empty Groups to be added to the CDSF.
+        - Added an automated sudoers build locking mechanism to the DSMS System to prevent two build 
+          processes running at the same time.
+        - Added ability to specify SFTP distribution port.
+        - Added Noting System.
 1.5.0   - Added MD5 checksum to Distribution Status for easier comparison with sudoers checksums 
           currently on different systems.
         - Added option to specify port in DB connection string in 'common.pl'.

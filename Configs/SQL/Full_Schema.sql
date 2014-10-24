@@ -369,6 +369,34 @@ LOCK TABLES `lnk_user_groups_to_users` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `notes`
+--
+
+DROP TABLE IF EXISTS `notes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `notes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `type_id` int(2) NOT NULL DEFAULT '0',
+  `item_id` int(11) NOT NULL,
+  `note` text NOT NULL,
+  `last_modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `modified_by` varchar(128) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `notes`
+--
+
+LOCK TABLES `notes` WRITE;
+/*!40000 ALTER TABLE `notes` DISABLE KEYS */;
+/*!40000 ALTER TABLE `notes` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `rules`
 --
 
@@ -378,6 +406,7 @@ DROP TABLE IF EXISTS `rules`;
 CREATE TABLE `rules` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(128) NOT NULL,
+  `all_hosts` int(1) NOT NULL DEFAULT '0',
   `run_as` varchar(128) NOT NULL,
   `nopasswd` int(1) NOT NULL DEFAULT '0',
   `noexec` int(1) NOT NULL DEFAULT '1',
@@ -413,6 +442,7 @@ DROP TABLE IF EXISTS `user_groups`;
 CREATE TABLE `user_groups` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `groupname` varchar(128) NOT NULL,
+  `system_group` int(1) NOT NULL DEFAULT '0',
   `expires` date NOT NULL,
   `active` int(1) NOT NULL DEFAULT '1',
   `last_modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -519,17 +549,9 @@ CREATE TABLE `audit_log` (
   `username` varchar(128) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `audit_log`
---
-
-LOCK TABLES `audit_log` WRITE;
-/*!40000 ALTER TABLE `audit_log` DISABLE KEYS */;
-/*!40000 ALTER TABLE `audit_log` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `credentials`
@@ -560,15 +582,6 @@ CREATE TABLE `credentials` (
 ) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `credentials`
---
-
-LOCK TABLES `credentials` WRITE;
-/*!40000 ALTER TABLE `credentials` DISABLE KEYS */;
-INSERT INTO `credentials` VALUES (1,'admin','ebc21cd4ad20daa929cdfd65446c662d1454f08552c546d495eed15f3f0edcd39400565ccbebc489542ba1f528a7963e9bd2425ba0dd35370e81e92e0dd708de',';2eiR=|VyBcv0VWVi0gd=9&B,h<*;SpE.JAv)pik>g-6C!|5W#;tfsu(@0L&u@0u','noreply@','2014-09-11 10:23:21','2014-09-11 10:23:21',1,0,1,0,0,'','2014-09-10 22:23:21','Ben Schofield');
-/*!40000 ALTER TABLE `credentials` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `distribution`
@@ -579,6 +592,7 @@ DROP TABLE IF EXISTS `distribution`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `distribution` (
   `host_id` int(11) NOT NULL,
+  `sftp_port` int(5) NOT NULL DEFAULT '22',
   `user` varchar(128) NOT NULL DEFAULT 'transport',
   `key_path` varchar(255) NOT NULL DEFAULT '/home/transport/.ssh/id_rsa',
   `timeout` int(3) NOT NULL DEFAULT '5',
@@ -592,13 +606,28 @@ CREATE TABLE `distribution` (
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+
 --
--- Dumping data for table `distribution`
+-- Table structure for table `lock`
 --
 
-LOCK TABLES `distribution` WRITE;
-/*!40000 ALTER TABLE `distribution` DISABLE KEYS */;
-/*!40000 ALTER TABLE `distribution` ENABLE KEYS */;
+DROP TABLE IF EXISTS `lock`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `lock` (
+  `sudoers-build` int(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`sudoers-build`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `lock`
+--
+
+LOCK TABLES `lock` WRITE;
+/*!40000 ALTER TABLE `lock` DISABLE KEYS */;
+INSERT INTO `lock` VALUES (0);
+/*!40000 ALTER TABLE `lock` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -610,4 +639,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2014-09-30 15:07:57
+-- Dump completed on 2014-10-24 15:59:39

@@ -7,7 +7,8 @@ require 'common.pl';
 my $DB_Management = DB_Management();
 my $DB_Sudoers = DB_Sudoers();
 my ($CGI, $Session, $Cookie) = CGI();
-my ($Distribution_Default_User,
+my ($Distribution_Default_SFTP_Port,
+	$Distribution_Default_User,
 	$Distribution_Default_Key_Path, 
 	$Distribution_Default_Timeout,
 	$Distribution_Default_Remote_Sudoers) = Distribution_Defaults();
@@ -18,9 +19,16 @@ my $cut = cut();
 my $Edit_Host_Parameters = $CGI->param("Edit_Host_Parameters");
 
 my $Edit_Host_Parameters_Post = $CGI->param("Edit_Host_Parameters_Post");
+	my $SFTP_Port_Edit = $CGI->param("SFTP_Port_Edit");
+		$SFTP_Port_Edit =~ s/\s//g;
+		$SFTP_Port_Edit =~ s/[^0-9]//g;
 	my $User_Edit = $CGI->param("User_Edit");
+		$User_Edit =~ s/\s//g;
+		$User_Edit =~ s/[^a-zA-Z0-9\-\.\_]//g;
 	my $Key_Path_Edit = $CGI->param("Key_Path_Edit");
 	my $Timeout_Edit = $CGI->param("Timeout_Edit");
+		$Timeout_Edit =~ s/\s//g;
+		$Timeout_Edit =~ s/[^0-9]//g;
 	my $Remote_Sudoers_Path_Edit = $CGI->param("Remote_Sudoers_Path_Edit");
 	my $Host_Name_Edit = $CGI->param("Host_Name_Edit");
 	my $IP_Edit = $CGI->param("IP_Edit");
@@ -69,7 +77,7 @@ else {
 
 sub html_edit_host_parameters {
 
-	my $Select_Parameters = $DB_Management->prepare("SELECT `user`, `key_path`, `timeout`, `remote_sudoers_path`
+	my $Select_Parameters = $DB_Management->prepare("SELECT `sftp_port`, `user`, `key_path`, `timeout`, `remote_sudoers_path`
 		FROM `distribution`
 		WHERE `host_id` = ?");
 
@@ -78,10 +86,11 @@ sub html_edit_host_parameters {
 	while ( my @DB_Parameters = $Select_Parameters->fetchrow_array() )
 	{
 
-		my $User = $DB_Parameters[0];
-		my $Key_Path = $DB_Parameters[1];
-		my $Timeout = $DB_Parameters[2];
-		my $Remote_Sudoers_Path = $DB_Parameters[3];
+		my $SFTP_Port = $DB_Parameters[0];
+		my $User = $DB_Parameters[1];
+		my $Key_Path = $DB_Parameters[2];
+		my $Timeout = $DB_Parameters[3];
+		my $Remote_Sudoers_Path = $DB_Parameters[4];
 
 		my $Select_Host = $DB_Sudoers->prepare("SELECT `hostname`, `ip`, `expires`, `active`
 		FROM `hosts`
@@ -143,6 +152,10 @@ ENDHTML
 print <<ENDHTML;
 	</tr>
 	<tr>
+		<td style="text-align: right;">SFTP Port:</td>
+		<td style="text-align: left;" colspan="2"><input type='text' style='width: 50px;' name='SFTP_Port_Edit' value='$SFTP_Port' maxlength='128' placeholder="$SFTP_Port" required></td>
+	</tr>
+	<tr>
 		<td style="text-align: right;">User:</td>
 		<td style="text-align: left;" colspan="2"><input type='text' style='width: 200px;' name='User_Edit' value='$User' maxlength='128' placeholder="$User" required></td>
 	</tr>
@@ -166,6 +179,7 @@ print <<ENDHTML;
 <input type='hidden' name='Edit_Host_Parameters_Post' value='$Edit_Host_Parameters'>
 
 <ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
+<li>User Names must be POSIX compliant.</li>
 <li>The User is the SFTP subsystem user on the remote system. You should set up a dedicated user for this.</li>
 <li>The Key Path is SSH private key path of the SFTP subsystem User. Use the full system path.</li>
 <li>The Timeout is the connection timeout in seconds for stalled or unreachable hosts.</li>
@@ -186,6 +200,7 @@ ENDHTML
 sub edit_host_parameters {
 
 	my $Update_Parameters = $DB_Management->prepare("UPDATE `distribution` SET
+		`sftp_port` = ?,
 		`user` = ?,
 		`key_path` = ?,
 		`timeout` = ?,
@@ -194,7 +209,7 @@ sub edit_host_parameters {
 		`modified_by` = ?
 		WHERE `host_id` = ?");
 		
-	$Update_Parameters->execute($User_Edit, $Key_Path_Edit, $Timeout_Edit, $Remote_Sudoers_Path_Edit, $User_Name, $Edit_Host_Parameters_Post);
+	$Update_Parameters->execute($SFTP_Port_Edit, $User_Edit, $Key_Path_Edit, $Timeout_Edit, $Remote_Sudoers_Path_Edit, $User_Name, $Edit_Host_Parameters_Post);
 
 	# Audit Log
 	my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
@@ -207,7 +222,7 @@ sub edit_host_parameters {
 		?, ?, ?, ?
 	)");
 	
-	$Audit_Log_Submission->execute("Distribution", "Modify", "$User_Name modified Host ID $Edit_Host_Parameters_Post. The new entry is recorded as User: $User_Edit, Key Path: $Key_Path_Edit, Timeout: $Timeout_Edit seconds and Remote Sudoers Path: $Remote_Sudoers_Path_Edit.", $User_Name);
+	$Audit_Log_Submission->execute("Distribution", "Modify", "$User_Name modified Host ID $Edit_Host_Parameters_Post. The new entry is recorded as Port: $SFTP_Port_Edit, User: $User_Edit, Key Path: $Key_Path_Edit, Timeout: $Timeout_Edit seconds and Remote Sudoers Path: $Remote_Sudoers_Path_Edit.", $User_Name);
 	# / Audit Log
 
 } # sub edit_host_parameters
@@ -228,7 +243,7 @@ sub html_output {
 
 
 	my $Table = new HTML::Table(
-		-cols=>12,
+		-cols=>13,
 		-align=>'center',
 		-border=>0,
 		-rules=>'cols',
@@ -239,14 +254,14 @@ sub html_output {
 		-padding=>1
 	);
 
-	$Table->addRow( "Host ID", "Host (IP)", "User", "Key Path", "Timeout", "Remote Sudoers Path", "Status Message", "Status", "Status Received", "Last Modified", "Modified By", "Edit" );
+	$Table->addRow( "Host ID", "Host (IP)", "SFTP Port", "User", "Key Path", "Timeout", "Remote Sudoers Path", "Status Message", "Status", "Status Received", "Last Modified", "Modified By", "Edit" );
 	$Table->setRowClass (1, 'tbrow1');
 
 	my $Select_Host_Count = $DB_Sudoers->prepare("SELECT `id` FROM `hosts`");
 		$Select_Host_Count->execute( );
 		my $Total_Rows = $Select_Host_Count->rows();
 
-	my $Select_Parameters = $DB_Management->prepare("SELECT `host_id`, `user`, `key_path`, `timeout`, `remote_sudoers_path`, `status`, `last_updated`, `last_modified`, `modified_by`
+	my $Select_Parameters = $DB_Management->prepare("SELECT `host_id`, `sftp_port`, `user`, `key_path`, `timeout`, `remote_sudoers_path`, `status`, `last_updated`, `last_modified`, `modified_by`
 		FROM `distribution`
 		ORDER BY `last_updated` DESC
 		LIMIT 0 , $Rows_Returned");
@@ -258,11 +273,12 @@ sub html_output {
 	{
 
 		my $Host_ID = $Select_Parameters[0];
-		my $User = $Select_Parameters[1];
-		my $Key_Path = $Select_Parameters[2];
-		my $Timeout = $Select_Parameters[3];
-		my $Remote_Sudoers = $Select_Parameters[4];
-		my $Status_Message = $Select_Parameters[5];
+		my $SFTP_Port = $Select_Parameters[1];
+		my $User = $Select_Parameters[2];
+		my $Key_Path = $Select_Parameters[3];
+		my $Timeout = $Select_Parameters[4];
+		my $Remote_Sudoers = $Select_Parameters[5];
+		my $Status_Message = $Select_Parameters[6];
 			my $Status_Light;
 			if ($Status_Message =~ /^OK/) {$Status_Light = 'OK'} else {$Status_Light = 'Error'}
 			$Status_Message =~ s/\n/<br \/>/g;
@@ -271,11 +287,11 @@ sub html_output {
 			$Status_Message =~ s/(.*)Failed:/<span style='color: #FF0000'>$1Failed: <\/span>/g;
 			$Status_Message =~ s/Hints:(.*)/<span style='color: #FFC600'>\Hints:<\/span><span style='color: #BDBDBD'>$1<\/span>/g;
 			$Status_Message =~ s/\s(\d\))/<span style='color: #FFC600'>$1<\/span>/gm;
-		my $Last_Updated = $Select_Parameters[6];
+		my $Last_Updated = $Select_Parameters[7];
 			if ($Last_Updated eq '0000-00-00 00:00:00') {$Last_Updated = 'Never';}
-		my $Last_Modified = $Select_Parameters[7];
+		my $Last_Modified = $Select_Parameters[8];
 			if ($Last_Modified eq '0000-00-00 00:00:00') {$Last_Modified = 'Never';}
-		my $Modified_By = $Select_Parameters[8];
+		my $Modified_By = $Select_Parameters[9];
 
 
 		my $Select_Host = $DB_Sudoers->prepare("SELECT `hostname`, `ip`
@@ -288,8 +304,9 @@ sub html_output {
 		{
 
 			$Table->addRow(
-				"$Host_ID",
+				$Host_ID,
 				"<a href='sudoers-hosts.cgi?ID_Filter=$Host_ID'>$Host_Name ($IP)</a>",
+				$SFTP_Port,
 				$User,
 				$Key_Path,
 				$Timeout,
@@ -303,25 +320,26 @@ sub html_output {
 			);
 		
 			if ($Status_Light eq 'OK') {
-				$Table->setCellClass (-1, 8, 'tbrowgreen');
+				$Table->setCellClass (-1, 9, 'tbrowgreen');
 			}
 			else {
-				$Table->setCellClass (-1, 8, 'tbrowerror');
+				$Table->setCellClass (-1, 9, 'tbrowerror');
 			}
 	
 			$Table->setColWidth(1, '1px');
-			$Table->setColWidth(9, '110px');
 			$Table->setColWidth(10, '110px');
 			$Table->setColWidth(11, '110px');
-			$Table->setColWidth(12, '1px');
+			$Table->setColWidth(12, '110px');
+			$Table->setColWidth(13, '1px');
 	
 			$Table->setColAlign(1, 'center');
-			$Table->setColAlign(5, 'center');
-			$Table->setColAlign(8, 'center');
+			$Table->setColAlign(3, 'center');
+			$Table->setColAlign(6, 'center');
 			$Table->setColAlign(9, 'center');
 			$Table->setColAlign(10, 'center');
 			$Table->setColAlign(11, 'center');
 			$Table->setColAlign(12, 'center');
+			$Table->setColAlign(13, 'center');
 		}
 	}
 
@@ -343,7 +361,11 @@ print <<ENDHTML;
 								</td>
 							</tr>
 							<tr>
-								<td style='width: 90px;'>User:</td>
+								<td style='width: 90px;'>SFTP Port:</td>
+								<td style='color: #00FF00;'>$Distribution_Default_SFTP_Port</td>
+							</tr>
+							<tr>
+								<td>User:</td>
 								<td style='color: #00FF00;'>$Distribution_Default_User</td>
 							</tr>
 							<tr>

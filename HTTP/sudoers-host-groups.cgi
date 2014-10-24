@@ -17,6 +17,8 @@ my $Group_Name_Add = $CGI->param("Group_Name_Add");
 	$Group_Name_Add =~ s/\W//g;
 my $Expires_Toggle_Add = $CGI->param("Expires_Toggle_Add");
 my $Expires_Date_Add = $CGI->param("Expires_Date_Add");
+	$Expires_Date_Add =~ s/\s//g;
+	$Expires_Date_Add =~ s/[^0-9\-]//g;
 my $Active_Add = $CGI->param("Active_Add");
 
 my $Edit_Group = $CGI->param("Edit_Group");
@@ -27,6 +29,8 @@ my $Group_Name_Edit = $CGI->param("Group_Name_Edit");
 	$Group_Name_Edit =~ s/\W//g;
 my $Expires_Toggle_Edit = $CGI->param("Expires_Toggle_Edit");
 my $Expires_Date_Edit = $CGI->param("Expires_Date_Edit");
+	$Expires_Date_Edit =~ s/\s//g;
+	$Expires_Date_Edit =~ s/[^0-9\-]//g;
 my $Active_Edit = $CGI->param("Active_Edit");
 
 my $Delete_Group = $CGI->param("Delete_Group");
@@ -40,6 +44,10 @@ my $Delete_Host_From_Group_Name = $CGI->param("Delete_Host_From_Group_Name");
 
 my $Show_Links = $CGI->param("Show_Links");
 my $Show_Links_Name = $CGI->param("Show_Links_Name");
+
+my $View_Notes = $CGI->param("View_Notes");
+my $New_Note = $CGI->param("New_Note");
+my $New_Note_ID = $CGI->param("New_Note_ID");
 
 my $User_Name = $Session->param("User_Name");
 my $User_Admin = $Session->param("User_Admin");
@@ -109,6 +117,20 @@ elsif ($Show_Links) {
 	&html_output;
 	require "footer.cgi";
 	&html_show_links;
+}
+elsif ($View_Notes) {
+	require "header.cgi";
+	&html_output;
+	require "footer.cgi";
+	&html_notes;
+}
+elsif ($New_Note && $New_Note_ID) {
+	&add_note;
+	require "header.cgi";
+	&html_output;
+	require "footer.cgi";
+	$View_Notes = $New_Note_ID;
+	&html_notes;
 }
 else {
 	require "header.cgi"; ## no critic
@@ -273,8 +295,7 @@ print <<ENDHTML;
 </table>
 
 <ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
-<li>Group Names must be unique.</li>
-<li>Do not use spaces in Group Names - they will be stripped.</li>
+<li>Group Names must be unique and contain only a-z, A-Z, 0-9 and _ characters.</li>
 <li>Groups with an expiry set are automatically removed from sudoers at 23:59:59
 (or the next sudoers refresh thereafter) on the day of expiry. Expired entries are functionally
 equivalent to inactive entries. The date entry format is YYYY-MM-DD.</li>
@@ -698,8 +719,7 @@ print <<ENDHTML;
 </table>
 
 <ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
-<li>Group Names must be unique.</li>
-<li>Do not use spaces in Group Names - they will be stripped.</li>
+<li>Group Names must be unique and contain only a-z, A-Z, 0-9 and _ characters.</li>
 <li>You can only activate a modified command if you are an Approver.
 If you are not an Approver and you modify this entry, it will automatically be set to Inactive.</li>
 <li>Groups with an expiry set are automatically removed from sudoers at 23:59:59
@@ -1176,18 +1196,129 @@ ENDHTML
 
 } # sub html_show_links
 
+sub html_notes {
+
+	my $Table = new HTML::Table(
+		-cols=>4,
+		-align=>'center',
+		-border=>0,
+		-rules=>'cols',
+		-evenrowclass=>'tbeven',
+		-oddrowclass=>'tbodd',
+		-width=>'90%',
+		-spacing=>0,
+		-padding=>1
+	);
+
+	$Table->addRow( "#", "Note", "Time", "Added By");
+	$Table->setRowClass (1, 'tbrow1');
+
+	### Discover Group Name
+	my $Group_Name;
+	my $Select_Group_Name = $DB_Sudoers->prepare("SELECT `groupname`
+	FROM `host_groups`
+	WHERE `id` = ?");
+
+	$Select_Group_Name->execute($View_Notes);
+	$Group_Name = $Select_Group_Name->fetchrow_array();
+	### / Discover Group Name
+
+	### Discover Note Count
+	my $Select_Note_Count = $DB_Sudoers->prepare("SELECT COUNT(*)
+		FROM `notes`
+		WHERE `type_id` = '02'
+		AND `item_id` = ?"
+	);
+	$Select_Note_Count->execute($View_Notes);
+	my $Note_Count = $Select_Note_Count->fetchrow_array();
+	### / Discover Note Count
+
+	my $Select_Notes = $DB_Sudoers->prepare("SELECT `note`, `last_modified`, `modified_by`
+	FROM `notes`
+	WHERE `type_id` = '02'
+	AND `item_id` = ?
+	ORDER BY `last_modified` DESC");
+
+	$Select_Notes->execute($View_Notes);
+
+	my $Row_Count=$Note_Count;
+	while ( my @Notes = $Select_Notes->fetchrow_array() )
+	{
+		my $Note = $Notes[0];
+		my $Last_Modified = $Notes[1];
+		my $Modified_By = $Notes[2];
+		
+		$Table->addRow($Row_Count, $Note, $Last_Modified, $Modified_By);
+		$Row_Count--;
+	}
+
+	$Table->setColWidth(1, '1px');
+	$Table->setColWidth(3, '110px');
+	$Table->setColWidth(4, '110px');
+
+	$Table->setColAlign(1, 'center');
+	$Table->setColAlign(3, 'center');
+	$Table->setColAlign(4, 'center');
+
+print <<ENDHTML;
+<div id="wide-popup-box">
+<a href="sudoers-host-groups.cgi">
+<div id="blockclosebutton">
+</div>
+</a>
+
+<h3 align="center">Notes for $Group_Name</h3>
+<form action='sudoers-host-groups.cgi' method='post'>
+
+<table align='center'>
+	<tr>
+		<td><textarea name='New_Note' placeholder='Add a new note' autofocus></textarea></td>
+	</tr>
+	<tr>
+		<td><div style="text-align: center"><input type='submit' name='Submit' value='Submit New Note'></div></td>
+	</tr>
+</table>
+
+<hr width="50%">
+
+<input type='hidden' name='New_Note_ID' value='$View_Notes'>
+</form>
+
+<p>$Note_Count existing notes found, latest first.</p>
+
+$Table
+
+ENDHTML
+
+} # sub html_notes
+
+sub add_note {
+
+	my $Note_Submission = $DB_Sudoers->prepare("INSERT INTO `notes` (
+		`type_id`,
+		`item_id`,
+		`note`,
+		`modified_by`
+	)
+	VALUES (
+		?, ?, ?, ?
+	)");
+	$Note_Submission->execute(02, $New_Note_ID, $New_Note, $User_Name);
+
+} # sub add_note
+
 sub html_output {
 
 	my $Table = new HTML::Table(
-		-cols=>10,
-                -align=>'center',
-                -border=>0,
-                -rules=>'cols',
-                -evenrowclass=>'tbeven',
-                -oddrowclass=>'tbodd',
-                -width=>'100%',
-                -spacing=>0,
-                -padding=>1
+		-cols=>11,
+		-align=>'center',
+		-border=>0,
+		-rules=>'cols',
+		-evenrowclass=>'tbeven',
+		-oddrowclass=>'tbodd',
+		-width=>'100%',
+		-spacing=>0,
+		-padding=>1
 	);
 
 
@@ -1214,7 +1345,7 @@ sub html_output {
 	
 	my $Rows = $Select_Groups->rows();
 
-	$Table->addRow( "ID", "Group Name", "Connected Hosts", "Expires", "Active", "Last Modified", "Modified By", "Links", "Edit", "Delete" );
+	$Table->addRow( "ID", "Group Name", "Connected Hosts", "Expires", "Active", "Last Modified", "Modified By", "Links", "Notes", "Edit", "Delete" );
 	$Table->setRowClass (1, 'tbrow1');
 
 	my $Group_Row_Count=1;
@@ -1240,6 +1371,17 @@ sub html_output {
 		my $Last_Modified = @Select_Groups[4];
 		my $Modified_By = @Select_Groups[5];
 
+		### Discover Note Count
+
+		my $Select_Note_Count = $DB_Sudoers->prepare("SELECT COUNT(*)
+			FROM `notes`
+			WHERE `type_id` = '02'
+			AND `item_id` = ?"
+		);
+		$Select_Note_Count->execute($DBID_Clean);
+		my $Note_Count = $Select_Note_Count->fetchrow_array();
+
+		### / Discover Note Count
 
 		my $Select_Links = $DB_Sudoers->prepare("SELECT `host`
 			FROM `lnk_host_groups_to_hosts`
@@ -1309,6 +1451,13 @@ sub html_output {
 			"$Last_Modified",
 			"$Modified_By",
 			"<a href='sudoers-host-groups.cgi?Show_Links=$DBID_Clean&Show_Links_Name=$Group_Name_Clean'><img src=\"resources/imgs/linked.png\" alt=\"Linked Objects to Group ID $DBID_Clean\" ></a>",
+			"<a href='sudoers-host-groups.cgi?View_Notes=$DBID_Clean'>
+				<div style='position: relative; background: url(\"resources/imgs/view-notes.png\") no-repeat; width: 22px; height: 22px;'> 
+					<p style='position: absolute; width: 22px; text-align: center; font-weight: bold; color: #FF0000;'>
+						$Note_Count
+					</p>
+				</div>
+			</a>",
 			"<a href='sudoers-host-groups.cgi?Edit_Group=$DBID_Clean'><img src=\"resources/imgs/edit.png\" alt=\"Edit Group ID $DBID_Clean\" ></a>",
 			"<a href='sudoers-host-groups.cgi?Delete_Group=$DBID_Clean'><img src=\"resources/imgs/delete.png\" alt=\"Delete Group ID $DBID_Clean\" ></a>"
 		);
@@ -1335,9 +1484,10 @@ sub html_output {
 	$Table->setColWidth(8, '1px');
 	$Table->setColWidth(9, '1px');
 	$Table->setColWidth(10, '1px');
+	$Table->setColWidth(11, '1px');
 
 	$Table->setColAlign(1, 'center');
-	for (4 .. 10) {
+	for (4 .. 11) {
 		$Table->setColAlign($_, 'center');
 	}
 

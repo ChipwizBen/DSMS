@@ -14,6 +14,8 @@ my $Edit_User = $CGI->param("Edit_User");
 my $User_Name_Add = $CGI->param("User_Name_Add");
 my $Password_Add = $CGI->param("Password_Add");
 my $Email_Add = $CGI->param("Email_Add");
+	$Email_Add =~ s/\s//g;
+	$Email_Add =~ s/[^a-zA-Z0-9\-\.\_\+\@]//g;
 my $Admin_Add = $CGI->param("Admin_Add");
 my $Approver_Add = $CGI->param("Approver_Add");
 my $Requires_Approval_Add = $CGI->param("Requires_Approval_Add");
@@ -23,6 +25,8 @@ my $Edit_User_Post = $CGI->param("Edit_User_Post");
 my $User_Name_Edit = $CGI->param("User_Name_Edit");
 my $Password_Edit = $CGI->param("Password_Edit");
 my $Email_Edit = $CGI->param("Email_Edit");
+	$Email_Edit =~ s/\s//g;
+	$Email_Edit =~ s/[^a-zA-Z0-9\-\.\_\+\@]//g;
 my $Admin_Edit = $CGI->param("Admin_Edit");
 my $Approver_Edit = $CGI->param("Approver_Edit");
 my $Requires_Approval_Edit = $CGI->param("Requires_Approval_Edit");
@@ -149,6 +153,7 @@ print <<ENDHTML;
 </table>
 
 <ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
+	<li>User Names and email addresses must be unique.</li>
 	<li>
 		<i>Administrator Privileges</i> allow a user to modify users and permissions, including their own, and view 
 		the <b><a href='access-log.cgi'>Access Log</a></b>.
@@ -414,6 +419,7 @@ print <<ENDHTML;
 </table>
 
 <ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
+	<li>User Names and email addresses must be unique.</li>
 	<li>
 		<i>Administrator Privileges</i> allow a user to modify users and permissions, including their own, and view 
 		the <b><a href='access-log.cgi'>Access Log</a></b>.

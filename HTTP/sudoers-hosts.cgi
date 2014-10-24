@@ -13,20 +13,28 @@ my $Add_Host = $CGI->param("Add_Host");
 my $Edit_Host = $CGI->param("Edit_Host");
 
 my $Host_Name_Add = $CGI->param("Host_Name_Add");
-	$Host_Name_Add =~ s/\W//g;
+	$Host_Name_Add =~ s/\s//g;
+	$Host_Name_Add =~ s/[^a-zA-Z0-9\-\.]//g;
 my $IP_Add = $CGI->param("IP_Add");
 	$IP_Add =~ s/\s//g;
+	$IP_Add =~ s/[^0-9\.]//g;
 my $Expires_Toggle_Add = $CGI->param("Expires_Toggle_Add");
 my $Expires_Date_Add = $CGI->param("Expires_Date_Add");
+	$Expires_Date_Add =~ s/\s//g;
+	$Expires_Date_Add =~ s/[^0-9\-]//g;
 my $Active_Add = $CGI->param("Active_Add");
 
 my $Edit_Host_Post = $CGI->param("Edit_Host_Post");
 my $Host_Name_Edit = $CGI->param("Host_Name_Edit");
-	$Host_Name_Edit =~ s/\W//g;
+	$Host_Name_Edit =~ s/\s//g;
+	$Host_Name_Edit =~ s/[^a-zA-Z0-9\-\.]//g;
 my $IP_Edit = $CGI->param("IP_Edit");
 	$IP_Edit =~ s/\s//g;
+	$IP_Edit =~ s/[^0-9\.]//g;
 my $Expires_Toggle_Edit = $CGI->param("Expires_Toggle_Edit");
 my $Expires_Date_Edit = $CGI->param("Expires_Date_Edit");
+	$Expires_Date_Edit =~ s/\s//g;
+	$Expires_Date_Edit =~ s/[^0-9\-]//g;
 my $Active_Edit = $CGI->param("Active_Edit");
 
 my $Delete_Host = $CGI->param("Delete_Host");
@@ -35,6 +43,10 @@ my $Host_Name_Delete = $CGI->param("Host_Name_Delete");
 
 my $Show_Links = $CGI->param("Show_Links");
 my $Show_Links_Name = $CGI->param("Show_Links_Name");
+
+my $View_Notes = $CGI->param("View_Notes");
+my $New_Note = $CGI->param("New_Note");
+my $New_Note_ID = $CGI->param("New_Note_ID");
 
 my $User_Name = $Session->param("User_Name");
 my $User_Admin = $Session->param("User_Admin");
@@ -98,6 +110,20 @@ elsif ($Show_Links) {
 	require "footer.cgi";
 	&html_show_links;
 }
+elsif ($View_Notes) {
+	require "header.cgi";
+	&html_output;
+	require "footer.cgi";
+	&html_notes;
+}
+elsif ($New_Note && $New_Note_ID) {
+	&add_note;
+	require "header.cgi";
+	&html_output;
+	require "footer.cgi";
+	$View_Notes = $New_Note_ID;
+	&html_notes;
+}
 else {
 	require "header.cgi"; ## no critic
 	&html_output;
@@ -158,8 +184,7 @@ function Expire_Toggle() {
 </table>
 
 <ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
-<li>Host Names and IPs must be unique.</li>
-<li>Do not use spaces in Host Names or IPs - they will be stripped.</li>
+<li>Host Names and IPs must be unique and POSIX compliant.</li>
 <li>Hosts with an expiry set are automatically removed from sudoers at 23:59:59
 (or the next sudoers refresh thereafter) on the day of expiry. Expired entries are functionally
 equivalent to inactive entries. The date entry format is YYYY-MM-DD.</li>
@@ -242,13 +267,15 @@ sub add_host {
 
 	# Adding to sudoers distribution database with defaults
 	my $DB_Management = DB_Management();
-	my ($Distribution_Default_User,
+	my ($Distribution_Default_SFTP_Port,
+		$Distribution_Default_User,
 		$Distribution_Default_Key_Path, 
 		$Distribution_Default_Timeout,
 		$Distribution_Default_Remote_Sudoers) = Distribution_Defaults();
 
 		my $Distribution_Insert = $DB_Management->prepare("INSERT INTO `distribution` (
 			`host_id`,
+			`sftp_port`,
 			`user`,
 			`key_path`,
 			`timeout`,
@@ -257,11 +284,11 @@ sub add_host {
 			`modified_by`
 		)
 		VALUES (
-			?, ?, ?, ?, ?, NOW(), ?
+			?, ?, ?, ?, ?, ?, NOW(), ?
 		)");
 
 
-		$Distribution_Insert->execute($Host_Insert_ID, $Distribution_Default_User, $Distribution_Default_Key_Path, 
+		$Distribution_Insert->execute($Host_Insert_ID, $Distribution_Default_SFTP_Port, $Distribution_Default_User, $Distribution_Default_Key_Path, 
 		$Distribution_Default_Timeout, $Distribution_Default_Remote_Sudoers, $User_Name);
 
 	# / Adding to sudoers distribution database with defaults
@@ -386,8 +413,7 @@ print <<ENDHTML;
 <input type='hidden' name='Edit_Host_Post' value='$Edit_Host'>
 
 <ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
-<li>Host Names and IPs must be unique.</li>
-<li>Do not use spaces in Host Names or IPs - they will be stripped.</li>
+<li>Host Names and IPs must be unique and POSIX compliant.</li>
 <li>You can only activate a modified host if you are an Approver. If you are not an
 Approver and you modify this entry, it will automatically be set to Inactive.</li>
 <li>Hosts with an expiry set are automatically removed from sudoers at 23:59:59
@@ -767,10 +793,121 @@ ENDHTML
 
 } # sub html_show_links
 
+sub html_notes {
+
+	my $Table = new HTML::Table(
+		-cols=>4,
+		-align=>'center',
+		-border=>0,
+		-rules=>'cols',
+		-evenrowclass=>'tbeven',
+		-oddrowclass=>'tbodd',
+		-width=>'90%',
+		-spacing=>0,
+		-padding=>1
+	);
+
+	$Table->addRow( "#", "Note", "Time", "Added By");
+	$Table->setRowClass (1, 'tbrow1');
+
+	### Discover Host Name
+	my $Host_Name;
+	my $Select_Host_Name = $DB_Sudoers->prepare("SELECT `hostname`
+	FROM `hosts`
+	WHERE `id` = ?");
+
+	$Select_Host_Name->execute($View_Notes);
+	$Host_Name = $Select_Host_Name->fetchrow_array();
+	### / Discover Host Name
+
+	### Discover Note Count
+	my $Select_Note_Count = $DB_Sudoers->prepare("SELECT COUNT(*)
+		FROM `notes`
+		WHERE `type_id` = '01'
+		AND `item_id` = ?"
+	);
+	$Select_Note_Count->execute($View_Notes);
+	my $Note_Count = $Select_Note_Count->fetchrow_array();
+	### / Discover Note Count
+
+	my $Select_Notes = $DB_Sudoers->prepare("SELECT `note`, `last_modified`, `modified_by`
+	FROM `notes`
+	WHERE `type_id` = '01'
+	AND `item_id` = ?
+	ORDER BY `last_modified` DESC");
+
+	$Select_Notes->execute($View_Notes);
+
+	my $Row_Count=$Note_Count;
+	while ( my @Notes = $Select_Notes->fetchrow_array() )
+	{
+		my $Note = $Notes[0];
+		my $Last_Modified = $Notes[1];
+		my $Modified_By = $Notes[2];
+		
+		$Table->addRow($Row_Count, $Note, $Last_Modified, $Modified_By);
+		$Row_Count--;
+	}
+
+	$Table->setColWidth(1, '1px');
+	$Table->setColWidth(3, '110px');
+	$Table->setColWidth(4, '110px');
+
+	$Table->setColAlign(1, 'center');
+	$Table->setColAlign(3, 'center');
+	$Table->setColAlign(4, 'center');
+
+print <<ENDHTML;
+<div id="wide-popup-box">
+<a href="sudoers-hosts.cgi">
+<div id="blockclosebutton">
+</div>
+</a>
+
+<h3 align="center">Notes for $Host_Name</h3>
+<form action='sudoers-hosts.cgi' method='post'>
+
+<table align='center'>
+	<tr>
+		<td><textarea name='New_Note' placeholder='Add a new note' autofocus></textarea></td>
+	</tr>
+	<tr>
+		<td><div style="text-align: center"><input type='submit' name='Submit' value='Submit New Note'></div></td>
+	</tr>
+</table>
+
+<hr width="50%">
+
+<input type='hidden' name='New_Note_ID' value='$View_Notes'>
+</form>
+
+<p>$Note_Count existing notes found, latest first.</p>
+
+$Table
+
+ENDHTML
+
+} # sub html_notes
+
+sub add_note {
+
+	my $Note_Submission = $DB_Sudoers->prepare("INSERT INTO `notes` (
+		`type_id`,
+		`item_id`,
+		`note`,
+		`modified_by`
+	)
+	VALUES (
+		?, ?, ?, ?
+	)");
+	$Note_Submission->execute(01, $New_Note_ID, $New_Note, $User_Name);
+
+} # sub add_note
+
 sub html_output {
 
 	my $Table = new HTML::Table(
-		-cols=>10,
+		-cols=>11,
 		-align=>'center',
 		-border=>0,
 		-rules=>'cols',
@@ -806,7 +943,7 @@ sub html_output {
 
 	my $Rows = $Select_Hosts->rows();
 
-	$Table->addRow( "ID", "Host Name", "IP Address", "Expires", "Active", "Last Modified", "Modified By", "Show Links", "Edit", "Delete" );
+	$Table->addRow( "ID", "Host Name", "IP Address", "Expires", "Active", "Last Modified", "Modified By", "Show Links", "Notes", "Edit", "Delete" );
 	$Table->setRowClass (1, 'tbrow1');
 
 	my $Host_Row_Count=1;
@@ -833,6 +970,18 @@ sub html_output {
 		my $Last_Modified = @Select_Hosts[5];
 		my $Modified_By = @Select_Hosts[6];
 
+		### Discover Note Count
+
+		my $Select_Note_Count = $DB_Sudoers->prepare("SELECT COUNT(*)
+			FROM `notes`
+			WHERE `type_id` = '01'
+			AND `item_id` = ?"
+		);
+		$Select_Note_Count->execute($DBID_Clean);
+		my $Note_Count = $Select_Note_Count->fetchrow_array();
+
+		### / Discover Note Count
+
 		my $Expires_Epoch;
 		my $Today_Epoch = time;
 		if ($Expires_Clean =~ /^0000-00-00$/) {
@@ -851,6 +1000,13 @@ sub html_output {
 			"$Last_Modified",
 			"$Modified_By",
 			"<a href='sudoers-hosts.cgi?Show_Links=$DBID_Clean&Show_Links_Name=$Host_Name_Clean'><img src=\"resources/imgs/linked.png\" alt=\"Linked Objects to Host ID $DBID_Clean\" ></a>",
+			"<a href='sudoers-hosts.cgi?View_Notes=$DBID_Clean'>
+				<div style='position: relative; background: url(\"resources/imgs/view-notes.png\") no-repeat; width: 22px; height: 22px;'> 
+					<p style='position: absolute; width: 22px; text-align: center; font-weight: bold; color: #FF0000;'>
+						$Note_Count
+					</p>
+				</div>
+			</a>",
 			"<a href='sudoers-hosts.cgi?Edit_Host=$DBID_Clean'><img src=\"resources/imgs/edit.png\" alt=\"Edit Host ID $DBID_Clean\" ></a>",
 			"<a href='sudoers-hosts.cgi?Delete_Host=$DBID_Clean'><img src=\"resources/imgs/delete.png\" alt=\"Delete Host ID $DBID_Clean\" ></a>"
 		);
@@ -877,9 +1033,10 @@ sub html_output {
 	$Table->setColWidth(8, '1px');
 	$Table->setColWidth(9, '1px');
 	$Table->setColWidth(10, '1px');
+	$Table->setColWidth(11, '1px');
 
 	$Table->setColAlign(1, 'center');
-	for (4..10) {
+	for (4..11) {
 		$Table->setColAlign($_, 'center');
 	}
 
