@@ -1,6 +1,8 @@
-1.6.0   - Fixed bug that stripped hyphens from hostnames. Also allowed user names to contain hyphens,
+1.7.0   - Added Automated DSMS System deployment process.
+        - Added Rapid Remote Server deployment process.
+1.6.0   - Fixed a bug that stripped hyphens from hostnames. Also allowed user names to contain hyphens,
           periods and underscores to match POSIX requirements.
-        - Fixed bug which allowed empty Groups to be added to the CDSF.
+        - Fixed a bug which allowed empty Groups to be added to the CDSF.
         - Added an automated sudoers build locking mechanism to the DSMS System to prevent two build 
           processes running at the same time.
         - Added ability to specify SFTP distribution port.

@@ -35,9 +35,9 @@ sub html_output {
 	$Table->setRowClass (1, 'tbrow1');
 
 	## Version 1.6.0
-	$Table->addRow('1.6.0', 'Fixed bug that stripped hyphens from hostnames. Also allowed user names to contain hyphens,
+	$Table->addRow('1.6.0', 'Fixed a bug that stripped hyphens from hostnames. Also allowed user names to contain hyphens,
           periods and underscores to match POSIX requirements.');
-	$Table->addRow('', 'Fixed bug which allowed empty Groups to be added to the CDSF.');
+	$Table->addRow('', 'Fixed a bug which allowed empty Groups to be added to the CDSF.');
 	$Table->addRow('', 'Added an automated sudoers build locking mechanism to the DSMS System to prevent two build 
           processes running at the same time.');
 	$Table->addRow('', 'Added ability to specify SFTP distribution port.');
