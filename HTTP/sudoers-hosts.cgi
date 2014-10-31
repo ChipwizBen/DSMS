@@ -480,7 +480,6 @@ sub edit_host {
 	}
 	### / Existing IP Check
 
-	if (!$User_Approver) {$Active_Edit = 0};
 	if ($Expires_Toggle_Edit ne 'on') {
 		$Expires_Date_Edit = '0000-00-00';
 	}

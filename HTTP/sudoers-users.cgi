@@ -409,7 +409,6 @@ sub edit_user {
 
 	### / Revoke Rule Approval ###
 
-	if (!$User_Approver) {$Active_Edit = 0};
 	if ($Expires_Toggle_Edit ne 'on') {
 		$Expires_Date_Edit = '0000-00-00';
 	}

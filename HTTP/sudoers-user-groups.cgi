@@ -835,8 +835,6 @@ sub edit_group {
 
 	### / Revoke Rule Approval ###
 
-	if (!$User_Approver) {$Active_Edit = 0};
-
 	if ($System_Group_Toggle_Edit eq 'on') {
 		$System_Group_Toggle_Edit = 1;
 		$Edit_User_Temp_Existing = '';
