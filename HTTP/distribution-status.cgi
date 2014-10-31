@@ -41,7 +41,7 @@ if (!$User_Name) {
 	exit(0);
 }
 
-if ($User_Admin != 1 || $User_Admin != 2) {
+if ($User_Admin != 1 && $User_Admin != 2) {
 	my $Message_Red = 'You do not have sufficient privileges to access that page.';
 	$Session->param('Message_Red', $Message_Red); #Posting Message_Red session var
 	print "Location: index.cgi\n\n";
