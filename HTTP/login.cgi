@@ -8,6 +8,7 @@ require 'common.pl';
 my $System_Name = System_Name();
 my $DB_Management = DB_Management();
 my ($CGI, $Session, $Cookie) = CGI();
+my $Recovery_Email_Address = Recovery_Email_Address();
 
 my $Referer = $Session->param("Referer"); #Accessing Referer session var
 
@@ -116,11 +117,26 @@ sub email_user_password_reset {
 	my $Random_Alpha_Numeric_Password = Random_Alpha_Numeric_Password($Password_Length);
 	my $Server_Hostname = Server_Hostname();
 
+	## Grabbing administration details
+	my $Administrator_Email_Address_Query = $DB_Management->prepare("SELECT `username`, `email`
+	FROM `credentials`
+	WHERE `admin` = '1'
+	AND `lockout` = '0'");
+	$Administrator_Email_Address_Query->execute();
+
+	my $Administrators;
+	while ( my ($Administrator_Username, $Administrator_Email) = my @Administrator_Email_Address_Query = $Administrator_Email_Address_Query->fetchrow_array() )
+	{
+		$Administrators = "$Administrator_Username (<a href='mailto:$Administrator_Email>$Administrator_Email</a>)<br />";
+	}
+	## / Grabbing administration details
+
+	## Grabbing user details, sending email
 	my $User_Email_Address_Query = $DB_Management->prepare("SELECT `email` FROM `credentials`
 	WHERE `username` = ?");
 	$User_Email_Address_Query->execute($User_Name_Form);
 
-	while ( (my $DB_Email) = my @User_Email_Address_Query = $User_Email_Address_Query->fetchrow_array() )
+	while ( my $DB_Email = my @User_Email_Address_Query = $User_Email_Address_Query->fetchrow_array() )
 	{
 	
 			my $Email_Body="Dear $User_Name_Form,<br/>
@@ -139,7 +155,7 @@ Unlock code: $Random_Alpha_Numeric_Password<br/>
 <br/>
 If you are still having problems logging in, you should contact an administrator. Administrators are:<br/>
 <br/>
-Ben Schofield: <a href='mailto:bensch\@'>bensch\@</a><br/>
+$Administrators<br/>
 <br/>
 Regards,<br/>
 $System_Name<br/>
@@ -147,7 +163,7 @@ $System_Name<br/>
 ";
 
 			my $Send_Email = MIME::Lite->new(
-			From	=> 'ben@nwk1.com',
+			From	=> "$Recovery_Email_Address",
 			To		=> "$DB_Email",
 			Subject	=> "Password Reset",
 			Type	=> "text/html",
@@ -162,7 +178,8 @@ $System_Name<br/>
 
 			$Send_Email->send;
 
-		}
+	}
+	## / Grabbing user details, sending email
 } # sub email_user_password_reset
 
 sub html_output {
@@ -180,11 +197,9 @@ print <<ENDHTML;
 <head>
 	<title>$System_Name</title>
 	<link rel="stylesheet" type="text/css" href="format.css" media= "screen,print" title =" - Default"/>
-
 	<!--[if IE]>
 		<META HTTP-EQUIV=REFRESH CONTENT="0; URL=http://getfirefox.com">
 	<![endif]-->
-
 </head>
 
 <body style="background-color: #575757;">

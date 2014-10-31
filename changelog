@@ -1,5 +1,8 @@
 1.7.0   - Added Automated DSMS System deployment process.
-        - Added Rapid Remote Server deployment process.
+        - Added the ability to allow some users read-only administrative rights.
+        - Made the Account Password Reset email use admin usernames and email addresses pulled from the 
+          database, instead of using static values.
+        - Added the ability to specify a sending email address for password recovery emails.
 1.6.0   - Fixed a bug that stripped hyphens from hostnames. Also allowed user names to contain hyphens,
           periods and underscores to match POSIX requirements.
         - Fixed a bug which allowed empty Groups to be added to the CDSF.

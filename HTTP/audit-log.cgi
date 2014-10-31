@@ -15,7 +15,7 @@ if (!$User_Name) {
 	exit(0);
 }
 
-if ($User_Admin ne '1') {
+if ($User_Admin != 1 || $User_Admin != 2) {
 
 	my $Message_Red = 'You do not have sufficient privileges to audit that page.';
 	$Session->param('Message_Red', $Message_Red); #Posting Message_Red session var

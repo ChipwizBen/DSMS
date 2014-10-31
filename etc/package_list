@@ -1,0 +1,7 @@
+httpd-2
+httpd-tools-2
+mod_ssl-2
+openssl-1
+openssl-devel-1
+mysql-5
+mysql-server-5

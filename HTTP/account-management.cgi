@@ -49,7 +49,7 @@ if (!$User_Name) {
 	exit(0);
 }
 
-if ($User_Admin ne '1') {
+if ($User_Admin != 1) {
 	my $Message_Red = 'You do not have sufficient privileges to access that page.';
 	$Session->param('Message_Red', $Message_Red); #Posting Message_Red session var
 	print "Location: index.cgi\n\n";
@@ -120,35 +120,51 @@ print <<ENDHTML;
 <table align = "center">
 	<tr>
 		<td style="text-align: right;">User Name:</td>
-		<td colspan="2"><input type='text' name='User_Name_Add' style='width:250px;' maxlength='128' placeholder="First Last" required autofocus></td>
+		<td colspan="6"><input type='text' name='User_Name_Add' style='width:250px;' maxlength='128' placeholder="First Last" required autofocus></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Password:</td>
-		<td colspan="2"><input type='Password' name='Password_Add' style='width:250px;' required></td>
+		<td colspan="6"><input type='Password' name='Password_Add' style='width:250px;' required></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Email:</td>
-		<td colspan="2"><input type='Email' name='Email_Add' style='width:250px;' maxlength='128' placeholder="email\@domain.co.nz" required></td>
+		<td colspan="6"><input type='Email' name='Email_Add' style='width:250px;' maxlength='128' placeholder="email\@domain.co.nz" required></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Administrator Privileges:</td>
-		<td style="text-align: right;"><input type="radio" name="Admin_Add" value="1"> Yes</td>
-		<td style="text-align: right;"><input type="radio" name="Admin_Add" value="0" checked> No</td>
+		<td style="text-align: right;"><input type="radio" name="Admin_Add" value="1"></td>
+		<td>Yes</td>
+		<td style="text-align: right;"><input type="radio" name="Admin_Add" value="0" checked></td>
+		<td>No</td>
+		<td style="text-align: right;"><input type="radio" name="Admin_Add" value="2"></td>
+		<td>Read-only</td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Can Approve Rule Changes:</td>
-		<td style="text-align: right;"><input type="radio" name="Approver_Add" value="1"> Yes</td>
-		<td style="text-align: right;"><input type="radio" name="Approver_Add" value="0" checked> No</td>
+		<td style="text-align: right;"><input type="radio" name="Approver_Add" value="1"></td>
+		<td>Yes</td>
+		<td style="text-align: right;"><input type="radio" name="Approver_Add" value="0" checked></td>
+		<td>No</td>
+		<td></td>
+		<td></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Requires Rule Change Approval:</td>
-		<td style="text-align: right;"><input type="radio" name="Requires_Approval_Add" value="1" checked> Yes</td>
-		<td style="text-align: right;"><input type="radio" name="Requires_Approval_Add" value="0"> No</td>
+		<td style="text-align: right;"><input type="radio" name="Requires_Approval_Add" value="1" checked></td>
+		<td>Yes</td>
+		<td style="text-align: right;"><input type="radio" name="Requires_Approval_Add" value="0"></td>
+		<td>No</td>
+		<td></td>
+		<td></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Locked Out:</td>
-		<td style="text-align: right;"><input type="radio" name="Lockout_Add" value="1"> Yes</td>
-		<td style="text-align: right;"><input type="radio" name="Lockout_Add" value="0" checked> No</td>
+		<td style="text-align: right;"><input type="radio" name="Lockout_Add" value="1"></td>
+		<td>Yes</td>
+		<td style="text-align: right;"><input type="radio" name="Lockout_Add" value="0" checked></td>
+		<td>No</td>
+		<td></td>
+		<td></td>
 	</tr>
 </table>
 
@@ -156,7 +172,8 @@ print <<ENDHTML;
 	<li>User Names and email addresses must be unique.</li>
 	<li>
 		<i>Administrator Privileges</i> allow a user to modify users and permissions, including their own, and view 
-		the <b><a href='access-log.cgi'>Access Log</a></b>.
+		the <b><a href='access-log.cgi'>Access Log</a></b>. Read-only Administrators can view Administrative 
+		pages except the Account Management page, but cannot make any changes.
 	</li>
 	<li>
 		<b>Note:</b> Setting <i>Can Approve Rule Changes</i> to <b>Yes</b> and setting <i>Requires Rule Change 
@@ -272,7 +289,15 @@ sub add_user {
 	$User_Insert->execute($User_Name_Add, $Password_Add, $Salt, $Email_Add, $Admin_Add, $Approver_Add, $Requires_Approval_Add, $Lockout_Add, $User_Name);
 
 	# Audit Log
-	if ($Admin_Add) {$Admin_Add = 'has Administrator Privileges'} else {$Admin_Add = 'has no Administrator Privileges'}
+	if ($Admin_Add == 1) {
+		$Admin_Add = 'has Administrator Privileges';
+	}
+	elsif ($Admin_Add == 2) {
+		$Admin_Add = 'has read-only Administrator Privileges';
+	}
+	else {
+		$Admin_Add = 'has no Administrator Privileges';
+	}
 	if ($Approver_Add) {$Approver_Add = "$User_Name_Add can Approve the Rules created by others"} else {$Approver_Add = "$User_Name_Add can not Approve the Rules created by others"}
 	if ($Requires_Approval_Add) {$Requires_Approval_Add = "$User_Name_Add"."'s "."Rules require approval"} else {$Requires_Approval_Add = "$User_Name_Add"."'s "."Rules do not require approval"}
 	if ($Lockout_Add) {$Lockout_Add = "$User_Name_Add is locked out"} else {$Lockout_Add = "$User_Name_Add is not locked out"}
@@ -327,15 +352,15 @@ print <<ENDHTML;
 <table align = "center">
 	<tr>
 		<td style="text-align: right;">User Name:</td>
-		<td colspan="2"><input type='text' name='User_Name_Edit' value='$User_Name_Extract' style='width:250px;' maxlength='128' placeholder="$User_Name_Extract" required autofocus></td>
+		<td colspan="6"><input type='text' name='User_Name_Edit' value='$User_Name_Extract' style='width:250px;' maxlength='128' placeholder="$User_Name_Extract" required autofocus></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Password:</td>
-		<td colspan="2"><input type='password' name='Password_Edit' style='width:250px;'></td>
+		<td colspan="6"><input type='password' name='Password_Edit' style='width:250px;'></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Email:</td>
-		<td colspan="2"><input type='email' name='Email_Edit' value='$Email_Extract' style='width:250px;' maxlength='128' placeholder="$Email_Extract" required></td>
+		<td colspan="6"><input type='email' name='Email_Edit' value='$Email_Extract' style='width:250px;' maxlength='128' placeholder="$Email_Extract" required></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Administrator Privileges:</td>
@@ -343,14 +368,32 @@ ENDHTML
 
 if ($Admin_Extract == 1) {
 print <<ENDHTML;
-		<td style="text-align: right;"><input type="radio" name="Admin_Edit" value="1" checked> Yes</td>
-		<td style="text-align: right;"><input type="radio" name="Admin_Edit" value="0"> No</td>
+		<td style="text-align: right;"><input type="radio" name="Admin_Edit" value="1" checked></td>
+		<td>Yes</td>
+		<td style="text-align: right;"><input type="radio" name="Admin_Edit" value="0"></td>
+		<td>No</td>
+		<td style="text-align: right;"><input type="radio" name="Admin_Edit" value="2"></td>
+		<td>Read-only</td>
+ENDHTML
+}
+elsif ($Admin_Extract == 2) {
+print <<ENDHTML;
+		<td style="text-align: right;"><input type="radio" name="Admin_Edit" value="1"></td>
+		<td>Yes</td>
+		<td style="text-align: right;"><input type="radio" name="Admin_Edit" value="0"></td>
+		<td>No</td>
+		<td style="text-align: right;"><input type="radio" name="Admin_Edit" value="2" checked></td>
+		<td>Read-only</td>
 ENDHTML
 }
 else {
 print <<ENDHTML;
-		<td style="text-align: right;"><input type="radio" name="Admin_Edit" value="1"> Yes</td>
-		<td style="text-align: right;"><input type="radio" name="Admin_Edit" value="0" checked> No</td>
+		<td style="text-align: right;"><input type="radio" name="Admin_Edit" value="1"></td>
+		<td>Yes</td>
+		<td style="text-align: right;"><input type="radio" name="Admin_Edit" value="0" checked></td>
+		<td>No</td>
+		<td style="text-align: right;"><input type="radio" name="Admin_Edit" value="2"></td>
+		<td>Read-only</td>
 ENDHTML
 }
 
@@ -363,14 +406,22 @@ ENDHTML
 
 if ($Approver_Extract == 1) {
 print <<ENDHTML;
-		<td style="text-align: right;"><input type="radio" name="Approver_Edit" value="1" checked> Yes</td>
-		<td style="text-align: right;"><input type="radio" name="Approver_Edit" value="0"> No</td>
+		<td style="text-align: right;"><input type="radio" name="Approver_Edit" value="1" checked></td>
+		<td>Yes</td>
+		<td style="text-align: right;"><input type="radio" name="Approver_Edit" value="0"></td>
+		<td>No</td>
+		<td></td>
+		<td></td>
 ENDHTML
 }
 else {
 print <<ENDHTML;
-		<td style="text-align: right;"><input type="radio" name="Approver_Edit" value="1"> Yes</td>
-		<td style="text-align: right;"><input type="radio" name="Approver_Edit" value="0" checked> No</td>
+		<td style="text-align: right;"><input type="radio" name="Approver_Edit" value="1"></td>
+		<td>Yes</td>
+		<td style="text-align: right;"><input type="radio" name="Approver_Edit" value="0" checked></td>
+		<td>No</td>
+		<td></td>
+		<td></td>
 ENDHTML
 }
 
@@ -383,14 +434,22 @@ ENDHTML
 
 if ($Requires_Approval_Extract == 1) {
 print <<ENDHTML;
-		<td style="text-align: right;"><input type="radio" name="Requires_Approval_Edit" value="1" checked> Yes</td>
-		<td style="text-align: right;"><input type="radio" name="Requires_Approval_Edit" value="0"> No</td>
+		<td style="text-align: right;"><input type="radio" name="Requires_Approval_Edit" value="1" checked></td>
+		<td>Yes</td>
+		<td style="text-align: right;"><input type="radio" name="Requires_Approval_Edit" value="0"></td>
+		<td>No</td>
+		<td></td>
+		<td></td>
 ENDHTML
 }
 else {
 print <<ENDHTML;
-		<td style="text-align: right;"><input type="radio" name="Requires_Approval_Edit" value="1"> Yes</td>
-		<td style="text-align: right;"><input type="radio" name="Requires_Approval_Edit" value="0" checked> No</td>
+		<td style="text-align: right;"><input type="radio" name="Requires_Approval_Edit" value="1"></td>
+		<td>Yes</td>
+		<td style="text-align: right;"><input type="radio" name="Requires_Approval_Edit" value="0" checked></td>
+		<td>No</td>
+		<td></td>
+		<td></td>
 ENDHTML
 }
 
@@ -403,14 +462,22 @@ ENDHTML
 
 if ($Lockout_Extract == 1) {
 print <<ENDHTML;
-		<td style="text-align: right;"><input type="radio" name="Lockout_Edit" value="1" checked> Yes</td>
-		<td style="text-align: right;"><input type="radio" name="Lockout_Edit" value="0"> No</td>
+		<td style="text-align: right;"><input type="radio" name="Lockout_Edit" value="1" checked></td>
+		<td>Yes</td>
+		<td style="text-align: right;"><input type="radio" name="Lockout_Edit" value="0"></td>
+		<td>No</td>
+		<td></td>
+		<td></td>
 ENDHTML
 }
 else {
 print <<ENDHTML;
-		<td style="text-align: right;"><input type="radio" name="Lockout_Edit" value="1"> Yes</td>
-		<td style="text-align: right;"><input type="radio" name="Lockout_Edit" value="0" checked> No</td>
+		<td style="text-align: right;"><input type="radio" name="Lockout_Edit" value="1"></td>
+		<td>Yes</td>
+		<td style="text-align: right;"><input type="radio" name="Lockout_Edit" value="0" checked></td>
+		<td>No</td>
+		<td></td>
+		<td></td>
 ENDHTML
 }
 
@@ -422,7 +489,8 @@ print <<ENDHTML;
 	<li>User Names and email addresses must be unique.</li>
 	<li>
 		<i>Administrator Privileges</i> allow a user to modify users and permissions, including their own, and view 
-		the <b><a href='access-log.cgi'>Access Log</a></b>.
+		the <b><a href='access-log.cgi'>Access Log</a></b>. Read-only Administrators can view Administrative 
+		pages except the Account Management page, but cannot make any changes.
 	</li>
 	<li>
 		<b>Note:</b> Setting <i>Can Approve Rule Changes</i> to <b>Yes</b> and setting <i>Requires Rule Change 
@@ -531,7 +599,15 @@ sub edit_user {
 		$Update_Credentials->execute($User_Name_Edit, $Password_Edit, $Salt, $Email_Edit, $Admin_Edit, $Approver_Edit, $Requires_Approval_Edit, $Lockout_Edit, $User_Name, $Edit_User_Post);
 
 		# Audit Log
-		if ($Admin_Edit) {$Admin_Edit = 'has Administrator Privileges'} else {$Admin_Edit = 'has no Administrator Privileges'}
+		if ($Admin_Edit == 1) {
+			$Admin_Edit = 'has Administrator Privileges';
+		}
+		elsif ($Admin_Edit == 2) {
+			$Admin_Edit = 'has read-only Administrator Privileges';
+		}
+		else {
+			$Admin_Edit = 'has no Administrator Privileges';
+		}
 		if ($Approver_Edit) {$Approver_Edit = "$User_Name_Edit can Approve the Rules created by others"} else {$Approver_Edit = "$User_Name_Edit can not Approve the Rules created by others"}
 		if ($Requires_Approval_Edit) {$Requires_Approval_Edit = "$User_Name_Edit"."'s "."Rules require approval"} else {$Requires_Approval_Edit = "$User_Name_Edit"."'s "."Rules do not require approval"}
 		if ($Lockout_Edit) {$Lockout_Edit = "$User_Name_Edit is locked out"} else {$Lockout_Edit = "$User_Name_Edit is not locked out"}
@@ -702,10 +778,7 @@ my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
 	`username`
 )
 VALUES (
-	?,
-	?,
-	?,
-	?
+	?, ?, ?, ?
 )");
 
 $Audit_Log_Submission->execute("Account Management", "View", "$User_Name accessed Account Management.", $User_Name);
@@ -757,6 +830,9 @@ while ( my @DB_User = $Select_Users->fetchrow_array() )
 	if ($Admin_Extract == 1) {
 		$Admin_Extract = "Yes";
 	}
+	elsif ($Admin_Extract == 2) {
+		$Admin_Extract = "Read-only";
+	}
 	else {
 		$Admin_Extract = "No";
 	}
@@ -805,8 +881,11 @@ while ( my @DB_User = $Select_Users->fetchrow_array() )
 		"<a href='account-management.cgi?Delete_User=$ID_Extract'><img src=\"resources/imgs/delete.png\" alt=\"Delete $User_Name_Extract\" ></a>"
 	);
 
-	if ($Admin_Extract eq 'Yes') {
+	if ($Admin_Extract eq 'Read-only') {
 		$Table->setCellClass ($User_Row_Count, 5, 'tbroworange');
+	}
+	elsif ($Admin_Extract eq 'Yes') {
+		$Table->setCellClass ($User_Row_Count, 5, 'tbrowerror');
 	}
 
 	if ($Approver_Extract eq 'Yes') {

@@ -549,9 +549,17 @@ CREATE TABLE `audit_log` (
   `username` varchar(128) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `audit_log`
+--
+
+LOCK TABLES `audit_log` WRITE;
+/*!40000 ALTER TABLE `audit_log` DISABLE KEYS */;
+/*!40000 ALTER TABLE `audit_log` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `credentials`
@@ -582,6 +590,15 @@ CREATE TABLE `credentials` (
 ) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `credentials`
+--
+
+LOCK TABLES `credentials` WRITE;
+/*!40000 ALTER TABLE `credentials` DISABLE KEYS */;
+INSERT INTO `credentials` VALUES (1,'admin','6a3f8b7f7685efe62ae6491d9d616fc6a0eb930a2d571cce840f28232e32ab4959371e6d1517318f1e9fb9bdae61b1b21342aa703c34248e436b8dd937e90626','Q920DIo}QtlxC37DsIZG46SY+l-Dz6d<Bp-Af;pttf!#0MqlOTsa:s<has1xwz/','devnull@','2014-10-31 13:52:58','2014-10-31 13:53:17',1,0,1,0,0,'0','2014-10-31 00:53:17','admin');
+/*!40000 ALTER TABLE `credentials` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `distribution`
@@ -606,6 +623,14 @@ CREATE TABLE `distribution` (
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `distribution`
+--
+
+LOCK TABLES `distribution` WRITE;
+/*!40000 ALTER TABLE `distribution` DISABLE KEYS */;
+/*!40000 ALTER TABLE `distribution` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `lock`
@@ -639,4 +664,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2014-10-24 15:59:39
+-- Dump completed on 2014-10-31 15:29:59

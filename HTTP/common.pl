@@ -35,6 +35,15 @@ sub System_Short_Name {
 
 } # sub System_Short_Name
 
+sub Recovery_Email_Address {
+
+	# This is the email address that the DSMS System will appear to send emails from during password recoveries. It may be a legitimate address (such as the system administrator's address) or it could be a blocking address, such as noreply@.
+
+	my $Recovery_Email_Address = 'noreply@';
+	return $Recovery_Email_Address;
+
+} # sub System_Short_Name
+
 sub Sudoers_Location {
 
 	# This is not necessarily the location of the /etc/sudoers file. This is the path that the system writes the temporary sudoers file to. It could be /etc/sudoers, but you ought to consider the rights that Apache will need to overwrite that file, and the implications of giving Apache those rights. If you want to automate it end to end, you should consider writing a temporary sudoers file, then using a separate root cron job to overwrite /etc/sudoers, which is the recommended procedure, instead of directly writing to it. Of course, if you do not intend on using the DSMS system to manage /etc/sudoers on the local machine, then this should NOT be /etc/sudoers. For sudoers locations on remote machines, see Distribution_Defaults, or set individual remote sudoers locations through the web panel.

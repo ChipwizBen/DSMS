@@ -14,12 +14,6 @@ my $Server_Hostname = Server_Hostname();
 my $Username = $Session->param("User_Name"); #Accessing User_Name session var
 my $User_Admin = $Session->param("User_Admin"); #Accessing User_Admin session var
 
-#`echo "Header" | /usr/lib/sendmail -F ben\@\`hostname\` -t ben\@nwk1.com`;
-
-#<!--[if IE]>
-#<META HTTP-EQUIV=REFRESH CONTENT="0; URL=http://getfirefox.com">
-#<![endif]-->
-
 if (!$Username) {
 	print "Location: logout.cgi\n\n";
 	exit(0);
@@ -77,35 +71,17 @@ sub access_post {
 
 sub html_header {
 
-#my $Expires = strftime "%a, %d %b %Y %H:%M:%S", localtime(time+604800);
-#my $Expires = strftime "%a, %d %b %Y %H:%M:%S NZDT", localtime(time-43200);
-
-# print $CGI->header(-cookie=>$Cookie,
-	# -expires => 'now',
-	# -Last_Modified => strftime('%a, %d %b %Y %H:%M:%S NZDT', localtime(time-43200)),
-	# -Pragma => 'no-cache',
-	# -Cache_Control => join(', ',
-		# qw(
-			# private
-			# no-cache
-			# no-store
-			# must-revalidate
-			# max-age=0
-			# pre-check=0
-			# post-check=0
-		# )
-	# )
-# );
-
 print $CGI->header(-cookie=>$Cookie);
-
 
 print <<ENDHTML;
 <!DOCTYPE html>
 <html>
 <head>
 	<title>$System_Name</title>
-	<link rel="stylesheet" type="text/css" href="format.css" media= "screen" title ="Default CSS"/>
+	<link rel="stylesheet" type="text/css" href="format.css" media= "screen" title ="$System_Name CSS"/>
+	<!--[if IE]>
+		<META HTTP-EQUIV=REFRESH CONTENT="0; URL=http://getfirefox.com">
+	<![endif]-->
 </head>
 <body>
 	<!-- Strip/Buttons/White BKG -->
@@ -139,6 +115,7 @@ print <<ENDHTML;
 						</ul>
 					</li>
 					<li><a href="changelog.cgi">System Changelog</a></li>
+					<li><a href="resources/Sudoers_Management_System_Manual.pdf">System Manual</a></li>
 				</ul>
 			</li>
 			<li><a href="#"><span>&nbsp; Groups</span></a>

@@ -34,6 +34,14 @@ sub html_output {
 	$Table->addRow( "Version", "Change" );
 	$Table->setRowClass (1, 'tbrow1');
 
+	## Version 1.7.0
+	$Table->addRow('1.7.0', 'Added Automated DSMS System deployment process.');
+	$Table->addRow('', 'Added the ability to allow some users read-only administrative rights.');
+	$Table->addRow('', 'Made the Account Password Reset email use admin usernames and email addresses pulled from the 
+          database, instead of using static values.');
+	$Table->addRow('', 'Added the ability to specify a sending email address for password recovery emails.');
+	$Table->addRow('<hr />', '');
+
 	## Version 1.6.0
 	$Table->addRow('1.6.0', 'Fixed a bug that stripped hyphens from hostnames. Also allowed user names to contain hyphens,
           periods and underscores to match POSIX requirements.');

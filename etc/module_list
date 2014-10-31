@@ -1,0 +1,12 @@
+strict
+DBI
+HTML::Table
+Digest::SHA
+POSIX
+MIME::Lite
+CGI
+CGI::Carp
+CGI::Session
+Date::Parse
+Time::HiRes
+Net::SFTP::Foreign
