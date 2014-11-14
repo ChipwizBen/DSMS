@@ -1,3 +1,6 @@
+1.7.1   - Better error handling for failed SFTP connections.
+        - Formatting fixes for Groups and Rules.
+        - Command Alias accepted characters are now clearly defined in line with Hosts and Users.
 1.7.0   - Added Automated DSMS System deployment process.
         - Added the ability to allow some users read-only administrative rights.
         - Made the Account Password Reset email use admin usernames and email addresses pulled from the 

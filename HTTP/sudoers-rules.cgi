@@ -252,11 +252,15 @@ else {
 
 		while ( (my $Host_Group_Name, my $Active) = my @Host_Group_Query = $Host_Group_Query->fetchrow_array() )
 		{
+		my $Host_Group_Name_Character_Limited = substr( $Host_Group_Name, 0, 40 );
+			if ($Host_Group_Name_Character_Limited ne $Host_Group_Name) {
+				$Host_Group_Name_Character_Limited = $Host_Group_Name_Character_Limited . '...';
+			}
 			if ($Active) {
-				$Host_Groups = $Host_Groups . "<tr><td align='left' style='color: #00FF00'>$Host_Group_Name</td></tr>";
+				$Host_Groups = $Host_Groups . "<tr><td align='left' style='color: #00FF00'>$Host_Group_Name_Character_Limited</td></tr>";
 			}
 			else {
-				$Host_Groups = $Host_Groups . "<tr><td align='left' style='color: #FF0000'>$Host_Group_Name</td></tr>";
+				$Host_Groups = $Host_Groups . "<tr><td align='left' style='color: #FF0000'>$Host_Group_Name_Character_Limited</td></tr>";
 			}
 		}
 	}
@@ -281,11 +285,15 @@ else {
 			
 		while ( (my $Host_Name, my $IP, my $Active) = my @Host_Query = $Host_Query->fetchrow_array() )
 		{
+		my $Host_Name_Character_Limited = substr( $Host_Name, 0, 40 );
+			if ($Host_Name_Character_Limited ne $Host_Name) {
+				$Host_Name_Character_Limited = $Host_Name_Character_Limited . '...';
+			}
 			if ($Active) {
-				$Hosts = $Hosts . "<tr><td align='left' style='color: #00FF00; padding-right: 15px;'>$Host_Name</td><td align='left' style='color: #00FF00'>$IP</td></tr>";
+				$Hosts = $Hosts . "<tr><td align='left' style='color: #00FF00; padding-right: 15px;'>$Host_Name_Character_Limited</td><td align='left' style='color: #00FF00'>$IP</td></tr>";
 			}
 			else {
-				$Hosts = $Hosts . "<tr><td align='left' style='color: #FF0000; padding-right: 15px;'>$Host_Name</td><td align='left' style='color: #FF0000'>$IP</td></tr>";
+				$Hosts = $Hosts . "<tr><td align='left' style='color: #FF0000; padding-right: 15px;'>$Host_Name_Character_Limited</td><td align='left' style='color: #FF0000'>$IP</td></tr>";
 			}	
 		}
 	}
@@ -304,12 +312,16 @@ foreach my $User_Group (@User_Groups) {
 		
 	while ( (my $User_Group_Name, my $System_Group, my $Active) = my @User_Group_Query = $User_Group_Query->fetchrow_array() )
 	{
-		if ($System_Group) {$User_Group_Name = '%' . $User_Group_Name . ' [System Group]'}
+		my $User_Group_Name_Character_Limited = substr( $User_Group_Name, 0, 40 );
+			if ($User_Group_Name_Character_Limited ne $User_Group_Name) {
+				$User_Group_Name_Character_Limited = $User_Group_Name_Character_Limited . '...';
+			}
+		if ($System_Group) {$User_Group_Name_Character_Limited = '%' . $User_Group_Name_Character_Limited . ' [System Group]'}
 		if ($Active) {
-			$User_Groups = $User_Groups . "<tr><td align='left' style='color: #00FF00'>$User_Group_Name</td></tr>";
+			$User_Groups = $User_Groups . "<tr><td align='left' style='color: #00FF00'>$User_Group_Name_Character_Limited</td></tr>";
 		}
 		else {
-			$User_Groups = $User_Groups . "<tr><td align='left' style='color: #FF0000'>$User_Group_Name</td></tr>";
+			$User_Groups = $User_Groups . "<tr><td align='left' style='color: #FF0000'>$User_Group_Name_Character_Limited</td></tr>";
 		}
 	}
 }
@@ -328,11 +340,15 @@ foreach my $User (@Users) {
 		
 	while ( (my $UserName, my $Active) = my @User_Query = $User_Query->fetchrow_array() )
 	{
+		my $UserName_Character_Limited = substr( $UserName, 0, 40 );
+			if ($UserName_Character_Limited ne $UserName) {
+				$UserName_Character_Limited = $UserName_Character_Limited . '...';
+			}
 		if ($Active) {
-			$Users = $Users . "<tr><td align='left' style='color: #00FF00'>$UserName</td></tr>";
+			$Users = $Users . "<tr><td align='left' style='color: #00FF00'>$UserName_Character_Limited</td></tr>";
 		}
 		else {
-			$Users = $Users . "<tr><td align='left' style='color: #FF0000'>$UserName</td></tr>";
+			$Users = $Users . "<tr><td align='left' style='color: #FF0000'>$UserName_Character_Limited</td></tr>";
 		}	
 	}
 }
@@ -351,11 +367,15 @@ foreach my $Command_Group (@Command_Groups) {
 		
 	while ( (my $Command_Group_Name, my $Active) = my @Command_Group_Query = $Command_Group_Query->fetchrow_array() )
 	{
+		my $Command_Group_Name_Character_Limited = substr( $Command_Group_Name, 0, 40 );
+			if ($Command_Group_Name_Character_Limited ne $Command_Group_Name) {
+				$Command_Group_Name_Character_Limited = $Command_Group_Name_Character_Limited . '...';
+			}
 		if ($Active) {
-			$Command_Groups = $Command_Groups . "<tr><td align='left' style='color: #00FF00'>$Command_Group_Name</td></tr>";
+			$Command_Groups = $Command_Groups . "<tr><td align='left' style='color: #00FF00'>$Command_Group_Name_Character_Limited</td></tr>";
 		}
 		else {
-			$Command_Groups = $Command_Groups . "<tr><td align='left' style='color: #FF0000'>$Command_Group_Name</td></tr>";
+			$Command_Groups = $Command_Groups . "<tr><td align='left' style='color: #FF0000'>$Command_Group_Name_Character_Limited</td></tr>";
 		}
 	}
 }
@@ -374,11 +394,19 @@ foreach my $Command (@Commands) {
 		
 	while ( (my $Command_Name, my $Command, my $Active) = my @Command_Query = $Command_Query->fetchrow_array() )
 	{
+		my $Command_Name_Character_Limited = substr( $Command_Name, 0, 40 );
+			if ($Command_Name_Character_Limited ne $Command_Name) {
+				$Command_Name_Character_Limited = $Command_Name_Character_Limited . '...';
+			}
+		my $Command_Character_Limited = substr( $Command, 0, 40 );
+			if ($Command_Character_Limited ne $Command) {
+				$Command_Character_Limited = $Command_Character_Limited . '...';
+			}
 		if ($Active) {
-			$Commands = $Commands . "<tr><td align='left' style='color: #00FF00; padding-right: 15px;'>$Command_Name</td> <td align='left' style='color: #00FF00'>$Command</td></tr>";
+			$Commands = $Commands . "<tr><td align='left' style='color: #00FF00; padding-right: 15px;'>$Command_Name_Character_Limited</td> <td align='left' style='color: #00FF00'>$Command_Character_Limited</td></tr>";
 		}
 		else {
-			$Commands = $Commands . "<tr><td align='left' style='color: #FF0000; padding-right: 15px;'>$Command_Name</td> <td align='left' style='color: #FF0000'>$Command</td></tr>";
+			$Commands = $Commands . "<tr><td align='left' style='color: #FF0000; padding-right: 15px;'>$Command_Name_Character_Limited</td> <td align='left' style='color: #FF0000'>$Command_Character_Limited</td></tr>";
 		}
 	}
 }
@@ -414,11 +442,13 @@ function Expire_Toggle() {
 <table align = "center">
 	<tr>
 		<td style="text-align: right;">Rule Name:</td>
-		<td colspan="4"><input type='text' name='Rule_Name_Add' style="width: 300px" maxlength='128' value="$Rule_Name_Add" placeholder="Rule Name" required autofocus></td>
+		<td></td>
+		<td colspan="3" style="text-align: left;"><input type='text' name='Rule_Name_Add' style="width: 300px" maxlength='128' value="$Rule_Name_Add" placeholder="Rule Name" required autofocus></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Add Host Group:</td>
-		<td colspan="4">
+		<td></td>
+		<td colspan="3" style="text-align: left;">
 			<select name='Add_Host_Group_Temp_New' onchange='this.form.submit()' style="width: 300px">
 ENDHTML
 
@@ -433,13 +463,16 @@ ENDHTML
 
 				while ( (my $ID, my $Group_Name, my $Active) = my @Group_List_Query = $Host_Group_List_Query->fetchrow_array() )
 				{
+					my $Group_Name_Character_Limited = substr( $Group_Name, 0, 40 );
+						if ($Group_Name_Character_Limited ne $Group_Name) {
+							$Group_Name_Character_Limited = $Group_Name_Character_Limited . '...';
+						}
 					if ($Active) {
-						print "<option value='$ID'>$Group_Name</option>";
+						print "<option value='$ID'>$Group_Name_Character_Limited</option>";
 					}
 					else {
-						print "<option style='color: #FF0000;' value='$ID'>$Group_Name [Inactive]</option>";
+						print "<option style='color: #FF0000;' value='$ID'>$Group_Name_Character_Limited [Inactive]</option>";
 					}
-
 				}
 
 print <<ENDHTML;
@@ -448,7 +481,8 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">Add Host:</td>
-		<td colspan="4">
+		<td></td>
+		<td colspan="3" style="text-align: left;">
 			<select name='Add_Host_Temp_New' onchange='this.form.submit()' style="width: 300px">
 ENDHTML
 
@@ -463,11 +497,15 @@ ENDHTML
 
 				while ( (my $ID, my $Host_Name, my $IP, my $Active) = my @Host_List_Query = $Host_List_Query->fetchrow_array() )
 				{
+					my $Host_Name_Character_Limited = substr( $Host_Name, 0, 40 );
+						if ($Host_Name_Character_Limited ne $Host_Name) {
+							$Host_Name_Character_Limited = $Host_Name_Character_Limited . '...';
+						}
 					if ($Active) {
-						print "<option value='$ID'>$Host_Name ($IP)</option>";
+						print "<option value='$ID'>$Host_Name_Character_Limited ($IP)</option>";
 					}
 					else {
-						print "<option style='color: #FF0000;' value='$ID'>$Host_Name ($IP) [Inactive]</option>";
+						print "<option style='color: #FF0000;' value='$ID'>$Host_Name_Character_Limited ($IP) [Inactive]</option>";
 					}
 
 				}
@@ -478,7 +516,8 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">Add User Group:</td>
-		<td colspan="4">
+		<td></td>
+		<td colspan="3" style="text-align: left;">
 			<select name='Add_User_Group_Temp_New' onchange='this.form.submit()' style="width: 300px">
 ENDHTML
 
@@ -492,14 +531,17 @@ ENDHTML
 
 				while ( (my $ID, my $Group_Name, my $System_Group, my $Active) = my @Group_List_Query = $User_Group_List_Query->fetchrow_array() )
 				{
-					if ($System_Group) {$Group_Name = '%' . $Group_Name . ' [System Group]'}
+					my $Group_Name_Character_Limited = substr( $Group_Name, 0, 40 );
+						if ($Group_Name_Character_Limited ne $Group_Name) {
+							$Group_Name_Character_Limited = $Group_Name_Character_Limited . '...';
+						}
+					if ($System_Group) {$Group_Name_Character_Limited = '%' . $Group_Name_Character_Limited . ' [System Group]'}
 					if ($Active) {
-						print "<option value='$ID'>$Group_Name</option>";
+						print "<option value='$ID'>$Group_Name_Character_Limited</option>";
 					}
 					else {
-						print "<option style='color: #FF0000;' value='$ID'>$Group_Name [Inactive]</option>";
+						print "<option style='color: #FF0000;' value='$ID'>$Group_Name_Character_Limited [Inactive]</option>";
 					}
-
 				}
 
 print <<ENDHTML;
@@ -508,7 +550,8 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">Add User:</td>
-		<td colspan="4">
+		<td></td>
+		<td colspan="3" style="text-align: left;">
 			<select name='Add_User_Temp_New' onchange='this.form.submit()' style="width: 300px">
 ENDHTML
 
@@ -522,13 +565,16 @@ ENDHTML
 
 				while ( (my $ID, my $UserName, my $Active) = my @User_List_Query = $User_List_Query->fetchrow_array() )
 				{
+					my $UserName_Character_Limited = substr( $UserName, 0, 40 );
+						if ($UserName_Character_Limited ne $UserName) {
+							$UserName_Character_Limited = $UserName_Character_Limited . '...';
+						}
 					if ($Active) {
-						print "<option value='$ID'>$UserName</option>";
+						print "<option value='$ID'>$UserName_Character_Limited</option>";
 					}
 					else {
-						print "<option style='color: #FF0000;' value='$ID'>$UserName [Inactive]</option>";
+						print "<option style='color: #FF0000;' value='$ID'>$UserName_Character_Limited [Inactive]</option>";
 					}
-
 				}
 
 print <<ENDHTML;
@@ -537,7 +583,8 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">Add Command Group:</td>
-		<td colspan="4">
+		<td></td>
+		<td colspan="3" style="text-align: left;">
 			<select name='Add_Command_Group_Temp_New' onchange='this.form.submit()' style="width: 300px">
 ENDHTML
 
@@ -551,11 +598,15 @@ ENDHTML
 
 				while ( (my $ID, my $Group_Name, my $Active) = my @Group_List_Query = $Command_Group_List_Query->fetchrow_array() )
 				{
+					my $Group_Name_Character_Limited = substr( $Group_Name, 0, 40 );
+						if ($Group_Name_Character_Limited ne $Group_Name) {
+							$Group_Name_Character_Limited = $Group_Name_Character_Limited . '...';
+						}
 					if ($Active) {
-						print "<option value='$ID'>$Group_Name</option>";
+						print "<option value='$ID'>$Group_Name_Character_Limited</option>";
 					}
 					else {
-						print "<option style='color: #FF0000;' value='$ID'>$Group_Name [Inactive]</option>";
+						print "<option style='color: #FF0000;' value='$ID'>$Group_Name_Character_Limited [Inactive]</option>";
 					}
 
 				}
@@ -566,7 +617,8 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">Add Command:</td>
-		<td colspan="4">
+		<td></td>
+		<td colspan="3" style="text-align: left;">
 			<select name='Add_Command_Temp_New' onchange='this.form.submit()' style="width: 300px">
 ENDHTML
 
@@ -580,11 +632,19 @@ ENDHTML
 
 				while ( (my $ID, my $Command_Name, my $Command, my $Active) = my @Command_List_Query = $Command_List_Query->fetchrow_array() )
 				{
+					my $Command_Name_Character_Limited = substr( $Command_Name, 0, 40 );
+						if ($Command_Name_Character_Limited ne $Command_Name) {
+							$Command_Name_Character_Limited = $Command_Name_Character_Limited . '...';
+						}
+					my $Command_Character_Limited = substr( $Command, 0, 40 );
+						if ($Command_Character_Limited ne $Command) {
+							$Command_Character_Limited = $Command_Character_Limited . '...';
+						}
 					if ($Active) {
-						print "<option value='$ID'>$Command_Name ($Command)</option>";
+						print "<option value='$ID'>$Command_Name_Character_Limited ($Command_Character_Limited)</option>";
 					}
 					else {
-						print "<option style='color: #FF0000;' value='$ID'>$Command_Name ($Command) [Inactive]</option>";
+						print "<option style='color: #FF0000;' value='$ID'>$Command_Name_Character_Limited ($Command_Character_Limited) [Inactive]</option>";
 					}
 
 				}
@@ -595,7 +655,8 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">Run As:</td>
-		<td colspan="4"><input type='text' name='Run_As_Add' style="width: 300px" maxlength='128' value="$Run_As_Add" placeholder="root" required></td>
+		<td></td>
+		<td colspan="3" style="text-align: left;"><input type='text' name='Run_As_Add' style="width: 300px" maxlength='128' value="$Run_As_Add" placeholder="root" required></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Options:</td>
@@ -613,8 +674,8 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">Expires:</td>
-		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Add"></td>
-		<td colspan="3"><input type="text" style="width: 100%" name="Expires_Date_Add" value="$Date" placeholder="YYYY-MM-DD" disabled></td>
+		<td style="text-align: right;"><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Add"></td>
+		<td colspan="3" style="text-align: left;"><input type="text" style="width: 300px" name="Expires_Date_Add" value="$Date" placeholder="YYYY-MM-DD" disabled></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Active:</td>
@@ -624,11 +685,11 @@ print <<ENDHTML;
 		<td style="text-align: left;">No</td>
 	</tr>
 	<tr>
-		<td colspan="3"><hr style='width: 20%' /></td>
+		<td colspan="5"><hr style='width: 20%' /></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Attached Host Groups:</td>
-		<td colspan="2" style="text-align: left;">
+		<td colspan="4" style="text-align: left;">
 ENDHTML
 
 if ($Host_Groups) {
@@ -652,7 +713,7 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">Attached Hosts:</td>
-		<td colspan="2" style="text-align: left;">
+		<td colspan="4" style="text-align: left;">
 ENDHTML
 
 if ($Hosts) {
@@ -675,11 +736,11 @@ print <<ENDHTML;
 		</td>
 	</tr>
 	<tr>
-		<td colspan="3"><hr style='width: 20%' /></td>
+		<td colspan="5"><hr style='width: 20%' /></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Attached User Groups:</td>
-		<td colspan="2" style="text-align: left;">
+		<td colspan="4" style="text-align: left;">
 ENDHTML
 
 if ($User_Groups) {
@@ -703,7 +764,7 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">Attached Users:</td>
-		<td colspan="2" style="text-align: left;">
+		<td colspan="4" style="text-align: left;">
 ENDHTML
 
 if ($Users) {
@@ -725,11 +786,11 @@ print <<ENDHTML;
 		</td>
 	</tr>
 	<tr>
-		<td colspan="3"><hr style='width: 20%' /></td>
+		<td colspan="5"><hr style='width: 20%' /></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Attached Command Groups:</td>
-		<td colspan="2" style="text-align: left;">
+		<td colspan="4" style="text-align: left;">
 ENDHTML
 
 if ($Command_Groups) {
@@ -753,7 +814,7 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">Attached Commands:</td>
-		<td colspan="2" style="text-align: left;">
+		<td colspan="4" style="text-align: left;">
 ENDHTML
 
 if ($Commands) {
@@ -776,7 +837,7 @@ print <<ENDHTML;
 		</td>
 	</tr>
 	<tr>
-		<td colspan="3"><hr style='width: 20%' /></td>
+		<td colspan="5"><hr style='width: 20%' /></td>
 	</tr>
 </table>
 
@@ -1763,11 +1824,13 @@ function Expire_Toggle() {
 <table align = "center">
 	<tr>
 		<td style="text-align: right;">Rule Name:</td>
-		<td colspan="4"><input type='text' name='Rule_Name_Edit' style="width: 300px" maxlength='128' value="$Rule_Name_Edit" placeholder="$Rule_Name_Extract" required autofocus></td>
+		<td></td>
+		<td colspan="3"><input type='text' name='Rule_Name_Edit' style="width: 300px" maxlength='128' value="$Rule_Name_Edit" placeholder="$Rule_Name_Extract" required autofocus></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Add Host Group:</td>
-		<td colspan="4">
+		<td></td>
+		<td colspan="3">
 			<select name='Edit_Host_Group_Temp_New' onchange='this.form.submit()' style="width: 300px">
 ENDHTML
 
@@ -1784,13 +1847,16 @@ ENDHTML
 
 				while ( (my $ID, my $Group_Name, my $Active) = my @Group_List_Query = $Host_Group_List_Query->fetchrow_array() )
 				{
+					my $Group_Name_Character_Limited = substr( $Group_Name, 0, 40 );
+						if ($Group_Name_Character_Limited ne $Group_Name) {
+							$Group_Name_Character_Limited = $Group_Name_Character_Limited . '...';
+						}
 					if ($Active) {
-						print "<option value='$ID'>$Group_Name</option>";
+						print "<option value='$ID'>$Group_Name_Character_Limited</option>";
 					}
 					else {
-						print "<option style='color: #FF0000;' value='$ID'>$Group_Name [Inactive]</option>";
+						print "<option style='color: #FF0000;' value='$ID'>$Group_Name_Character_Limited [Inactive]</option>";
 					}
-
 				}
 
 print <<ENDHTML;
@@ -1799,7 +1865,8 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">Add Host:</td>
-		<td colspan="4">
+		<td></td>
+		<td colspan="3">
 			<select name='Edit_Host_Temp_New' onchange='this.form.submit()' style="width: 300px">
 ENDHTML
 
@@ -1814,13 +1881,16 @@ ENDHTML
 
 				while ( (my $ID, my $Host_Name, my $IP, my $Active) = my @Host_List_Query = $Host_List_Query->fetchrow_array() )
 				{
+					my $Host_Name_Character_Limited = substr( $Host_Name, 0, 40 );
+						if ($Host_Name_Character_Limited ne $Host_Name) {
+							$Host_Name_Character_Limited = $Host_Name_Character_Limited . '...';
+						}
 					if ($Active) {
 						print "<option value='$ID'>$Host_Name ($IP)</option>";
 					}
 					else {
 						print "<option style='color: #FF0000;' value='$ID'>$Host_Name ($IP) [Inactive]</option>";
 					}
-
 				}
 
 print <<ENDHTML;
@@ -1829,7 +1899,8 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">Add User Group:</td>
-		<td colspan="4">
+		<td></td>
+		<td colspan="3">
 			<select name='Edit_User_Group_Temp_New' onchange='this.form.submit()' style="width: 300px">
 ENDHTML
 
@@ -1843,14 +1914,17 @@ ENDHTML
 
 				while ( (my $ID, my $Group_Name, my $System_Group, my $Active) = my @Group_List_Query = $User_Group_List_Query->fetchrow_array() )
 				{
-					if ($System_Group) {$Group_Name = '%' . $Group_Name . ' [System Group]'}
+					my $Group_Name_Character_Limited = substr( $Group_Name, 0, 40 );
+						if ($Group_Name_Character_Limited ne $Group_Name) {
+							$Group_Name_Character_Limited = $Group_Name_Character_Limited . '...';
+						}
+					if ($System_Group) {$Group_Name_Character_Limited = '%' . $Group_Name_Character_Limited . ' [System Group]'}
 					if ($Active) {
-						print "<option value='$ID'>$Group_Name</option>";
+						print "<option value='$ID'>$Group_Name_Character_Limited</option>";
 					}
 					else {
-						print "<option style='color: #FF0000;' value='$ID'>$Group_Name [Inactive]</option>";
+						print "<option style='color: #FF0000;' value='$ID'>$Group_Name_Character_Limited [Inactive]</option>";
 					}
-
 				}
 
 print <<ENDHTML;
@@ -1859,7 +1933,8 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">Add User:</td>
-		<td colspan="4">
+		<td></td>
+		<td colspan="3">
 			<select name='Edit_User_Temp_New' onchange='this.form.submit()' style="width: 300px">
 ENDHTML
 
@@ -1873,13 +1948,16 @@ ENDHTML
 
 				while ( (my $ID, my $UserName, my $Active) = my @User_List_Query = $User_List_Query->fetchrow_array() )
 				{
+					my $UserName_Character_Limited = substr( $UserName, 0, 40 );
+						if ($UserName_Character_Limited ne $UserName) {
+							$UserName_Character_Limited = $UserName_Character_Limited . '...';
+						}
 					if ($Active) {
-						print "<option value='$ID'>$UserName</option>";
+						print "<option value='$ID'>$UserName_Character_Limited</option>";
 					}
 					else {
-						print "<option style='color: #FF0000;' value='$ID'>$UserName [Inactive]</option>";
+						print "<option style='color: #FF0000;' value='$ID'>$UserName_Character_Limited [Inactive]</option>";
 					}
-
 				}
 
 print <<ENDHTML;
@@ -1888,7 +1966,8 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">Add Command Group:</td>
-		<td colspan="4">
+		<td></td>
+		<td colspan="3">
 			<select name='Edit_Command_Group_Temp_New' onchange='this.form.submit()' style="width: 300px">
 ENDHTML
 
@@ -1902,13 +1981,16 @@ ENDHTML
 
 				while ( (my $ID, my $Group_Name, my $Active) = my @Group_List_Query = $Command_Group_List_Query->fetchrow_array() )
 				{
+					my $Group_Name_Character_Limited = substr( $Group_Name, 0, 40 );
+						if ($Group_Name_Character_Limited ne $Group_Name) {
+							$Group_Name_Character_Limited = $Group_Name_Character_Limited . '...';
+						}
 					if ($Active) {
-						print "<option value='$ID'>$Group_Name</option>";
+						print "<option value='$ID'>$Group_Name_Character_Limited</option>";
 					}
 					else {
-						print "<option style='color: #FF0000;' value='$ID'>$Group_Name [Inactive]</option>";
+						print "<option style='color: #FF0000;' value='$ID'>$Group_Name_Character_Limited [Inactive]</option>";
 					}
-
 				}
 
 print <<ENDHTML;
@@ -1917,7 +1999,8 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">Add Command:</td>
-		<td colspan="4">
+		<td></td>
+		<td colspan="3">
 			<select name='Edit_Command_Temp_New' onchange='this.form.submit()' style="width: 300px">
 ENDHTML
 
@@ -1931,13 +2014,20 @@ ENDHTML
 
 				while ( (my $ID, my $Command_Name, my $Command, my $Active) = my @Command_List_Query = $Command_List_Query->fetchrow_array() )
 				{
+					my $Command_Name_Character_Limited = substr( $Command_Name, 0, 40 );
+						if ($Command_Name_Character_Limited ne $Command_Name) {
+							$Command_Name_Character_Limited = $Command_Name_Character_Limited . '...';
+						}
+					my $Command_Character_Limited = substr( $Command, 0, 40 );
+						if ($Command_Character_Limited ne $Command) {
+							$Command_Character_Limited = $Command_Character_Limited . '...';
+						}
 					if ($Active) {
-						print "<option value='$ID'>$Command_Name ($Command)</option>";
+						print "<option value='$ID'>$Command_Name_Character_Limited ($Command_Character_Limited)</option>";
 					}
 					else {
-						print "<option style='color: #FF0000;' value='$ID'>$Command_Name ($Command) [Inactive]</option>";
+						print "<option style='color: #FF0000;' value='$ID'>$Command_Name_Character_Limited ($Command_Character_Limited) [Inactive]</option>";
 					}
-
 				}
 
 ###### / Option Selection
@@ -1963,7 +2053,8 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">Run As:</td>
-		<td colspan="4"><input type='text' name='Run_As_Edit' value='$Run_As_Extract' style="width: 300px" maxlength='128' placeholder="$Run_As_Extract" required></td>
+		<td></td>
+		<td colspan="3"><input type='text' name='Run_As_Edit' value='$Run_As_Extract' style="width: 300px" maxlength='128' placeholder="$Run_As_Extract" required></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Options:</td>
@@ -2011,8 +2102,8 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">Expires:</td>
-		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Edit" $Checked></td>
-		<td colspan="3"><input type="text" style="width: 100%" name="Expires_Date_Edit" value="$Expires_Extract" placeholder="$Expires_Extract" $Disabled></td>
+		<td style="text-align: right;"><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Edit" $Checked></td>
+		<td colspan="3"><input type="text" style="width: 300px" name="Expires_Date_Edit" value="$Expires_Extract" placeholder="$Expires_Extract" $Disabled></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Active:</td>
@@ -3335,16 +3426,19 @@ sub html_output {
 					}
 	
 					if ($Group_Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
-						$Group = "<a href='sudoers-host-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Hosts in this group:\n$Attached_Hosts\"><span style='color: #B1B1B1';>$Group</span></a>
-						<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+						$Group = "<a href='sudoers-host-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Hosts in this group:\n$Attached_Hosts\"><span style='color: #B1B1B1';>$Group</span></a>"
+						. "&nbsp;" .
+						"<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 					}
 					elsif ($Group_Active) {
-						$Group = "<a href='sudoers-host-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Hosts in this group:\n$Attached_Hosts\"><span style='color: #00FF00';>$Group</span></a>
-						<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+						$Group = "<a href='sudoers-host-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Hosts in this group:\n$Attached_Hosts\"><span style='color: #00FF00';>$Group</span></a>"
+						. "&nbsp;" .
+						"<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 						}
 					else {
-						$Group = "<a href='sudoers-host-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Hosts in this group:\n$Attached_Hosts\"><span style='color: #FF0000';>$Group</span></a>
-						<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+						$Group = "<a href='sudoers-host-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Hosts in this group:\n$Attached_Hosts\"><span style='color: #FF0000';>$Group</span></a>"
+						. "&nbsp;" .
+						"<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 					};
 					
 					$Attached_Host_Groups = $Attached_Host_Groups . $Group ."<br />";
@@ -3353,8 +3447,9 @@ sub html_output {
 			}
 		}
 		else {
-			$Attached_Host_Groups = "<a href='#' class='tooltip' text=\"This is a special sudoers group, meaning all hosts.\"><span style='color: #00FF00'>ALL (Special)</span></a>
-						<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_Group_ID=ALL' class='tooltip' text=\"Remove ALL from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>";
+			$Attached_Host_Groups = "<a href='#' class='tooltip' text=\"This is a special sudoers group, meaning all hosts.\"><span style='color: #00FF00'>ALL (Special)</span></a>"
+			. "&nbsp;" .
+			"<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_Group_ID=ALL' class='tooltip' text=\"Remove ALL from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>";
 		}
 
 		### / Discover Attached Host Groups
@@ -3399,24 +3494,28 @@ sub html_output {
 					}
 	
 					if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
-						$Host = "<a href='sudoers-hosts.cgi?ID_Filter=$Host_ID' class='tooltip' text=\"$IP\"><span style='color: #B1B1B1'>$Host</span></a>
-						<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_ID=$Host_ID' class='tooltip' text=\"Remove $Host from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+						$Host = "<a href='sudoers-hosts.cgi?ID_Filter=$Host_ID' class='tooltip' text=\"$IP\"><span style='color: #B1B1B1'>$Host</span></a>"
+						. "&nbsp;" .
+						"<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_ID=$Host_ID' class='tooltip' text=\"Remove $Host from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 					}
 					elsif ($Active) {
-						$Host = "<a href='sudoers-hosts.cgi?ID_Filter=$Host_ID' class='tooltip' text=\"$IP\"><span style='color: #00FF00'>$Host</span></a>
-						<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_ID=$Host_ID' class='tooltip' text=\"Remove $Host from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+						$Host = "<a href='sudoers-hosts.cgi?ID_Filter=$Host_ID' class='tooltip' text=\"$IP\"><span style='color: #00FF00'>$Host</span></a>"
+						. "&nbsp;" .
+						"<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_ID=$Host_ID' class='tooltip' text=\"Remove $Host from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 					}
 					else {
-						$Host = "<a href='sudoers-hosts.cgi?ID_Filter=$Host_ID' class='tooltip' text=\"$IP\"><span style='color: #FF0000'>$Host</span></a>
-						<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_ID=$Host_ID' class='tooltip' text=\"Remove $Host from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+						$Host = "<a href='sudoers-hosts.cgi?ID_Filter=$Host_ID' class='tooltip' text=\"$IP\"><span style='color: #FF0000'>$Host</span></a>"
+						. "&nbsp;" .
+						"<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_ID=$Host_ID' class='tooltip' text=\"Remove $Host from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 					};
 					$Attached_Hosts = $Attached_Hosts . $Host  . "<br />";
 				}
 			}
 		}
 		else {
-			$Attached_Hosts = "<a href='#' class='tooltip' text=\"This is a special sudoers group, meaning all hosts.\"><span style='color: #00FF00'>ALL (Special)</span></a>
-						<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_ID=ALL' class='tooltip' text=\"Remove ALL from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>";
+			$Attached_Hosts = "<a href='#' class='tooltip' text=\"This is a special sudoers group, meaning all hosts.\"><span style='color: #00FF00'>ALL (Special)</span></a>"
+			. "&nbsp;" .
+			"<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Host_ID=ALL' class='tooltip' text=\"Remove ALL from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>";
 		}
 		
 		### / Discover Attached Hosts
@@ -3526,16 +3625,19 @@ sub html_output {
 				
 
 				if ($Group_Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
-					$Group = "<a href='sudoers-user-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"$Users_In_This_Group\n$Attached_Users\"><span style='color: #B1B1B1';>$Group</span></a>
-					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_User_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+					$Group = "<a href='sudoers-user-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"$Users_In_This_Group\n$Attached_Users\"><span style='color: #B1B1B1';>$Group</span></a>"
+					. "&nbsp;" .
+					"<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_User_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 				}
 				elsif ($Group_Active) {
-					$Group = "<a href='sudoers-user-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"$Users_In_This_Group\n$Attached_Users\"><span style='color: #00FF00';>$Group</span></a>
-					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_User_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+					$Group = "<a href='sudoers-user-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"$Users_In_This_Group\n$Attached_Users\"><span style='color: #00FF00';>$Group</span></a>"
+					. "&nbsp;" .
+					"<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_User_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 				}
 				else {
-					$Group = "<a href='sudoers-user-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"$Users_In_This_Group\n$Attached_Users\"><span style='color: #FF0000';>$Group</span></a>
-					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_User_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+					$Group = "<a href='sudoers-user-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"$Users_In_This_Group\n$Attached_Users\"><span style='color: #FF0000';>$Group</span></a>"
+					. "&nbsp;" .
+					"<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_User_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 				};
 				
 				$Attached_User_Groups = $Attached_User_Groups . $Group ."<br />";
@@ -3581,16 +3683,19 @@ sub html_output {
 				}
 
 				if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
-					$User = "<a href='sudoers-users.cgi?ID_Filter=$User_ID'><span style='color: #B1B1B1'>$User</span></a>
-					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_User_ID=$User_ID' class='tooltip' text=\"Remove $User from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+					$User = "<a href='sudoers-users.cgi?ID_Filter=$User_ID'><span style='color: #B1B1B1'>$User</span></a>"
+					. "&nbsp;" .
+					"<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_User_ID=$User_ID' class='tooltip' text=\"Remove $User from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 				}
 				elsif ($Active) {
-					$User = "<a href='sudoers-users.cgi?ID_Filter=$User_ID'><span style='color: #00FF00'>$User</span></a>
-					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_User_ID=$User_ID' class='tooltip' text=\"Remove $User from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+					$User = "<a href='sudoers-users.cgi?ID_Filter=$User_ID'><span style='color: #00FF00'>$User</span></a>"
+					. "&nbsp;" .
+					"<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_User_ID=$User_ID' class='tooltip' text=\"Remove $User from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 				}
 				else {
-					$User = "<a href='sudoers-users.cgi?ID_Filter=$User_ID'><span style='color: #FF0000'>$User</span></a>
-					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_User_ID=$User_ID' class='tooltip' text=\"Remove $User from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+					$User = "<a href='sudoers-users.cgi?ID_Filter=$User_ID'><span style='color: #FF0000'>$User</span></a>"
+					. "&nbsp;" .
+					"<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_User_ID=$User_ID' class='tooltip' text=\"Remove $User from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 				};
 				$Attached_Users = $Attached_Users . $User  . "<br />";
 			}
@@ -3692,16 +3797,19 @@ sub html_output {
 				}
 
 				if ($Group_Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
-					$Group = "<a href='sudoers-command-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Commands in this group:\n$Attached_Commands\"><span style='color: #B1B1B1';>$Group</span></a>
-					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Command_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+					$Group = "<a href='sudoers-command-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Commands in this group:\n$Attached_Commands\"><span style='color: #B1B1B1';>$Group</span></a>"
+					. "&nbsp;" .
+					"<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Command_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 				}
 				elsif ($Group_Active) {
-					$Group = "<a href='sudoers-command-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Commands in this group:\n$Attached_Commands\"><span style='color: #00FF00';>$Group</span></a>
-					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Command_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+					$Group = "<a href='sudoers-command-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Commands in this group:\n$Attached_Commands\"><span style='color: #00FF00';>$Group</span></a>"
+					. "&nbsp;" .
+					"<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Command_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 				}
 				else {
-					$Group = "<a href='sudoers-command-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Commands in this group:\n$Attached_Commands\"><span style='color: #FF0000';>$Group</span></a>
-					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Command_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+					$Group = "<a href='sudoers-command-groups.cgi?ID_Filter=$Group_ID' class='tooltip' text=\"Commands in this group:\n$Attached_Commands\"><span style='color: #FF0000';>$Group</span></a>"
+					. "&nbsp;" .
+					"<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Command_Group_ID=$Group_ID' class='tooltip' text=\"Remove $Group from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 				};
 				
 				$Attached_Command_Groups = $Attached_Command_Groups . $Group ."<br />";
@@ -3748,16 +3856,19 @@ sub html_output {
 				}
 
 				if ($Command_Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
-					$Command_Alias = "<a href='sudoers-commands.cgi?ID_Filter=$Command_ID' class='tooltip' text=\"$Command\"><span style='color: #B1B1B1'>$Command_Alias</span></a>
-					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Command_ID=$Command_ID' class='tooltip' text=\"Remove $Command_Alias from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+					$Command_Alias = "<a href='sudoers-commands.cgi?ID_Filter=$Command_ID' class='tooltip' text=\"$Command\"><span style='color: #B1B1B1'>$Command_Alias</span></a>"
+					. "&nbsp;" .
+					"<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Command_ID=$Command_ID' class='tooltip' text=\"Remove $Command_Alias from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 				}
 				elsif ($Command_Active) {
-					$Command_Alias = "<a href='sudoers-commands.cgi?ID_Filter=$Command_ID' class='tooltip' text=\"$Command\"><span style='color: #00FF00'>$Command_Alias</span></a>
-					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Command_ID=$Command_ID' class='tooltip' text=\"Remove $Command_Alias from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+					$Command_Alias = "<a href='sudoers-commands.cgi?ID_Filter=$Command_ID' class='tooltip' text=\"$Command\"><span style='color: #00FF00'>$Command_Alias</span></a>"
+					. "&nbsp;" .
+					"<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Command_ID=$Command_ID' class='tooltip' text=\"Remove $Command_Alias from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 				}
 				else {
-					$Command_Alias = "<a href='sudoers-commands.cgi?ID_Filter=$Command_ID' class='tooltip' text=\"$Command\"><span style='color: #FF0000'>$Command_Alias</span></a>
-					<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Command_ID=$Command_ID' class='tooltip' text=\"Remove $Command_Alias from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
+					$Command_Alias = "<a href='sudoers-commands.cgi?ID_Filter=$Command_ID' class='tooltip' text=\"$Command\"><span style='color: #FF0000'>$Command_Alias</span></a>"
+					. "&nbsp;" .
+					"<a href='sudoers-rules.cgi?Delete_Rule_Item_ID=$DBID_Clean&Delete_Command_ID=$Command_ID' class='tooltip' text=\"Remove $Command_Alias from $DB_Rule_Name_Clean\"><span style='color: #FFC600'>[Remove]</span></a>"
 				};
 				$Attached_Commands = $Attached_Commands . $Command_Alias  . "<br />";
 			}

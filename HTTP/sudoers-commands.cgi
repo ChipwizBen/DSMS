@@ -195,7 +195,8 @@ function Expire_Toggle() {
 </table>
 
 <ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
-<li>Command Alias and Commands must have unique names.</li>
+<li>Command Aliases must be unique and contain only a-z, A-Z, 0-9 and _ characters.</li>
+<li>Commands must be unique.</li>
 <li>Commands take only full paths (e.g. <i>/sbin/service</i> instead of just <i>service</i>).</li>
 <li>Do not use spaces  or none alphanumeric characters in the Alias - they will be stripped.</li>
 <li>Commands with an expiry set are automatically removed from sudoers at 23:59:59
@@ -410,7 +411,8 @@ print <<ENDHTML;
 <input type='hidden' name='Edit_Command_Post' value='$Edit_Command'>
 
 <ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
-<li>Command Alias and Commands must have unique names.</li>
+<li>Command Aliases must be unique and contain only a-z, A-Z, 0-9 and _ characters.</li>
+<li>Commands must be unique.</li>
 <li>Commands take only full paths (e.g. <i>/sbin/service</i> instead of just <i>service</i>).</li>
 <li>Do not use spaces  or none alphanumeric characters in the Alias - they will be stripped.</li>
 <li>You can only activate a modified command if you are an Approver. If you are not an Approver and you modify this entry, it will automatically be set to Inactive.</li>

@@ -163,6 +163,11 @@ foreach my $Host (@Hosts) {
 	while ( (my $Host_Name, my $IP, my $Expires, my $Active) = my @Host_Query = $Host_Query->fetchrow_array() )
 	{
 
+		my $Host_Name_Character_Limited = substr( $Host_Name, 0, 40 );
+			if ($Host_Name_Character_Limited ne $Host_Name) {
+				$Host_Name_Character_Limited = $Host_Name_Character_Limited . '...';
+			}
+
 		my $Expires_Epoch;
 		my $Today_Epoch = time;
 		if ($Expires =~ /^0000-00-00$/) {
@@ -173,13 +178,13 @@ foreach my $Host (@Hosts) {
 		}
 
 		if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
-			$Hosts = $Hosts . "<tr><td align='left' style='color: #B1B1B1'>$Host_Name</td> <td align='left' style='color: #B1B1B1'>$IP</td></tr>";
+			$Hosts = $Hosts . "<tr><td align='left' style='color: #B1B1B1'>$Host_Name_Character_Limited</td> <td align='left' style='color: #B1B1B1'>$IP</td></tr>";
 		}
 		elsif ($Active) {
-			$Hosts = $Hosts . "<tr><td align='left' style='color: #00FF00'>$Host_Name</td> <td align='left' style='color: #00FF00'>$IP</td></tr>";
+			$Hosts = $Hosts . "<tr><td align='left' style='color: #00FF00'>$Host_Name_Character_Limited</td> <td align='left' style='color: #00FF00'>$IP</td></tr>";
 		}
 		else {
-			$Hosts = $Hosts . "<tr><td align='left' style='color: #FF0000'>$Host_Name</td> <td align='left' style='color: #FF0000'>$IP</td></tr>";
+			$Hosts = $Hosts . "<tr><td align='left' style='color: #FF0000'>$Host_Name_Character_Limited</td> <td align='left' style='color: #FF0000'>$IP</td></tr>";
 		}
 		
 	}
@@ -216,11 +221,13 @@ function Expire_Toggle() {
 <table align = "center">
 	<tr>
 		<td style="text-align: right;">Group Name:</td>
-		<td colspan="2"><input type='text' name='Group_Name_Add' style="width: 300px" maxlength='128' value="$Group_Name_Add" placeholder="Group Name" required autofocus></td>
+		<td></td>
+		<td colspan='3'><input type='text' name='Group_Name_Add' style="width: 300px" maxlength='128' value="$Group_Name_Add" placeholder="Group Name" required autofocus></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Add Host:</td>
-		<td colspan="2">
+		<td></td>
+		<td colspan='3'>
 			<select name='Add_Host_Temp_New' onchange='this.form.submit()' style="width: 300px">
 ENDHTML
 
@@ -233,6 +240,12 @@ ENDHTML
 				
 				while ( (my $ID, my $Host_Name, my $IP, my $Expires, my $Active) = my @Host_List_Query = $Host_List_Query->fetchrow_array() )
 				{
+
+					my $Host_Name_Character_Limited = substr( $Host_Name, 0, 40 );
+						if ($Host_Name_Character_Limited ne $Host_Name) {
+							$Host_Name_Character_Limited = $Host_Name_Character_Limited . '...';
+						}
+
 					my $Expires_Epoch;
 					my $Today_Epoch = time;
 					if ($Expires =~ /^0000-00-00$/) {
@@ -243,13 +256,13 @@ ENDHTML
 					}
 
 					if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
-						print "<option style='color: #B1B1B1;' value='$ID'>$Host_Name ($IP) [Expired]</option>";
+						print "<option style='color: #B1B1B1;' value='$ID'>$Host_Name_Character_Limited ($IP) [Expired]</option>";
 					}
 					elsif ($Active) {
-						print "<option value='$ID'>$Host_Name ($IP)</option>";
+						print "<option value='$ID'>$Host_Name_Character_Limited ($IP)</option>";
 					}
 					else {
-						print "<option style='color: #FF0000;' value='$ID'>$Host_Name ($IP) [Inactive]</option>";
+						print "<option style='color: #FF0000;' value='$ID'>$Host_Name_Character_Limited ($IP) [Inactive]</option>";
 					}
 					
 				}
@@ -260,7 +273,8 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">Attached Hosts:</td>
-		<td colspan="2" style="text-align: left;">
+		<td></td>
+		<td colspan='3' style="text-align: left;">
 ENDHTML
 
 if ($Hosts) {
@@ -285,12 +299,14 @@ print <<ENDHTML;
 	<tr>
 		<td style="text-align: right;">Expires:</td>
 		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Add"></td>
-		<td><input type="text" style="width: 100%" name="Expires_Date_Add" value="$Date" placeholder="YYYY-MM-DD" disabled></td>
+		<td colspan='3'><input type="text" style="width: 300px" name="Expires_Date_Add" value="$Date" placeholder="YYYY-MM-DD" disabled></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Active:</td>
-		<td style="text-align: right;"><input type="radio" name="Active_Add" value="1" checked> Yes</td>
-		<td style="text-align: right;"><input type="radio" name="Active_Add" value="0"> No</td>
+		<td style="text-align: right;"><input type="radio" name="Active_Add" value="1" checked></td>
+		<td style="text-align: left;">Yes</td>
+		<td style="text-align: right;"><input type="radio" name="Active_Add" value="0"></td>
+		<td style="text-align: left;">No</td>
 	</tr>
 </table>
 
@@ -348,11 +364,7 @@ sub add_group {
 		`modified_by`
 	)
 	VALUES (
-		NULL,
-		?,
-		?,
-		?,
-		?
+		NULL, ?, ?, ?, ?
 	)");
 
 	$Group_Insert->execute($Group_Name_Add, $Expires_Date_Add, $Active_Add, $User_Name);
@@ -460,6 +472,11 @@ while ( my @Select_Links = $Select_Links->fetchrow_array() )
 	while ( (my $Host_Name, my $IP, my $Expires, my $Active) = my @Host_Query = $Host_Query->fetchrow_array() )
 	{
 
+		my $Host_Name_Character_Limited = substr( $Host_Name, 0, 40 );
+			if ($Host_Name_Character_Limited ne $Host_Name) {
+				$Host_Name_Character_Limited = $Host_Name_Character_Limited . '...';
+			}
+
 		my $Expires_Epoch;
 		my $Today_Epoch = time;
 		if ($Expires =~ /^0000-00-00$/) {
@@ -470,13 +487,13 @@ while ( my @Select_Links = $Select_Links->fetchrow_array() )
 		}
 
 		if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
-			$Hosts = $Hosts . "<tr><td align='left' style='color: #B1B1B1'>$Host_Name</td> <td align='left' style='color: #B1B1B1'>$IP</td></tr>";
+			$Hosts = $Hosts . "<tr><td align='left' style='color: #B1B1B1'>$Host_Name_Character_Limited</td> <td align='left' style='color: #B1B1B1'>$IP</td></tr>";
 		}
 		elsif ($Active) {
-			$Hosts = $Hosts . "<tr><td align='left' style='color: #00FF00'>$Host_Name</td> <td align='left' style='color: #00FF00'>$IP</td></tr>";
+			$Hosts = $Hosts . "<tr><td align='left' style='color: #00FF00'>$Host_Name_Character_Limited</td> <td align='left' style='color: #00FF00'>$IP</td></tr>";
 		}
 		else {
-			$Hosts = $Hosts . "<tr><td align='left' style='color: #FF0000'>$Host_Name</td> <td align='left' style='color: #FF0000'>$IP</td></tr>";
+			$Hosts = $Hosts . "<tr><td align='left' style='color: #FF0000'>$Host_Name_Character_Limited</td> <td align='left' style='color: #FF0000'>$IP</td></tr>";
 		}
 	}
 }
@@ -520,6 +537,11 @@ foreach my $Host (@Hosts) {
 	while ( (my $Host_Name, my $IP, my $Expires, my $Active) = my @Host_Query = $Host_Query->fetchrow_array() )
 	{
 
+		my $Host_Name_Character_Limited = substr( $Host_Name, 0, 40 );
+			if ($Host_Name_Character_Limited ne $Host_Name) {
+				$Host_Name_Character_Limited = $Host_Name_Character_Limited . '...';
+			}
+
 		my $Expires_Epoch;
 		my $Today_Epoch = time;
 		if ($Expires =~ /^0000-00-00$/) {
@@ -530,13 +552,13 @@ foreach my $Host (@Hosts) {
 		}
 
 		if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
-			$Hosts_New = $Hosts_New . "<tr><td align='left' style='color: #B1B1B1'>$Host_Name</td> <td align='left' style='color: #B1B1B1'>$IP</td></tr>";
+			$Hosts_New = $Hosts_New . "<tr><td align='left' style='color: #B1B1B1'>$Host_Name_Character_Limited</td> <td align='left' style='color: #B1B1B1'>$IP</td></tr>";
 		}
 		elsif ($Active) {
-			$Hosts_New = $Hosts_New . "<tr><td align='left' style='color: #00FF00'>$Host_Name</td> <td align='left' style='color: #00FF00'>$IP</td></tr>";
+			$Hosts_New = $Hosts_New . "<tr><td align='left' style='color: #00FF00'>$Host_Name_Character_Limited</td> <td align='left' style='color: #00FF00'>$IP</td></tr>";
 		}
 		else {
-			$Hosts_New = $Hosts_New . "<tr><td align='left' style='color: #FF0000'>$Host_Name</td> <td align='left' style='color: #FF0000'>$IP</td></tr>";
+			$Hosts_New = $Hosts_New . "<tr><td align='left' style='color: #FF0000'>$Host_Name_Character_Limited</td> <td align='left' style='color: #FF0000'>$IP</td></tr>";
 		}
 	}
 }
@@ -602,11 +624,13 @@ function Expire_Toggle() {
 <table align = "center">
 	<tr>
 		<td style="text-align: right;">Group Name:</td>
-		<td colspan="2"><input type='text' name='Group_Name_Edit' style="width: 300px" maxlength='128' value="$Group_Name_Edit" placeholder="Group Name" required autofocus></td>
+		<td></td>
+		<td colspan='3'><input type='text' name='Group_Name_Edit' style="width: 300px" maxlength='128' value="$Group_Name_Edit" placeholder="Group Name" required autofocus></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Add Host:</td>
-		<td colspan="2">
+		<td></td>
+		<td colspan='3'>
 			<select name='Edit_Host_Temp_New' onchange='this.form.submit()' style="width: 300px">
 ENDHTML
 
@@ -619,6 +643,12 @@ ENDHTML
 				
 				while ( (my $ID, my $Host_Name, my $IP, my $Expires, my $Active) = my @Host_List_Query = $Host_List_Query->fetchrow_array() )
 				{
+
+					my $Host_Name_Character_Limited = substr( $Host_Name, 0, 40 );
+						if ($Host_Name_Character_Limited ne $Host_Name) {
+							$Host_Name_Character_Limited = $Host_Name_Character_Limited . '...';
+						}
+
 					my $Expires_Epoch;
 					my $Today_Epoch = time;
 					if ($Expires =~ /^0000-00-00$/) {
@@ -629,13 +659,13 @@ ENDHTML
 					}
 			
 					if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
-						print "<option style='color: #B1B1B1;' value='$ID'>$Host_Name ($IP) [Expired]</option>";
+						print "<option style='color: #B1B1B1;' value='$ID'>$Host_Name_Character_Limited ($IP) [Expired]</option>";
 					}
 					elsif ($Active) {
-						print "<option value='$ID'>$Host_Name ($IP)</option>";
+						print "<option value='$ID'>$Host_Name_Character_Limited ($IP)</option>";
 					}
 					else {
-						print "<option style='color: #FF0000;' value='$ID'>$Host_Name ($IP) [Inactive]</option>";
+						print "<option style='color: #FF0000;' value='$ID'>$Host_Name_Character_Limited ($IP) [Inactive]</option>";
 					}
 					
 				}
@@ -646,7 +676,8 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">Existing Hosts:</td>
-		<td colspan="2" style="text-align: left;">
+		<td></td>
+		<td colspan='3' style="text-align: left;">
 ENDHTML
 
 if ($Hosts) {
@@ -670,7 +701,8 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">New Hosts:</td>
-		<td colspan="2" style="text-align: left;">
+		<td></td>
+		<td colspan='3' style="text-align: left;">
 ENDHTML
 
 if ($Hosts_New) {
@@ -695,7 +727,7 @@ print <<ENDHTML;
 	<tr>
 		<td style="text-align: right;">Expires:</td>
 		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Edit" $Checked></td>
-		<td><input type="text" style="width: 100%" name="Expires_Date_Edit" value="$Expires_Date_Edit" placeholder="$Expires_Date_Edit" $Disabled></td>
+		<td colspan='3'><input type="text" style="width: 300px" name="Expires_Date_Edit" value="$Expires_Date_Edit" placeholder="$Expires_Date_Edit" $Disabled></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Active:</td>
@@ -703,14 +735,18 @@ ENDHTML
 
 if ($Active_Edit == 1) {
 print <<ENDHTML;
-		<td style="text-align: right;"><input type="radio" name="Active_Edit" value="1" checked> Yes</td>
-		<td style="text-align: right;"><input type="radio" name="Active_Edit" value="0"> No</td>
+		<td style="text-align: right;"><input type="radio" name="Active_Edit" value="1" checked></td>
+		<td style="text-align: left;">Yes</td>
+		<td style="text-align: right;"><input type="radio" name="Active_Edit" value="0"></td>
+		<td style="text-align: left;">No</td>
 ENDHTML
 }
 else {
 print <<ENDHTML;
-		<td style="text-align: right;"><input type="radio" name="Active_Edit" value="1"> Yes</td>
-		<td style="text-align: right;"><input type="radio" name="Active_Edit" value="0" checked> No</td>
+		<td style="text-align: right;"><input type="radio" name="Active_Edit" value="1"></td>
+		<td style="text-align: left;">Yes</td>
+		<td style="text-align: right;"><input type="radio" name="Active_Edit" value="0" checked></td>
+		<td style="text-align: left;">No</td>
 ENDHTML
 }
 

@@ -70,23 +70,27 @@ HOST: while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
 		else {
 
 			if ($Error =~ /Connection to remote server stalled/) {$Error = $Error . " 
-	Hints: 
-    1) Check that the key fingerprint is stored in known_hosts
+    Hints: 
+    1) Check that the remote host's key fingerprint is stored in known_hosts
     2) Check for a route to the remote host
-    3) Check that your $Timeout second Timeout value is high enough"}
+    3) Check that your $Timeout second Timeout value is high enough"
+			}
 
 			elsif ($Error =~ /Connection to remote server is broken/) {$Error = $Error ." 
     Hints: 
-    1) Incorrect user name
-    2) Incorrect IP address or port
-    3) Key identity file not found
-    4) Insufficient permissions to read key identity file"}
+    1) Check that the remote host's key fingerprint is stored in known_hosts
+    2) Check that the user name is correct
+    3) Check that the IP address or port are correct
+    4) Check that the key identity file exists
+    5) Check that there are sufficient permissions to read the key identity file"
+			}
 
 			print "$Error\n\n";
 			$Update_Status->execute($Error, $DBID);
 			next HOST;
 			undef $SFTP;
 		}
+
 		### / Connection
 
 		### Sudoers Push
@@ -107,12 +111,14 @@ HOST: while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
 
 			if ($Error =~ /Permission\sdenied/) {$Error = $Error . " 
     Hints: 
-    1) Check that $User can write to $Remote_Sudoers"}
+    1) Check that $User can write to $Remote_Sudoers"
+			}
 
 			elsif ($Error =~ /Couldn't open remote file/) {$Error = $Error . " 
-	Hints: 
+    Hints: 
     1) Check that the remote path is correct
-    2) If the Remote Server uses chroot, try making the path relative (i.e. path/sudoers instead of /path/sudoers)"}
+    2) If the Remote Server uses chroot, try making the path relative (i.e. path/sudoers instead of /path/sudoers)"
+			}
 
 			print "$Error\n\n";
 			$Update_Status->execute($Error, $DBID);

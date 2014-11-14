@@ -165,6 +165,11 @@ foreach my $User (@Users) {
 	while ( (my $User_Name, my $Expires, my $Active) = my @User_Query = $User_Query->fetchrow_array() )
 	{
 
+		my $User_Name_Character_Limited = substr( $User_Name, 0, 40 );
+			if ($User_Name_Character_Limited ne $User_Name) {
+				$User_Name_Character_Limited = $User_Name_Character_Limited . '...';
+			}
+
 		my $Expires_Epoch;
 		my $Today_Epoch = time;
 		if ($Expires =~ /^0000-00-00$/) {
@@ -175,13 +180,13 @@ foreach my $User (@Users) {
 		}
 
 		if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
-			$Users = $Users . "<tr><td align='left' style='color: #B1B1B1'>$User_Name</td></tr>";
+			$Users = $Users . "<tr><td align='left' style='color: #B1B1B1'>$User_Name_Character_Limited</td></tr>";
 		}
 		elsif ($Active) {
-			$Users = $Users . "<tr><td align='left' style='color: #00FF00'>$User_Name</td></tr>";
+			$Users = $Users . "<tr><td align='left' style='color: #00FF00'>$User_Name_Character_Limited</td></tr>";
 		}
 		else {
-			$Users = $Users . "<tr><td align='left' style='color: #FF0000'>$User_Name</td></tr>";
+			$Users = $Users . "<tr><td align='left' style='color: #FF0000'>$User_Name_Character_Limited</td></tr>";
 		}
 		
 	}
@@ -228,16 +233,18 @@ function System_Group_Toggle() {
 <table align = "center">
 	<tr>
 		<td style="text-align: right;">Group Name:</td>
-		<td colspan="2"><input type='text' name='Group_Name_Add' style="width: 300px" maxlength='128' value="$Group_Name_Add" placeholder="Group Name" required autofocus></td>
+		<td></td>
+		<td colspan='3'><input type='text' name='Group_Name_Add' style="width: 300px" maxlength='128' value="$Group_Name_Add" placeholder="Group Name" required autofocus></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">System Group:</td>
 		<td><input type="checkbox" onclick="System_Group_Toggle()" name="System_Group_Toggle_Add"></td>
-		<td align="left">(See the specific definition below)</td>
+		<td colspan='3' align="left">(See the specific definition below)</td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Add User:</td>
-		<td colspan="2">
+		<td></td>
+		<td colspan='3'>
 			<select name='Add_User_Temp_New' onchange='this.form.submit()' style="width: 300px">
 ENDHTML
 
@@ -250,6 +257,12 @@ ENDHTML
 				
 				while ( (my $ID, my $User_Name, my $Expires, my $Active) = my @User_List_Query = $User_List_Query->fetchrow_array() )
 				{
+
+					my $User_Name_Character_Limited = substr( $User_Name, 0, 40 );
+						if ($User_Name_Character_Limited ne $User_Name) {
+							$User_Name_Character_Limited = $User_Name_Character_Limited . '...';
+						}
+
 					my $Expires_Epoch;
 					my $Today_Epoch = time;
 					if ($Expires =~ /^0000-00-00$/) {
@@ -260,13 +273,13 @@ ENDHTML
 					}
 
 					if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
-						print "<option style='color: #B1B1B1;' value='$ID'>$User_Name [Expired]</option>";
+						print "<option style='color: #B1B1B1;' value='$ID'>$User_Name_Character_Limited [Expired]</option>";
 					}
 					elsif ($Active) {
-						print "<option value='$ID'>$User_Name</option>";
+						print "<option value='$ID'>$User_Name_Character_Limited</option>";
 					}
 					else {
-						print "<option style='color: #FF0000;' value='$ID'>$User_Name [Inactive]</option>";
+						print "<option style='color: #FF0000;' value='$ID'>$User_Name_Character_Limited [Inactive]</option>";
 					}
 					
 				}
@@ -277,7 +290,8 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">Attached Users:</td>
-		<td colspan="2" style="text-align: left;">
+		<td></td>
+		<td colspan='3' style="text-align: left;">
 ENDHTML
 
 if ($Users) {
@@ -301,12 +315,14 @@ print <<ENDHTML;
 	<tr>
 		<td style="text-align: right;">Expires:</td>
 		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Add"></td>
-		<td><input type="text" style="width: 100%" name="Expires_Date_Add" value="$Date" placeholder="YYYY-MM-DD" disabled></td>
+		<td colspan='3'><input type="text" style="width: 300px" name="Expires_Date_Add" value="$Date" placeholder="YYYY-MM-DD" disabled></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Active:</td>
-		<td style="text-align: right;"><input type="radio" name="Active_Add" value="1" checked> Yes</td>
-		<td style="text-align: right;"><input type="radio" name="Active_Add" value="0"> No</td>
+		<td style="text-align: right;"><input type="radio" name="Active_Add" value="1" checked></td>
+		<td style="text-align: left;">Yes</td>
+		<td style="text-align: right;"><input type="radio" name="Active_Add" value="0"></td>
+		<td style="text-align: left;">No</td>
 	</tr>
 </table>
 
@@ -485,6 +501,11 @@ while ( my @Select_Links = $Select_Links->fetchrow_array() )
 	while ( (my $User_Name, my $Expires, my $Active) = my @User_Query = $User_Query->fetchrow_array() )
 	{
 
+		my $User_Name_Character_Limited = substr( $User_Name, 0, 40 );
+			if ($User_Name_Character_Limited ne $User_Name) {
+				$User_Name_Character_Limited = $User_Name_Character_Limited . '...';
+			}
+
 		my $Expires_Epoch;
 		my $Today_Epoch = time;
 		if ($Expires =~ /^0000-00-00$/) {
@@ -495,13 +516,13 @@ while ( my @Select_Links = $Select_Links->fetchrow_array() )
 		}
 
 		if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
-			$Users = $Users . "<tr><td align='left' style='color: #B1B1B1'>$User_Name</td></tr>";
+			$Users = $Users . "<tr><td align='left' style='color: #B1B1B1'>$User_Name_Character_Limited</td></tr>";
 		}
 		elsif ($Active) {
-			$Users = $Users . "<tr><td align='left' style='color: #00FF00'>$User_Name</td></tr>";
+			$Users = $Users . "<tr><td align='left' style='color: #00FF00'>$User_Name_Character_Limited</td></tr>";
 		}
 		else {
-			$Users = $Users . "<tr><td align='left' style='color: #FF0000'>$User_Name</td></tr>";
+			$Users = $Users . "<tr><td align='left' style='color: #FF0000'>$User_Name_Character_Limited</td></tr>";
 		}
 	}
 }
@@ -545,6 +566,11 @@ foreach my $User (@Users) {
 	while ( (my $User_Name, my $Expires, my $Active) = my @User_Query = $User_Query->fetchrow_array() )
 	{
 
+		my $User_Name_Character_Limited = substr( $User_Name, 0, 40 );
+			if ($User_Name_Character_Limited ne $User_Name) {
+				$User_Name_Character_Limited = $User_Name_Character_Limited . '...';
+			}
+
 		my $Expires_Epoch;
 		my $Today_Epoch = time;
 		if ($Expires =~ /^0000-00-00$/) {
@@ -555,13 +581,13 @@ foreach my $User (@Users) {
 		}
 
 		if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
-			$Users_New = $Users_New . "<tr><td align='left' style='color: #B1B1B1'>$User_Name</td></tr>";
+			$Users_New = $Users_New . "<tr><td align='left' style='color: #B1B1B1'>$User_Name_Character_Limited</td></tr>";
 		}
 		elsif ($Active) {
-			$Users_New = $Users_New . "<tr><td align='left' style='color: #00FF00'>$User_Name</td></tr>";
+			$Users_New = $Users_New . "<tr><td align='left' style='color: #00FF00'>$User_Name_Character_Limited</td></tr>";
 		}
 		else {
-			$Users_New = $Users_New . "<tr><td align='left' style='color: #FF0000'>$User_Name</td></tr>";
+			$Users_New = $Users_New . "<tr><td align='left' style='color: #FF0000'>$User_Name_Character_Limited</td></tr>";
 		}
 	}
 }
@@ -649,16 +675,18 @@ function System_Group_Toggle() {
 <table align = "center">
 	<tr>
 		<td style="text-align: right;">Group Name:</td>
-		<td colspan="2"><input type='text' name='Group_Name_Edit' style="width: 300px" maxlength='128' value="$Group_Name_Edit" placeholder="Group Name" required autofocus></td>
+		<td></td>
+		<td colspan='3'><input type='text' name='Group_Name_Edit' style="width: 300px" maxlength='128' value="$Group_Name_Edit" placeholder="Group Name" required autofocus></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">System Group:</td>
 		<td><input type="checkbox" onclick="System_Group_Toggle()" name="System_Group_Toggle_Edit" $System_Group_Checked></td>
-		<td align="left">(See the specific definition below)</td>
+		<td colspan='3' align="left">(See the specific definition below)</td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Add User:</td>
-		<td colspan="2">
+		<td></td>
+		<td colspan='3'>
 			<select name='Edit_User_Temp_New' onchange='this.form.submit()' style="width: 300px" $System_Group_Disabled>
 ENDHTML
 
@@ -671,6 +699,12 @@ ENDHTML
 				
 				while ( (my $ID, my $User_Name, my $Expires, my $Active) = my @User_List_Query = $User_List_Query->fetchrow_array() )
 				{
+
+					my $User_Name_Character_Limited = substr( $User_Name, 0, 40 );
+						if ($User_Name_Character_Limited ne $User_Name) {
+							$User_Name_Character_Limited = $User_Name_Character_Limited . '...';
+						}
+
 					my $Expires_Epoch;
 					my $Today_Epoch = time;
 					if ($Expires =~ /^0000-00-00$/) {
@@ -681,13 +715,13 @@ ENDHTML
 					}
 			
 					if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {
-						print "<option style='color: #B1B1B1;' value='$ID'>$User_Name [Expired]</option>";
+						print "<option style='color: #B1B1B1;' value='$ID'>$User_Name_Character_Limited [Expired]</option>";
 					}
 					elsif ($Active) {
-						print "<option value='$ID'>$User_Name</option>";
+						print "<option value='$ID'>$User_Name_Character_Limited</option>";
 					}
 					else {
-						print "<option style='color: #FF0000;' value='$ID'>$User_Name [Inactive]</option>";
+						print "<option style='color: #FF0000;' value='$ID'>$User_Name_Character_Limited [Inactive]</option>";
 					}
 					
 				}
@@ -698,7 +732,8 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">Existing Users:</td>
-		<td colspan="2" style="text-align: left;">
+		<td></td>
+		<td colspan='3' style="text-align: left;">
 ENDHTML
 
 if ($Users) {
@@ -721,7 +756,8 @@ print <<ENDHTML;
 	</tr>
 	<tr>
 		<td style="text-align: right;">New Users:</td>
-		<td colspan="2" style="text-align: left;">
+		<td></td>
+		<td colspan='3' style="text-align: left;">
 ENDHTML
 
 if ($Users_New) {
@@ -745,7 +781,7 @@ print <<ENDHTML;
 	<tr>
 		<td style="text-align: right;">Expires:</td>
 		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Edit" $Expires_Checked></td>
-		<td><input type="text" style="width: 100%" name="Expires_Date_Edit" value="$Expires_Date_Edit" placeholder="$Expires_Date_Edit" $Expires_Disabled></td>
+		<td colspan='3'><input type="text" style="width: 300px" name="Expires_Date_Edit" value="$Expires_Date_Edit" placeholder="$Expires_Date_Edit" $Expires_Disabled></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Active:</td>
@@ -753,14 +789,18 @@ ENDHTML
 
 if ($Active_Edit == 1) {
 print <<ENDHTML;
-		<td style="text-align: right;"><input type="radio" name="Active_Edit" value="1" checked> Yes</td>
-		<td style="text-align: right;"><input type="radio" name="Active_Edit" value="0"> No</td>
+		<td style="text-align: right;"><input type="radio" name="Active_Edit" value="1" checked></td>
+		<td style="text-align: left;">Yes</td>
+		<td style="text-align: right;"><input type="radio" name="Active_Edit" value="0"></td>
+		<td style="text-align: left;">No</td>
 ENDHTML
 }
 else {
 print <<ENDHTML;
-		<td style="text-align: right;"><input type="radio" name="Active_Edit" value="1"> Yes</td>
-		<td style="text-align: right;"><input type="radio" name="Active_Edit" value="0" checked> No</td>
+		<td style="text-align: right;"><input type="radio" name="Active_Edit" value="1"></td>
+		<td style="text-align: left;">Yes</td>
+		<td style="text-align: right;"><input type="radio" name="Active_Edit" value="0" checked></td>
+		<td style="text-align: left;">No</td>
 ENDHTML
 }
 
