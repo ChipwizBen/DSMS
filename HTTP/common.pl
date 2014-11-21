@@ -119,6 +119,60 @@ sub Distribution_Defaults {
 
 } # sub Distribution_Defaults
 
+sub Password_Complexity_Check {
+
+	# You can set minimum requirements for password complexity here and control whether password complexity is enforced.
+
+	my $Enforce_Complexity_Requirements = 'Yes'; # Set to yes to enforce complexity requirements, or no to turn complexity requirements off
+	my $Minimum_Length = 8; # Minimuim password length
+	my $Minimum_Upper_Case_Characters = 2; # Minimum upper case characters required (can be 0)
+	my $Minimum_Lower_Case_Characters = 2; # Minimum lower case characters required (can be 0)
+	my $Minimum_Digits = 2; # Minimum digits required (can be 0)
+	my $Minimum_Special_Characters = 2; # Minimum special characters (can be 0)
+	my $Special_Characters = '!@#$%^&*()[]{}-_+=/\,.<> '; # Define special characters (you can define a single quote as a special character, but escape it with \')
+
+	# Do not edit beyond here
+
+	if ($Enforce_Complexity_Requirements !~ /Yes/i) {
+		return 0;
+	}
+	
+	my $Password = $_[0];
+
+	my $Length = length($Password);
+	if ($Length < $Minimum_Length) {
+		return 1;
+	}
+
+	my $Upper_Case_Count = 0;
+	my $Lower_Case_Count = 0;
+	my $Digit_Count = 0;
+	my $Special_Count = 0;
+	my @Password = split('',$Password);
+	
+	my @Required_Special_Characters = split('',$Special_Characters);
+	
+	foreach my $Password_Character (@Password) {
+		if ($Password_Character =~ /[A-Z]/) {$Upper_Case_Count++;}
+		elsif ($Password_Character =~ /[a-z]/) {$Lower_Case_Count++;}
+		elsif ($Password_Character =~ /[0-9]/) {$Digit_Count++;}
+		else {
+			foreach my $Special_Character (@Required_Special_Characters)
+			{
+				if ($Password_Character =~ /\Q$Special_Character/) {$Special_Count++;}
+			}
+		}
+	}
+
+	if ($Upper_Case_Count < $Minimum_Upper_Case_Characters) {return 2;}
+	if ($Lower_Case_Count < $Minimum_Lower_Case_Characters) {return 3;}
+	if ($Digit_Count < $Minimum_Digits) {return 4;}
+	if ($Special_Count < $Minimum_Special_Characters) {return 5;}
+	
+	return 0;
+
+} # Password_Complexity_Check
+
 sub CGI {
 
 	# This contains the CGI Session parameters. The session files are stored in the specified $Session_Directory. The $Session_Expiry is the time that clients must be inactive before they are logged off automatically.  It's unwise to change either of these values whilst the system is in use. Doing so could cause user sessions to expire prematurely and any changes they were working on will probably be lost. 

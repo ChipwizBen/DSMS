@@ -29,13 +29,52 @@ require "footer.cgi";
 
 sub change_password {
 
+	### Password Complexity Check ###
+	my $Complexity_Check = Password_Complexity_Check($New_Password);
+	if ($Complexity_Check == 1) {
+		my $Message_Red="Password does not meet minimum length requirements. 
+		Password requirements are show on the <a href='system-status.cgi'>System Status</a> page.";
+		$Session->param('Message_Red', $Message_Red);
+		print "Location: password-change.cgi\n\n";
+		exit(0);
+	}
+	elsif ($Complexity_Check == 2) {
+		my $Message_Red="Password does not meet the minimum upper case character requirements. 
+		Password requirements are show on the <a href='system-status.cgi'>System Status</a> page.";
+		$Session->param('Message_Red', $Message_Red);
+		print "Location: password-change.cgi\n\n";
+		exit(0);
+	}
+	elsif ($Complexity_Check == 3) {
+		my $Message_Red="Password does not meet the minimum lower case character requirements. 
+		Password requirements are show on the <a href='system-status.cgi'>System Status</a> page.";
+		$Session->param('Message_Red', $Message_Red);
+		print "Location: password-change.cgi\n\n";
+		exit(0);
+	}
+	elsif ($Complexity_Check == 4) {
+		my $Message_Red="Password does not meet minimum digit requirements. 
+		Password requirements are show on the <a href='system-status.cgi'>System Status</a> page.";
+		$Session->param('Message_Red', $Message_Red);
+		print "Location: password-change.cgi\n\n";
+		exit(0);
+	}
+	elsif ($Complexity_Check == 5) {
+		my $Message_Red="Password does not meet minimum special character requirements. 
+		Password requirements are show on the <a href='system-status.cgi'>System Status</a> page.";
+		$Session->param('Message_Red', $Message_Red);
+		print "Location: password-change.cgi\n\n";
+		exit(0);
+	}
+	### / Password Complexity Check ###
+
 	my $Select_User_Name = $DB_Management->prepare("SELECT `id`, `username`, `password`, `salt`, `email`
 	FROM `credentials`
 	WHERE `username` = ?
 	");
 	$Select_User_Name->execute($User_Name);
 
-	while ( (my $ID, my $User_Name, my $Password, my $Old_Salt, my $Email) = $Select_User_Name->fetchrow_array( ) )
+	while ( my ($ID, $User_Name, $Password, $Old_Salt, $Email) = $Select_User_Name->fetchrow_array( ) )
 	{
 
 		my $New_Salt = Salt(64);

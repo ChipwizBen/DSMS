@@ -30,6 +30,35 @@ sub unlock_check {
 		exit(0);
 	}
 
+	### Password Complexity Check ###
+	my $Complexity_Check = Password_Complexity_Check($Password);
+	if ($Complexity_Check == 1) {
+		$Login_Message="Password does not meet minimum length requirements.";
+		&html_output;
+		exit(0);
+	}
+	elsif ($Complexity_Check == 2) {
+		$Login_Message="Password does not meet the minimum upper case character requirements.";
+		&html_output;
+		exit(0);
+	}
+	elsif ($Complexity_Check == 3) {
+		$Login_Message="Password does not meet the minimum lower case character requirements.";
+		&html_output;
+		exit(0);
+	}
+	elsif ($Complexity_Check == 4) {
+		$Login_Message="Password does not meet minimum digit requirements.";
+		&html_output;
+		exit(0);
+	}
+	elsif ($Complexity_Check == 5) {
+		$Login_Message="Password does not meet minimum special character requirements.";
+		&html_output;
+		exit(0);
+	}
+	### / Password Complexity Check ###
+
 	my $Salt = Salt(64);
 	my $Password = $Password . $Salt;
 		$Password = sha512_hex($Password);

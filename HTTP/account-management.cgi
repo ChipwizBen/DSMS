@@ -170,6 +170,9 @@ print <<ENDHTML;
 
 <ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
 	<li>User Names and email addresses must be unique.</li>
+	<li>View the minimum password requirements for this system on the <a href="system-status.cgi">System Status</a> 
+		page.
+	</li>
 	<li>
 		<i>Administrator Privileges</i> allow a user to modify users and permissions, including their own, and view 
 		the <b><a href='access-log.cgi'>Access Log</a></b>. Read-only Administrators can view Administrative 
@@ -243,11 +246,50 @@ sub add_user {
 			$Existing_User = @Select_User_Names[1];
 		}
 		my $Message_Red="User Email $Email_Add already exists as ID $Existing_ID, User Name: $Existing_User";
-		$Session->param('Message_Red', $Message_Red); #Posting Message_Red session var
+		$Session->param('Message_Red', $Message_Red);
 		print "Location: account-management.cgi\n\n";
 		exit(0);
 	}
 	### / Existing Email Check ###
+
+	### Password Complexity Check ###
+	my $Complexity_Check = Password_Complexity_Check($Password_Add);
+	if ($Complexity_Check == 1) {
+		my $Message_Red="Password does not meet minimum length requirements. 
+		Password requirements are show on the <a href='system-status.cgi'>System Status</a> page.";
+		$Session->param('Message_Red', $Message_Red);
+		print "Location: account-management.cgi\n\n";
+		exit(0);
+	}
+	elsif ($Complexity_Check == 2) {
+		my $Message_Red="Password does not meet the minimum upper case character requirements. 
+		Password requirements are show on the <a href='system-status.cgi'>System Status</a> page.";
+		$Session->param('Message_Red', $Message_Red);
+		print "Location: account-management.cgi\n\n";
+		exit(0);
+	}
+	elsif ($Complexity_Check == 3) {
+		my $Message_Red="Password does not meet the minimum lower case character requirements. 
+		Password requirements are show on the <a href='system-status.cgi'>System Status</a> page.";
+		$Session->param('Message_Red', $Message_Red);
+		print "Location: account-management.cgi\n\n";
+		exit(0);
+	}
+	elsif ($Complexity_Check == 4) {
+		my $Message_Red="Password does not meet minimum digit requirements. 
+		Password requirements are show on the <a href='system-status.cgi'>System Status</a> page.";
+		$Session->param('Message_Red', $Message_Red);
+		print "Location: account-management.cgi\n\n";
+		exit(0);
+	}
+	elsif ($Complexity_Check == 5) {
+		my $Message_Red="Password does not meet minimum special character requirements. 
+		Password requirements are show on the <a href='system-status.cgi'>System Status</a> page.";
+		$Session->param('Message_Red', $Message_Red);
+		print "Location: account-management.cgi\n\n";
+		exit(0);
+	}
+	### / Password Complexity Check ###
 
 	my $Salt = Salt(64);
 	$Password_Add = $Password_Add . $Salt;
@@ -271,22 +313,18 @@ sub add_user {
 	)
 	VALUES (
 		NULL,
-		?,
-		?,
-		?,
-		?,
-		?,
-		?,
-		?,
-		?,
+		?, ?, ?, ?,
+		?, ?, ?, ?,
 		'0000-00-00 00:00:00',
 		'0000-00-00 00:00:00',
-		0,
-		0,
+		0, 0,
 		?
 	)");
 
-	$User_Insert->execute($User_Name_Add, $Password_Add, $Salt, $Email_Add, $Admin_Add, $Approver_Add, $Requires_Approval_Add, $Lockout_Add, $User_Name);
+	$User_Insert->execute(
+	$User_Name_Add, $Password_Add, $Salt, $Email_Add, 
+	$Admin_Add, $Approver_Add, $Requires_Approval_Add, 
+	$Lockout_Add, $User_Name);
 
 	# Audit Log
 	if ($Admin_Add == 1) {
@@ -487,6 +525,9 @@ print <<ENDHTML;
 
 <ul style='text-align: left; display: inline-block; padding-left: 40px; padding-right: 40px;'>
 	<li>User Names and email addresses must be unique.</li>
+	<li>View the minimum password requirements for this system on the <a href="system-status.cgi">System Status</a> 
+		page.
+	</li>
 	<li>
 		<i>Administrator Privileges</i> allow a user to modify users and permissions, including their own, and view 
 		the <b><a href='access-log.cgi'>Access Log</a></b>. Read-only Administrators can view Administrative 
@@ -570,6 +611,45 @@ sub edit_user {
 		exit(0);
 	}
 	### / Existing Email Check ###
+
+	### Password Complexity Check ###
+	my $Complexity_Check = Password_Complexity_Check($Password_Edit);
+	if ($Complexity_Check == 1) {
+		my $Message_Red="Password does not meet minimum length requirements. 
+		Password requirements are show on the <a href='system-status.cgi'>System Status</a> page.";
+		$Session->param('Message_Red', $Message_Red);
+		print "Location: account-management.cgi\n\n";
+		exit(0);
+	}
+	elsif ($Complexity_Check == 2) {
+		my $Message_Red="Password does not meet the minimum upper case character requirements. 
+		Password requirements are show on the <a href='system-status.cgi'>System Status</a> page.";
+		$Session->param('Message_Red', $Message_Red);
+		print "Location: account-management.cgi\n\n";
+		exit(0);
+	}
+	elsif ($Complexity_Check == 3) {
+		my $Message_Red="Password does not meet the minimum lower case character requirements. 
+		Password requirements are show on the <a href='system-status.cgi'>System Status</a> page.";
+		$Session->param('Message_Red', $Message_Red);
+		print "Location: account-management.cgi\n\n";
+		exit(0);
+	}
+	elsif ($Complexity_Check == 4) {
+		my $Message_Red="Password does not meet minimum digit requirements. 
+		Password requirements are show on the <a href='system-status.cgi'>System Status</a> page.";
+		$Session->param('Message_Red', $Message_Red);
+		print "Location: account-management.cgi\n\n";
+		exit(0);
+	}
+	elsif ($Complexity_Check == 5) {
+		my $Message_Red="Password does not meet minimum special character requirements. 
+		Password requirements are show on the <a href='system-status.cgi'>System Status</a> page.";
+		$Session->param('Message_Red', $Message_Red);
+		print "Location: account-management.cgi\n\n";
+		exit(0);
+	}
+	### / Password Complexity Check ###
 
 	if ($User_Name_Edit eq $User_Name) {
 		$Session->param('User_Admin', $Admin_Edit);
