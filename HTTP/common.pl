@@ -121,17 +121,17 @@ sub Distribution_Defaults {
 
 sub Password_Complexity_Check {
 
-	# You can set minimum requirements for password complexity here and control whether password complexity is enforced.
+	# Here you can set minimum requirements for password complexity and control whether password complexity is enforced. Take particular care with the special character section if you choose to define a single quote (‘) as a special character as this may prematurely close the value definition. To define a single quote, you must use the character escape, backslash (\), which should result in the single quote special character definition like this (\’), less the brackets. The space character is pre-defined by default at the end of the string and does not need escaping.
 
-	my $Enforce_Complexity_Requirements = 'Yes'; # Set to yes to enforce complexity requirements, or no to turn complexity requirements off
+	my $Enforce_Complexity_Requirements = 'Yes'; # Set to Yes to enforce complexity requirements, or No to turn complexity requirements off for passwords
 	my $Minimum_Length = 8; # Minimuim password length
 	my $Minimum_Upper_Case_Characters = 2; # Minimum upper case characters required (can be 0)
 	my $Minimum_Lower_Case_Characters = 2; # Minimum lower case characters required (can be 0)
 	my $Minimum_Digits = 2; # Minimum digits required (can be 0)
 	my $Minimum_Special_Characters = 2; # Minimum special characters (can be 0)
-	my $Special_Characters = '!@#$%^&*()[]{}-_+=/\,.<> '; # Define special characters (you can define a single quote as a special character, but escape it with \')
+	my $Special_Characters = '!@#$%^&*()[]{}-_+=/\,.<>" '; # Define special characters (you can define a single quote as a special character, but escape it with \')
 
-	# Do not edit beyond here
+	# Do not edit Password_Complexity_Check beyond here
 
 	if ($Enforce_Complexity_Requirements !~ /Yes/i) {
 		return 0;

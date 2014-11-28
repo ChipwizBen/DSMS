@@ -1,4 +1,4 @@
--- MySQL dump 10.13  Distrib 5.5.38, for debian-linux-gnu (x86_64)
+-- MySQL dump 10.13  Distrib 5.5.40, for debian-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: Sudoers
 -- ------------------------------------------------------
@@ -596,7 +596,7 @@ CREATE TABLE `credentials` (
 
 LOCK TABLES `credentials` WRITE;
 /*!40000 ALTER TABLE `credentials` DISABLE KEYS */;
-INSERT INTO `credentials` VALUES (1,'admin','6a3f8b7f7685efe62ae6491d9d616fc6a0eb930a2d571cce840f28232e32ab4959371e6d1517318f1e9fb9bdae61b1b21342aa703c34248e436b8dd937e90626','Q920DIo}QtlxC37DsIZG46SY+l-Dz6d<Bp-Af;pttf!#0MqlOTsa:s<has1xwz/','devnull@','2014-10-31 13:52:58','2014-10-31 13:53:17',1,0,1,0,0,'0','2014-10-31 00:53:17','admin');
+INSERT INTO `credentials` VALUES (1,'admin','b1738a3a00638c541d615fca37a1d99117e617cf6604401843b2123dca0b4b8bfe063afe8a10da31377736df1bb117dd5d86be511ab461355c56f56ca463a60e','<MQ4_0Y+ed!0V}jHBe6hzW>94/k}5W-A<40)gL3u@R8v>MVxTws3D:}V85W!a^;w','devnull@','2014-10-24 22:15:42','2014-10-24 22:15:54',1,0,1,0,0,'0','2014-11-28 04:11:55','Ben Schofield');
 /*!40000 ALTER TABLE `credentials` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -641,7 +641,12 @@ DROP TABLE IF EXISTS `lock`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `lock` (
   `sudoers-build` int(1) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`sudoers-build`)
+  `sudoers-distribution` int(1) NOT NULL DEFAULT '0',
+  `last-build-started` datetime NOT NULL,
+  `last-build-finished` datetime NOT NULL,
+  `last-distribution-started` datetime NOT NULL,
+  `last-distribution-finished` datetime NOT NULL,
+  PRIMARY KEY (`sudoers-build`,`sudoers-distribution`,`last-build-started`,`last-build-finished`,`last-distribution-started`,`last-distribution-finished`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -651,7 +656,7 @@ CREATE TABLE `lock` (
 
 LOCK TABLES `lock` WRITE;
 /*!40000 ALTER TABLE `lock` DISABLE KEYS */;
-INSERT INTO `lock` VALUES (0);
+INSERT INTO `lock` VALUES (0,0,'0000-00-00 00:00:00','0000-00-00 00:00:00','0000-00-00 00:00:00','0000-00-00 00:00:00');
 /*!40000 ALTER TABLE `lock` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -664,4 +669,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2014-10-31 15:29:59
+-- Dump completed on 2014-11-28 17:14:37
