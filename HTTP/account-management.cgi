@@ -851,18 +851,21 @@ sub delete_user {
 
 sub html_output {
 
-my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
-	`category`,
-	`method`,
-	`action`,
-	`username`
-)
-VALUES (
-	?, ?, ?, ?
-)");
+	my $Referer = $ENV{HTTP_REFERER};
 
-$Audit_Log_Submission->execute("Account Management", "View", "$User_Name accessed Account Management.", $User_Name);
-
+	if ($Referer !~ /account-management.cgi/) {
+		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+			`category`,
+			`method`,
+			`action`,
+			`username`
+		)
+		VALUES (
+			?, ?, ?, ?
+		)");
+		
+		$Audit_Log_Submission->execute("Account Management", "View", "$User_Name accessed Account Management.", $User_Name);
+	}
 
 my $Table = new HTML::Table(
 	-cols=>12,

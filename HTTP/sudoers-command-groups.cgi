@@ -1317,6 +1317,14 @@ sub html_notes {
 	$Table->setColAlign(3, 'center');
 	$Table->setColAlign(4, 'center');
 
+	if ($Note_Count == 0) {
+		undef $Table;
+		undef $Note_Count;
+	}
+	else {
+		$Note_Count = "$Note_Count existing notes found, latest first."
+	}
+
 print <<ENDHTML;
 <div id="wide-popup-box">
 <a href="sudoers-command-groups.cgi">
@@ -1341,7 +1349,7 @@ print <<ENDHTML;
 <input type='hidden' name='New_Note_ID' value='$View_Notes'>
 </form>
 
-<p>$Note_Count existing notes found, latest first.</p>
+<p>$Note_Count</p>
 
 $Table
 

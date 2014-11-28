@@ -10,11 +10,11 @@ my $DB_Management = DB_Management();
 my ($CGI, $Session, $Cookie) = CGI();
 my $Recovery_Email_Address = Recovery_Email_Address();
 
-my $Referer = $Session->param("Referer"); #Accessing Referer session var
+my $Referer = $Session->param("Referer");
 
 if ( $ENV{HTTP_REFERER} !~ m/.login./ ) {
-$Referer = $ENV{HTTP_REFERER};
-$Session->param('Referer', $Referer); #Posting Referer session var
+	$Referer = $ENV{HTTP_REFERER};
+	$Session->param('Referer', $Referer);
 }
 
 my $User_Name_Form = $CGI->param("Username_Form");

@@ -139,6 +139,7 @@ sub Password_Complexity_Check {
 	
 	my $Password = $_[0];
 
+
 	my $Length = length($Password);
 	if ($Length < $Minimum_Length) {
 		return 1;
@@ -148,6 +149,20 @@ sub Password_Complexity_Check {
 	my $Lower_Case_Count = 0;
 	my $Digit_Count = 0;
 	my $Special_Count = 0;
+
+	if ($Password eq 'Wn&sCvaG%!nvz}pb|#.pNzMe~I76fRx9m;a1|9wPYNQw4$u"w^]YA5WXr2b>bzyZzNKczDt~K5VHuDe~kX5mm=Ke:U5M9#g9PylHiSO$ob2-/Oc;=j#-KHuQj&#5fA,K_k$J\sSZup3<22MpK<>J|Ptp.r"h6') {
+		# This section is to specifically reply to polls for complexity requirement information for system status.
+		my @Password_Requirements = ($Enforce_Complexity_Requirements,
+										$Minimum_Length,
+										$Minimum_Upper_Case_Characters,
+										$Minimum_Lower_Case_Characters,
+										$Minimum_Digits,
+										$Minimum_Special_Characters,
+										$Special_Characters);
+		return @Password_Requirements;
+		exit(0);
+	}
+
 	my @Password = split('',$Password);
 	
 	my @Required_Special_Characters = split('',$Special_Characters);
@@ -307,6 +322,12 @@ sub Owner_ID {
 
 	my $Owner = 'root';
 
+	if ($_[0] eq 'Full') {
+		# To return ownership name for system status.
+		return $Owner;
+		exit(0);
+	}
+
 	my $Owner_ID = getpwnam $Owner;
 	return $Owner_ID;
 
@@ -319,6 +340,12 @@ sub Group_ID {
 	# (like when it runs as httpd), so here you can specify a different group user.
 
 	my $Group = 'apache';
+
+	if ($_[0] eq 'Full') {
+		# To return group ownership name for system status.
+		return $Group;
+		exit(0);
+	}
 
 	my $Group_ID = getpwnam $Group;
 	return $Group_ID;
@@ -333,7 +360,7 @@ sub Version {
 
 	# This is where the DSMS System discovers its version number, which assists with both manual and automated Upgrading, among other things. You should not modify this value.
 
-	my $Version = '1.7.1';
+	my $Version = '1.8.0';
 	return $Version;
 
 } # sub Version

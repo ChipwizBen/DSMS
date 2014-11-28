@@ -42,17 +42,21 @@ require "footer.cgi";
 
 sub html_output {
 
-	my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
-		`category`,
-		`method`,
-		`action`,
-		`username`
-	)
-	VALUES (
-		?, ?, ?, ?
-	)");
+	my $Referer = $ENV{HTTP_REFERER};
 
-	$Audit_Log_Submission->execute("Audit Log", "View", "$User_Name accessed the Audit Log.", $User_Name);
+	if ($Referer !~ /audit-log.cgi/) {
+		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+			`category`,
+			`method`,
+			`action`,
+			`username`
+		)
+		VALUES (
+			?, ?, ?, ?
+		)");
+	
+		$Audit_Log_Submission->execute("Audit Log", "View", "$User_Name accessed the Audit Log.", $User_Name);
+	}
 
 	my $Table = new HTML::Table(
 		-cols=>6,

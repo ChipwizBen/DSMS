@@ -34,6 +34,18 @@ sub html_output {
 	$Table->addRow( "Version", "Change" );
 	$Table->setRowClass (1, 'tbrow1');
 
+	## Version 1.8.0
+	$Table->addRow('1.8.0', 'Better error handling for failed SFTP connections.');
+	$Table->addRow('', 'Formatting fixes for Groups and Rules.');
+	$Table->addRow('', 'Command Alias accepted characters are now clearly defined in line with Hosts and Users.');
+	$Table->addRow('', 'Password complexity requirements are now configurable in common.pl.');
+	$Table->addRow('', 'System Status page implemented, which gives an overview of system settings and processes in 
+          progress.');
+	$Table->addRow('', 'New distribution locking mechanism prevents two distribution processes running at the same time. 
+          Distribution lock is in addition to the existing build process lock.');
+	$Table->addRow('', 'Items without notes now do not show an empty note table.');
+	$Table->addRow('<hr />', '');
+
 	## Version 1.7.0
 	$Table->addRow('1.7.0', 'Added Automated DSMS System deployment process.');
 	$Table->addRow('', 'Added the ability to allow some users read-only administrative rights.');

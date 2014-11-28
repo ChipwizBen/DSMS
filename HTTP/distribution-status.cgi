@@ -33,8 +33,8 @@ my $Edit_Host_Parameters_Post = $CGI->param("Edit_Host_Parameters_Post");
 	my $Host_Name_Edit = $CGI->param("Host_Name_Edit");
 	my $IP_Edit = $CGI->param("IP_Edit");
 
-my $User_Name = $Session->param("User_Name"); #Accessing User_Name session var
-my $User_Admin = $Session->param("User_Admin"); #Accessing User_Admin session var
+my $User_Name = $Session->param("User_Name");
+my $User_Admin = $Session->param("User_Admin");
 
 if (!$User_Name) {
 	print "Location: logout.cgi\n\n";
@@ -239,18 +239,21 @@ sub edit_host_parameters {
 
 sub html_output {
 
-	my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
-		`category`,
-		`method`,
-		`action`,
-		`username`
-	)
-	VALUES (
-		?, ?, ?, ?
-	)");
+	my $Referer = $ENV{HTTP_REFERER};
 
-	$Audit_Log_Submission->execute("Access Log", "View", "$User_Name accessed Distribution Status.", $User_Name);
-
+	if ($Referer !~ /distribution-status.cgi/) {
+		my $Audit_Log_Submission = $DB_Management->prepare("INSERT INTO `audit_log` (
+			`category`,
+			`method`,
+			`action`,
+			`username`
+		)
+		VALUES (
+			?, ?, ?, ?
+		)");
+	
+		$Audit_Log_Submission->execute("Distribution", "View", "$User_Name accessed Distribution Status.", $User_Name);
+	}
 
 	my $Table = new HTML::Table(
 		-cols=>13,

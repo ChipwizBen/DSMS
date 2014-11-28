@@ -16,6 +16,23 @@ my $Cut = cut();
 my $Sudoers_Location = Sudoers_Location();
 	my $MD5_Checksum = `$MD5Sum $Sudoers_Location | $Cut -d ' ' -f 1`;
 
+# Safety check for other running distribution processes
+
+	my $Select_Locks = $DB_Management->prepare("SELECT `sudoers-build`, `sudoers-distribution` FROM `lock`");
+	$Select_Locks->execute();
+
+	my ($Sudoers_Build_Lock, $Sudoers_Distribution_Lock) = $Select_Locks->fetchrow_array();
+
+		if ($Sudoers_Build_Lock == 1 || $Sudoers_Distribution_Lock == 1) {
+			print "Another build or distribution process is running. Exiting...\n";
+			exit(1);
+		}
+		else {
+			$DB_Management->do("UPDATE `lock` SET
+				`sudoers-distribution` = '1',
+				`last-distribution-started` = NOW()");
+		}
+
 my $Select_Hosts = $DB_Sudoers->prepare("SELECT `id`, `hostname`, `ip`
 	FROM `hosts`
 	ORDER BY `hostname` ASC");
@@ -129,5 +146,9 @@ HOST: while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
 
 	}
 }
+
+$DB_Management->do("UPDATE `lock` SET 
+		`sudoers-distribution` = '0',
+		`last-distribution-finished` = NOW()");
 
 1;
