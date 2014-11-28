@@ -137,7 +137,7 @@ function generate_sql_schema
 	# Create DB Structures - if specified (Run) or Hidden Default (X)
 	if [[ $ANS = [RrXx] ]]
 	then
-		cd ${MDIR}/sudoers/Configs/SQL/
+		cd ${MDIR}/Configs/SQL/
 		mysql -u root -p${NEWPASS} < Full_Schema.sql 2>&1 > /tmp/output_sql_${PID}.log
 		export ERRCNT=`grep -i error /tmp/output_sql_${PID}.log |wc -l`
 		if (( $ERRCNT > 0 ))
@@ -159,7 +159,7 @@ function generate_sql_schema
 	fi
 	if [[ $ANS2 = [RrXx] ]]
 	then	
-		cd ${MDIR}/sudoers/Configs/SQL/
+		cd ${MDIR}/Configs/SQL/
 		mysql -u root -p${NEWPASS} < Default_Users.sql 2>&1 > /tmp/output_sql2_${PID}.log
 		echo "output results"
 		cat /tmp/output_sql2_${PID}.log
@@ -440,7 +440,7 @@ function update_apache_files
 		# Check for modifications to environment_variables
 		if [[ -f /var/www/html/HTTP/environmental-variables ]]
 		then
-			diff /var/www/html/HTTP/environmental-variables ${MDIR}/sudoers/HTTP/environmental-variables 2>&1 > /dev/null
+			diff /var/www/html/HTTP/environmental-variables ${MDIR}/HTTP/environmental-variables 2>&1 > /dev/null
 			export DIFFVAL=$?
 			if [[ $DIFFVAL != "0" ]]
 			then
@@ -456,17 +456,17 @@ function update_apache_files
 
 		if [[ $ANS = [Yy] ]]
 		then
-			cp -rp ${MDIR}/sudoers/HTTP /var/www/html
+			cp -rp ${MDIR}/HTTP /var/www/html
 			export RC=$?
 		fi
 	else	
-		mv ${MDIR}/sudoers/HTTP/ /var/www/html
+		mv ${MDIR}/HTTP/ /var/www/html
 		export RC=$?
 	fi
 	if [[ $RC != "0" ]]
 	then
 		# Fail at first hurdle
-		echo "Could not copy ${MDIR}/sudoers/HTTP/ to /var/www/html - stopping."
+		echo "Could not copy ${MDIR}/HTTP/ to /var/www/html - stopping."
 		cleanup_temp_data
 		exit
 	fi
@@ -598,7 +598,7 @@ function rollout_code
 	fi
 
 	# Checksum on files
-	cd ${MDIR}/sudoers
+	cd ${MDIR}
 	md5sum -c checksums 2>&1 > /tmp/checksum_log
 
 	export FAILCNT=`cat /tmp/checksum_log |grep "FAILED$" |wc -l`
