@@ -34,6 +34,10 @@ sub html_output {
 	$Table->addRow( "Version", "Change" );
 	$Table->setRowClass (1, 'tbrow1');
 
+	## Version 1.8.1
+	$Table->addRow('1.8.1', 'Correctly escaped special sudoers characters (:,=) when the sudoers file is built.');
+	$Table->addRow('', 'Prevent escapes being added to commands');
+
 	## Version 1.8.0
 	$Table->addRow('1.8.0', 'Better error handling for failed SFTP connections.');
 	$Table->addRow('', 'Formatting fixes for Groups and Rules.');
@@ -188,7 +192,7 @@ sub html_output {
 	$Table->addRow('<hr />', '');
 
 	## Version 1.0.3
-	$Table->addRow('1.0.3', 'Renamed from  Sudoers Build System to  Sudoers Management System to better describe 
+	$Table->addRow('1.0.3', 'Renamed from Sudoers Build System to Distributed Sudoers Management System to better describe 
 	      the system\'s purpose.');
 	$Table->addRow('', 'Modified \'login.cgi\', \'lockout.cgi\', \'header.cgi\' to pull name from new subroutine in \'common.pl\' 
 	      so the name can be easily edited to fit more easily into different customer environments.');

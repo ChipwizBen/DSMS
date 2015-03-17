@@ -21,7 +21,7 @@ sub System_Name {
 
 	# This is the system's name, used for system identification during login, written to the sudoers file to identify which system owns the sudoers file, is used in password reset emails to identify the source, and other general uses.
 
-	my $System_Name = ' Sudoers Management System';
+	my $System_Name = 'Distributed Sudoers Management System';
 	return $System_Name;
 
 } # sub System_Name
@@ -37,9 +37,9 @@ sub System_Short_Name {
 
 sub Recovery_Email_Address {
 
-	# This is the email address that the DSMS System will appear to send emails from during password recoveries. It may be a legitimate address (such as the system administrator's address) or it could be a blocking address, such as noreply@.
+	# This is the email address that the DSMS System will appear to send emails from during password recoveries. It may be a legitimate address (such as the system administrator's address) or it could be a blocking address, such as noreply@nwk1.com.
 
-	my $Recovery_Email_Address = 'noreply@';
+	my $Recovery_Email_Address = 'noreply@ben@nwk1.com';
 	return $Recovery_Email_Address;
 
 } # sub System_Short_Name

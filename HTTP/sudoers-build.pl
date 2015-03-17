@@ -409,6 +409,10 @@ sub write_commands {
 		print FILE "## $Command_Alias (ID: $DBID), $Expires, last modified $Last_Modified by $Modified_By\n";
 		$Command_Alias = uc($Command_Alias); # Turn to uppercase so that sudo can read it correctly
 		$Command =~ s/,\s$//; # Remove trailing comma
+		$Command =~ s/\\/\\\\/; # Escape the escape!
+		$Command =~ s/:/\\:/; # Escape semicolon
+		$Command =~ s/,/\\,/; # Escape commas
+		$Command =~ s/=/\\=/; # Escape equals
 		print FILE "Cmnd_Alias	COMMAND_$Command_Alias = $Command\n\n";
 
 	}
