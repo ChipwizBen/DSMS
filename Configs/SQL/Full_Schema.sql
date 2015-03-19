@@ -582,7 +582,7 @@ CREATE TABLE `credentials` (
   `lockout` int(1) NOT NULL DEFAULT '0',
   `lockout_counter` int(1) NOT NULL DEFAULT '0',
   `lockout_reset` varchar(128) NOT NULL,
-  `last_modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `last_modified` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
   `modified_by` varchar(128) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email_UNIQUE` (`email`),
