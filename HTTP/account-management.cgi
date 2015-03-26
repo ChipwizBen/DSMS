@@ -309,6 +309,7 @@ sub add_user {
 		`last_active`,
 		`lockout_counter`,
 		`lockout_reset`,
+		`last_modified`,
 		`modified_by`
 	)
 	VALUES (
@@ -318,6 +319,7 @@ sub add_user {
 		'0000-00-00 00:00:00',
 		'0000-00-00 00:00:00',
 		0, 0,
+		NOW(),
 		?
 	)");
 
@@ -673,6 +675,7 @@ sub edit_user {
 			`approver` = ?,
 			`requires_approval` = ?,
 			`lockout` = ?,
+			`last_modified` = NOW(),
 			`modified_by` = ?
 			WHERE `id` = ?");
 
@@ -715,6 +718,7 @@ sub edit_user {
 			`approver` = ?,
 			`requires_approval` = ?,
 			`lockout` = ?,
+			`last_modified` = NOW(),
 			`modified_by` = ?
 			WHERE `id` = ?");
 

@@ -36,7 +36,8 @@ sub html_output {
 
 	## Version 1.8.1
 	$Table->addRow('1.8.1', 'Correctly escaped special sudoers characters (:,=) when the sudoers file is built.');
-	$Table->addRow('', 'Prevent escapes being added to commands');
+	$Table->addRow('', 'Prevent escapes being added to commands.');
+	$Table->addRow('', 'Fixed an issue with account modification time not being updated on change.');
 
 	## Version 1.8.0
 	$Table->addRow('1.8.0', 'Better error handling for failed SFTP connections.');

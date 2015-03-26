@@ -22,7 +22,9 @@ my $Old_Password = $CGI->param("Old_Password");
 my $New_Password = $CGI->param("New_Password");
 my $Confirm_Password = $CGI->param("Confirm_Password");
 
-&change_password;
+if ($New_Password) {
+	&change_password;
+}
 require "header.cgi";
 &html_output;
 require "footer.cgi";
@@ -113,6 +115,7 @@ sub change_password {
 			my $Change_Password = $DB_Management->prepare("UPDATE `credentials` SET
 			`password` = ?,
 			`salt` = ?,
+			`last_modified` = NOW(),
 			`modified_by` = ?
 			WHERE `id` = ?");
 			$Change_Password->execute($New_Password, $New_Salt, $User_Name, $ID);

@@ -1,5 +1,6 @@
 1.8.1   - Correctly escaped special sudoers characters (:,=) when the sudoers file is built.
-        - Prevent escapes being added to commands
+        - Prevent escapes being added to commands.
+        - Fixed an issue with account modification time not being updated on change.
 1.8.0   - Better error handling for failed SFTP connections.
         - Formatting fixes for Groups and Rules.
         - Command Alias accepted characters are now clearly defined in line with Hosts and Users.
