@@ -616,6 +616,7 @@ CREATE TABLE `distribution` (
   `remote_sudoers_path` varchar(255) NOT NULL DEFAULT '/tmp/sudoers',
   `status` varchar(1024) NOT NULL DEFAULT 'Not yet attempted connection.',
   `last_updated` datetime NOT NULL,
+  `last_successful_transfer` datetime NOT NULL,
   `last_modified` datetime NOT NULL,
   `modified_by` varchar(128) NOT NULL,
   PRIMARY KEY (`host_id`),

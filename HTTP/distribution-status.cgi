@@ -256,7 +256,7 @@ sub html_output {
 	}
 
 	my $Table = new HTML::Table(
-		-cols=>13,
+		-cols=>14,
 		-align=>'center',
 		-border=>0,
 		-rules=>'cols',
@@ -267,14 +267,14 @@ sub html_output {
 		-padding=>1
 	);
 
-	$Table->addRow( "Host ID", "Host (IP)", "SFTP Port", "User", "Key Path", "Timeout", "Remote Sudoers Path", "Status Message", "Status", "Status Received", "Last Modified", "Modified By", "Edit" );
+	$Table->addRow( "Host ID", "Host (IP)", "SFTP Port", "User", "Key Path", "Timeout", "Remote Sudoers Path", "Status Message", "Status", "Status Received", "Last Successful Transfer", "Last Modified", "Modified By", "Edit" );
 	$Table->setRowClass (1, 'tbrow1');
 
 	my $Select_Host_Count = $DB_Sudoers->prepare("SELECT `id` FROM `hosts`");
 		$Select_Host_Count->execute( );
 		my $Total_Rows = $Select_Host_Count->rows();
 
-	my $Select_Parameters = $DB_Management->prepare("SELECT `host_id`, `sftp_port`, `user`, `key_path`, `timeout`, `remote_sudoers_path`, `status`, `last_updated`, `last_modified`, `modified_by`
+	my $Select_Parameters = $DB_Management->prepare("SELECT `host_id`, `sftp_port`, `user`, `key_path`, `timeout`, `remote_sudoers_path`, `status`, `last_updated`, `last_successful_transfer`, `last_modified`, `modified_by`
 		FROM `distribution`
 		ORDER BY `last_updated` DESC
 		LIMIT 0 , $Rows_Returned");
@@ -298,13 +298,15 @@ sub html_output {
 			$Status_Message =~ s/^OK:(.*)/<span style='color: #00FF00'>OK:<\/span>$1/g;
 			$Status_Message =~ s/Sudoers MD5:(.*)/<br \/><span style='color: #00FF00'>Sudoers MD5:<\/span><span style='color: #BDBDBD'>$1<\/span>/g;
 			$Status_Message =~ s/(.*)Failed:/<span style='color: #FF0000'>$1Failed: <\/span>/g;
-			$Status_Message =~ s/Hints:(.*)/<span style='color: #FFC600'>\Hints:<\/span><span style='color: #BDBDBD'>$1<\/span>/g;
+			$Status_Message =~ s/Hints:(.*)/<span style='color: #FFC600'>Hints:<\/span><span style='color: #BDBDBD'>$1<\/span>/g;
 			$Status_Message =~ s/\s(\d\))/<span style='color: #FFC600'>$1<\/span>/gm;
 		my $Last_Updated = $Select_Parameters[7];
 			if ($Last_Updated eq '0000-00-00 00:00:00') {$Last_Updated = 'Never';}
-		my $Last_Modified = $Select_Parameters[8];
+		my $Last_Successful_Transfer = $Select_Parameters[8];
+			if ($Last_Successful_Transfer eq '0000-00-00 00:00:00') {$Last_Successful_Transfer = 'Never';}
+		my $Last_Modified = $Select_Parameters[9];
 			if ($Last_Modified eq '0000-00-00 00:00:00') {$Last_Modified = 'Never';}
-		my $Modified_By = $Select_Parameters[9];
+		my $Modified_By = $Select_Parameters[10];
 
 
 		my $Select_Host = $DB_Sudoers->prepare("SELECT `hostname`, `ip`
@@ -327,6 +329,7 @@ sub html_output {
 				$Status_Message,
 				$Status_Light,
 				$Last_Updated,
+				$Last_Successful_Transfer,
 				$Last_Modified,
 				$Modified_By,
 				"<a href='distribution-status.cgi?Edit_Host_Parameters=$Host_ID'><img src=\"resources/imgs/edit.png\" alt=\"Edit Host Parameters $Host_ID\" ></a>"
@@ -343,7 +346,8 @@ sub html_output {
 			$Table->setColWidth(10, '110px');
 			$Table->setColWidth(11, '110px');
 			$Table->setColWidth(12, '110px');
-			$Table->setColWidth(13, '1px');
+			$Table->setColWidth(13, '110px');
+			$Table->setColWidth(14, '1px');
 	
 			$Table->setColAlign(1, 'center');
 			$Table->setColAlign(3, 'center');
@@ -353,6 +357,7 @@ sub html_output {
 			$Table->setColAlign(11, 'center');
 			$Table->setColAlign(12, 'center');
 			$Table->setColAlign(13, 'center');
+			$Table->setColAlign(14, 'center');
 		}
 	}
 

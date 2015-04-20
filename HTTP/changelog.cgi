@@ -34,10 +34,16 @@ sub html_output {
 	$Table->addRow( "Version", "Change" );
 	$Table->setRowClass (1, 'tbrow1');
 
+	## Version 1.9.0
+	$Table->addRow('1.9.0', 'Added host auto-registration process.');
+	$Table->addRow('', 'Added \'Last Successful Transfer\' to Distribution Status.');
+	$Table->addRow('<hr />', '');
+
 	## Version 1.8.1
 	$Table->addRow('1.8.1', 'Correctly escaped special sudoers characters (:,=) when the sudoers file is built.');
 	$Table->addRow('', 'Prevent escapes being added to commands.');
 	$Table->addRow('', 'Fixed an issue with account modification time not being updated on change.');
+	$Table->addRow('---', '');
 
 	## Version 1.8.0
 	$Table->addRow('1.8.0', 'Better error handling for failed SFTP connections.');

@@ -46,12 +46,6 @@ HOST: while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
 	my $Hostname = $Select_Hosts[1];
 	my $IP = $Select_Hosts[2];
 
-	#Preparing for status output write
-	my $Update_Status = $DB_Management->prepare("UPDATE `distribution` SET
-		`status` = ?,
-		`last_updated` = NOW()
-		WHERE `host_id` = ?");
-	# / Preparing for status output write
 
 	my $Select_Parameters = $DB_Management->prepare("SELECT `sftp_port`, `user`, `key_path`, `timeout`, `remote_sudoers_path`
 		FROM `distribution`
@@ -103,6 +97,10 @@ HOST: while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
 			}
 
 			print "$Error\n\n";
+			my $Update_Status = $DB_Management->prepare("UPDATE `distribution` SET
+				`status` = ?,
+				`last_updated` = NOW()
+				WHERE `host_id` = ?");
 			$Update_Status->execute($Error, $DBID);
 			next HOST;
 			undef $SFTP;
@@ -121,7 +119,13 @@ HOST: while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
 
 		if ($SFTP->status == 0) {
 			print "$Remote_Sudoers written successfully to $Hostname ($IP).\n\n";
-			$Update_Status->execute("OK: $Remote_Sudoers written successfully to $Hostname ($IP). Sudoers MD5: $MD5_Checksum", $DBID);
+			my $Status="OK: $Remote_Sudoers written successfully to $Hostname ($IP). Sudoers MD5: $MD5_Checksum";
+			my $Update_Status = $DB_Management->prepare("UPDATE `distribution` SET
+				`status` = ?,
+				`last_updated` = NOW(),
+				`last_successful_transfer` = NOW()
+				WHERE `host_id` = ?");
+			$Update_Status->execute($Status, $DBID);
 			undef $SFTP;
 		}
 		else {
@@ -138,6 +142,10 @@ HOST: while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
 			}
 
 			print "$Error\n\n";
+			my $Update_Status = $DB_Management->prepare("UPDATE `distribution` SET
+				`status` = ?,
+				`last_updated` = NOW()
+				WHERE `host_id` = ?");
 			$Update_Status->execute($Error, $DBID);
 			undef $SFTP;
 		}
