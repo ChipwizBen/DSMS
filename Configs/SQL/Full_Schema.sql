@@ -129,7 +129,6 @@ CREATE TABLE `hosts` (
   `modified_by` varchar(128) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
-  UNIQUE KEY `ip_UNIQUE` (`ip`),
   UNIQUE KEY `hostname_UNIQUE` (`hostname`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;

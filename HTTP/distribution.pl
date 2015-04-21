@@ -46,6 +46,13 @@ HOST: while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
 	my $Hostname = $Select_Hosts[1];
 	my $IP = $Select_Hosts[2];
 
+		my $Host_String;
+		if ($IP eq 'DHCP') {
+			$Host_String = $Hostname;
+		}
+		else {
+			$Host_String = $IP;
+		}
 
 	my $Select_Parameters = $DB_Management->prepare("SELECT `sftp_port`, `user`, `key_path`, `timeout`, `remote_sudoers_path`
 		FROM `distribution`
@@ -64,11 +71,12 @@ HOST: while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
 
 		my $Error;
 
+
 		### Connection
-		print "Attempting to connect to $Hostname with $User\@$IP:$SFTP_Port and key $Key_Path...\n";
+		print "Attempting to connect to $Hostname with $User\@$Host_String:$SFTP_Port and key $Key_Path...\n";
 
 		my $SFTP = Net::SFTP::Foreign->new(
-			"$User\@$IP",
+			"$User\@$Host_String",
 			port => "$SFTP_Port",
 			key_path => "$Key_Path",
 			timeout => "$Timeout"

@@ -158,12 +158,12 @@ function Expire_Toggle() {
 <table align = "center">
 	<tr>
 		<td style="text-align: right;">User Name:</td>
-		<td colspan="2"><input type='text' name='User_Name_Add' size='15' maxlength='128' placeholder="User Name" required autofocus></td>
+		<td colspan="2"><input type='text' name='User_Name_Add' style="width:100%" maxlength='128' placeholder="User Name" required autofocus></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Expires:</td>
 		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Add"></td>
-		<td><input type="text" size="10" name="Expires_Date_Add" value="$Date" placeholder="YYYY-MM-DD" disabled></td>
+		<td><input type="text" name="Expires_Date_Add" style="width:100%" value="$Date" placeholder="YYYY-MM-DD" disabled></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Active:</td>
@@ -319,12 +319,12 @@ function Expire_Toggle() {
 <table align = "center">
 	<tr>
 		<td style="text-align: right;">User Name:</td>
-		<td colspan="2"><input type='text' name='User_Name_Edit' value='$User_Name_Extract' size='15' maxlength='128' placeholder="$User_Name_Extract" required autofocus></td>
+		<td colspan="2"><input type='text' name='User_Name_Edit' style="width:100%" value='$User_Name_Extract' maxlength='128' placeholder="$User_Name_Extract" required autofocus></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Expires:</td>
 		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Edit" $Checked></td>
-		<td><input type="text" size="10" name="Expires_Date_Edit" value="$Expires_Extract" placeholder="$Expires_Extract" $Disabled></td>
+		<td><input type="text" name="Expires_Date_Edit" style="width:100%" value="$Expires_Extract" placeholder="$Expires_Extract" $Disabled></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Active:</td>

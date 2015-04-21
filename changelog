@@ -1,5 +1,7 @@
 1.9.0   - Added host auto-registration process.
         - Added 'Last Successful Transfer' to Distribution Status.
+        - Added the ability to use DHCP clients.
+        - Fixed an alignment bug in Hosts and Sudo Users.
 1.8.1   - Correctly escaped special sudoers characters (:,=) when the sudoers file is built.
         - Prevent escapes being added to commands.
         - Fixed an issue with account modification time not being updated on change.

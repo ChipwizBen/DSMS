@@ -37,6 +37,8 @@ sub html_output {
 	## Version 1.9.0
 	$Table->addRow('1.9.0', 'Added host auto-registration process.');
 	$Table->addRow('', 'Added \'Last Successful Transfer\' to Distribution Status.');
+	$Table->addRow('', 'Added the ability to use DHCP clients.');
+	$Table->addRow('', 'Fixed an alignment bug in Hosts and Sudo Users.');
 	$Table->addRow('<hr />', '');
 
 	## Version 1.8.1

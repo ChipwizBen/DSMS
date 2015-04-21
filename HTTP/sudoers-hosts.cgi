@@ -18,6 +18,10 @@ my $Host_Name_Add = $CGI->param("Host_Name_Add");
 my $IP_Add = $CGI->param("IP_Add");
 	$IP_Add =~ s/\s//g;
 	$IP_Add =~ s/[^0-9\.]//g;
+my $DHCP_Toggle_Add = $CGI->param("DHCP_Toggle_Add");
+	if ($DHCP_Toggle_Add eq 'on') {
+		$IP_Add = 'DHCP';
+	}
 my $Expires_Toggle_Add = $CGI->param("Expires_Toggle_Add");
 my $Expires_Date_Add = $CGI->param("Expires_Date_Add");
 	$Expires_Date_Add =~ s/\s//g;
@@ -31,6 +35,10 @@ my $Host_Name_Edit = $CGI->param("Host_Name_Edit");
 my $IP_Edit = $CGI->param("IP_Edit");
 	$IP_Edit =~ s/\s//g;
 	$IP_Edit =~ s/[^0-9\.]//g;
+my $DHCP_Toggle_Edit = $CGI->param("DHCP_Toggle_Edit");
+	if ($DHCP_Toggle_Edit eq 'on') {
+		$IP_Edit = 'DHCP';
+	}
 my $Expires_Toggle_Edit = $CGI->param("Expires_Toggle_Edit");
 my $Expires_Date_Edit = $CGI->param("Expires_Date_Edit");
 	$Expires_Date_Edit =~ s/\s//g;
@@ -157,6 +165,18 @@ function Expire_Toggle() {
 		document.Add_Hosts.Expires_Date_Add.disabled=true;
 	}
 }
+function DHCP_Toggle() {
+	if(document.Add_Hosts.DHCP_Toggle_Add.checked)
+	{
+		document.Add_Hosts.IP_Add.disabled=true;
+		document.Add_Hosts.IP_Add.placeholder="DHCP";
+	}
+	else
+	{
+		document.Add_Hosts.IP_Add.disabled=false;
+		document.Add_Hosts.IP_Add.placeholder="IP Address";
+	}
+}
 //-->
 </SCRIPT>
 
@@ -165,16 +185,21 @@ function Expire_Toggle() {
 <table align = "center">
 	<tr>
 		<td style="text-align: right;">Host Name:</td>
-		<td colspan="2"><input type='text' name='Host_Name_Add' size='15' maxlength='128' placeholder="Host Name" required autofocus></td>
+		<td colspan="2"><input type='text' name='Host_Name_Add' style="width:100%" maxlength='128' placeholder="Host Name" required autofocus></td>
+	</tr>
+	<tr>
+		<td style="text-align: right;">DHCP?:</td>
+		<td><input type="checkbox" onclick="DHCP_Toggle()" name="DHCP_Toggle_Add"></td>
+		<td></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">IP:</td>
-		<td colspan="2"><input type='text' name='IP_Add' size='15' maxlength='15' placeholder="IP Address" required></td>
+		<td colspan="2"><input type='text' name='IP_Add' style="width:100%" maxlength='15' placeholder="IP Address" required></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Expires:</td>
 		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Add"></td>
-		<td><input type="text" size="10" name="Expires_Date_Add" value="$Date" placeholder="YYYY-MM-DD" disabled></td>
+		<td><input type="text" name="Expires_Date_Add" style="width:100%" value="$Date" placeholder="YYYY-MM-DD" disabled></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Active:</td>
@@ -214,8 +239,8 @@ sub add_host {
 		my $Existing_IP;
 		while ( my @Select_Host_Names = $Existing_Host_Name_Check->fetchrow_array() )
 		{
-			$Existing_ID = @Select_Host_Names[0];
-			$Existing_IP = @Select_Host_Names[1];
+			$Existing_ID = $Select_Host_Names[0];
+			$Existing_IP = $Select_Host_Names[1];
 		}
 		my $Message_Red="Host Name: $Host_Name_Add already exists as ID: $Existing_ID, IP: $Existing_IP";
 		$Session->param('Message_Red', $Message_Red); #Posting Message_Red session var
@@ -225,24 +250,26 @@ sub add_host {
 	### / Existing Host_Name Check
 
 	### Existing IP Check
-	my $Existing_IP_Check = $DB_Sudoers->prepare("SELECT `id`, `hostname`
-		FROM `hosts`
-		WHERE `ip` = ?");
-		$Existing_IP_Check->execute($IP_Add);
-		my $Existing_IPs = $Existing_IP_Check->rows();
-
-	if ($Existing_IPs > 0)  {
-		my $Existing_ID;
-		my $Existing_Host_Name;
-		while ( my @Select_IPs = $Existing_IP_Check->fetchrow_array() )
-		{
-			$Existing_ID = @Select_IPs[0];
-			$Existing_Host_Name = @Select_IPs[1];
+	if ($IP_Add ne 'DHCP') {
+		my $Existing_IP_Check = $DB_Sudoers->prepare("SELECT `id`, `hostname`
+			FROM `hosts`
+			WHERE `ip` = ?");
+			$Existing_IP_Check->execute($IP_Add);
+			my $Existing_IPs = $Existing_IP_Check->rows();
+	
+		if ($Existing_IPs > 0)  {
+			my $Existing_ID;
+			my $Existing_Host_Name;
+			while ( my @Select_IPs = $Existing_IP_Check->fetchrow_array() )
+			{
+				$Existing_ID = $Select_IPs[0];
+				$Existing_Host_Name = $Select_IPs[1];
+			}
+			my $Message_Red="IP: $IP_Add already exists as ID: $Existing_ID, Host_Name: $Existing_Host_Name";
+			$Session->param('Message_Red', $Message_Red); #Posting Message_Red session var
+			print "Location: sudoers-hosts.cgi\n\n";
+			exit(0);
 		}
-		my $Message_Red="IP: $IP_Add already exists as ID: $Existing_ID, Host_Name: $Existing_Host_Name";
-		$Session->param('Message_Red', $Message_Red); #Posting Message_Red session var
-		print "Location: sudoers-hosts.cgi\n\n";
-		exit(0);
 	}
 	### / Existing IP Check
 
@@ -338,16 +365,27 @@ sub html_edit_host {
 		my $Expires_Extract = $DB_Host[2];
 		my $Active_Extract = $DB_Host[3];
 
-		my $Checked;
-		my $Disabled;
+		my $Expires_Checked;
+		my $Expires_Disabled;
 		if ($Expires_Extract eq '0000-00-00') {
-			$Checked = '';
-			$Disabled = 'disabled';
+			$Expires_Checked = '';
+			$Expires_Disabled = 'disabled';
 			$Expires_Extract = strftime "%Y-%m-%d", localtime;
 		}
 		else {
-			$Checked = 'checked';
-			$Disabled = '';
+			$Expires_Checked = 'checked';
+			$Expires_Disabled = '';
+		}
+
+		my $DHCP_Checked;
+		my $IP_Disabled;
+		if ($IP_Extract eq 'DHCP') {
+			$DHCP_Checked = 'checked';
+			$IP_Disabled = 'disabled';
+		}
+		else {
+			$DHCP_Checked = '';
+			$IP_Disabled = '';
 		}
 
 print <<ENDHTML;
@@ -370,6 +408,18 @@ function Expire_Toggle() {
 		document.Edit_Hosts.Expires_Date_Edit.disabled=true;
 	}
 }
+function DHCP_Toggle() {
+	if(document.Edit_Hosts.DHCP_Toggle_Edit.checked)
+	{
+		document.Edit_Hosts.IP_Edit.disabled=true;
+		document.Edit_Hosts.IP_Edit.placeholder="DHCP";
+	}
+	else
+	{
+		document.Edit_Hosts.IP_Edit.disabled=false;
+		document.Edit_Hosts.IP_Edit.placeholder="$IP_Extract";
+	}
+}
 //-->
 </SCRIPT>
 
@@ -378,16 +428,21 @@ function Expire_Toggle() {
 <table align = "center">
 	<tr>
 		<td style="text-align: right;">Host Name:</td>
-		<td colspan="2"><input type='text' name='Host_Name_Edit' value='$Host_Name_Extract' size='15' maxlength='128' placeholder="$Host_Name_Extract" required autofocus></td>
+		<td colspan="2"><input type='text' name='Host_Name_Edit' style="width:100%" value='$Host_Name_Extract' maxlength='128' placeholder="$Host_Name_Extract" required autofocus></td>
+	</tr>
+	<tr>
+		<td style="text-align: right;">DHCP?:</td>
+		<td><input type="checkbox" onclick="DHCP_Toggle()" name="DHCP_Toggle_Edit" $DHCP_Checked></td>
+		<td></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">IP:</td>
-		<td colspan="2"><input type='text' name='IP_Edit' value='$IP_Extract' size='15' maxlength='15' placeholder="$IP_Extract" required></td>
+		<td colspan="2"><input type='text' name='IP_Edit' style="width:100%" value='$IP_Extract' maxlength='15' placeholder="$IP_Extract" required $IP_Disabled></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Expires:</td>
-		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Edit" $Checked></td>
-		<td><input type="text" size="10" name="Expires_Date_Edit" value="$Expires_Extract" placeholder="$Expires_Extract" $Disabled></td>
+		<td><input type="checkbox" onclick="Expire_Toggle()" name="Expires_Toggle_Edit" $Expires_Checked></td>
+		<td><input type="text" name="Expires_Date_Edit" style="width:100%" value="$Expires_Extract" placeholder="$Expires_Extract" $Expires_Disabled></td>
 	</tr>
 	<tr>
 		<td style="text-align: right;">Active:</td>
@@ -447,8 +502,8 @@ sub edit_host {
 		my $Existing_IP;
 		while ( my @Select_Host_Names = $Existing_Host_Name_Check->fetchrow_array() )
 		{
-			$Existing_ID = @Select_Host_Names[0];
-			$Existing_IP = @Select_Host_Names[1];
+			$Existing_ID = $Select_Host_Names[0];
+			$Existing_IP = $Select_Host_Names[1];
 		}
 		my $Message_Red="Host Name: $Host_Name_Edit already exists as ID: $Existing_ID, IP: $Existing_IP";
 		$Session->param('Message_Red', $Message_Red); #Posting Message_Red session var
@@ -458,25 +513,27 @@ sub edit_host {
 	### / Existing Host_Name Check
 
 	### Existing IP Check
-	my $Existing_IP_Check = $DB_Sudoers->prepare("SELECT `id`, `hostname`
-		FROM `hosts`
-		WHERE `ip` = ?
-		AND `id` != ?");
-		$Existing_IP_Check->execute($IP_Edit, $Edit_Host_Post);
-		my $Existing_IPs = $Existing_IP_Check->rows();
-
-	if ($Existing_IPs > 0)  {
-		my $Existing_ID;
-		my $Existing_Host_Name;
-		while ( my @Select_IPs = $Existing_IP_Check->fetchrow_array() )
-		{
-			$Existing_ID = @Select_IPs[0];
-			$Existing_Host_Name = @Select_IPs[1];
+	if ($IP_Edit ne 'DHCP') {
+		my $Existing_IP_Check = $DB_Sudoers->prepare("SELECT `id`, `hostname`
+			FROM `hosts`
+			WHERE `ip` = ?
+			AND `id` != ?");
+			$Existing_IP_Check->execute($IP_Edit, $Edit_Host_Post);
+			my $Existing_IPs = $Existing_IP_Check->rows();
+	
+		if ($Existing_IPs > 0)  {
+			my $Existing_ID;
+			my $Existing_Host_Name;
+			while ( my @Select_IPs = $Existing_IP_Check->fetchrow_array() )
+			{
+				$Existing_ID = $Select_IPs[0];
+				$Existing_Host_Name = $Select_IPs[1];
+			}
+			my $Message_Red="IP: $IP_Edit already exists as ID: $Existing_ID, Host_Name: $Existing_Host_Name";
+			$Session->param('Message_Red', $Message_Red); #Posting Message_Red session var
+			print "Location: sudoers-hosts.cgi\n\n";
+			exit(0);
 		}
-		my $Message_Red="IP: $IP_Edit already exists as ID: $Existing_ID, Host_Name: $Existing_Host_Name";
-		$Session->param('Message_Red', $Message_Red); #Posting Message_Red session var
-		print "Location: sudoers-hosts.cgi\n\n";
-		exit(0);
 	}
 	### / Existing IP Check
 
