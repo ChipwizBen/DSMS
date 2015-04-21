@@ -185,7 +185,12 @@ sub write_host_groups {
 				my $Host = $Select_Hosts[0];
 				my $IP = $Select_Hosts[1];
 
-				$Hosts = $Hosts . "$Host, $IP, ";
+				if ($IP eq 'DHCP') {
+					$Hosts = $Hosts . "$Host, ";
+				}
+				else {
+					$Hosts = $Hosts . "$Host, $IP, ";
+				}
 
 			}
 		}
