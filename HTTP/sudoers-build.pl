@@ -281,6 +281,7 @@ sub write_user_groups {
 		if ($System_Group) {$Users = "%" . $Group_Name}
 
 		$Group_Name = uc($Group_Name); # Turn to uppercase so that sudo can read it correctly
+		$Group_Name =~ s/[^A-Z0-9]/_/g;
 		$Users =~ s/,\s$//; # Remove trailing comma
 		if ($Users) {
 			print FILE "User_Alias	USER_GROUP_$Group_Name = $Users\n\n";
@@ -524,6 +525,7 @@ sub create_user_rule_groups {
 			{
 				my $Group = $Select_Group_Array[0];
 				$Group = uc($Group); # Turn to uppercase so that sudo can read it correctly
+				$Group =~ s/[^A-Z0-9]/_/g;
 				$Group_to_Return = $Group_to_Return . 'USER_GROUP_' . $Group . ', ';
 			}
 		}
