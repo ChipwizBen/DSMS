@@ -305,7 +305,7 @@ sub html_output {
 		my $Last_Successful_Transfer = $Select_Parameters[8];
 			if ($Last_Successful_Transfer eq '0000-00-00 00:00:00') {$Last_Successful_Transfer = 'Never';}
 		my $Last_Successful_Checkin = $Select_Parameters[9];
-			if ($Last_Successful_Checkin eq '0000-00-00 00:00:00') {$Last_Successful_Checkin = 'Not Received';}
+			if ($Last_Successful_Checkin eq '0000-00-00 00:00:00') {$Last_Successful_Checkin = 'Unknown';}
 		my $Last_Modified = $Select_Parameters[10];
 			if ($Last_Modified eq '0000-00-00 00:00:00') {$Last_Modified = 'Never';}
 		my $Modified_By = $Select_Parameters[11];
