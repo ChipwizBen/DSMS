@@ -360,7 +360,7 @@ sub Version {
 
 	# This is where the DSMS System discovers its version number, which assists with both manual and automated Upgrading, among other things. You should not modify this value.
 
-	my $Version = '1.9.0';
+	my $Version = '1.10.0';
 	return $Version;
 
 } # sub Version

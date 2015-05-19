@@ -34,6 +34,10 @@ sub html_output {
 	$Table->addRow( "Version", "Change" );
 	$Table->setRowClass (1, 'tbrow1');
 
+	## Version 1.10.0
+	$Table->addRow('1.10.0', 'Added feedback system for hosts writing their own sudoers files (Last Successful Deployment).');
+	$Table->addRow('<hr />', '');
+
 	## Version 1.9.0
 	$Table->addRow('1.9.0', 'Added host auto-registration process.');
 	$Table->addRow('', 'Added \'Last Successful Transfer\' to Distribution Status.');

@@ -595,7 +595,7 @@ CREATE TABLE `credentials` (
 
 LOCK TABLES `credentials` WRITE;
 /*!40000 ALTER TABLE `credentials` DISABLE KEYS */;
-INSERT INTO `credentials` VALUES (1,'admin','b1738a3a00638c541d615fca37a1d99117e617cf6604401843b2123dca0b4b8bfe063afe8a10da31377736df1bb117dd5d86be511ab461355c56f56ca463a60e','<MQ4_0Y+ed!0V}jHBe6hzW>94/k}5W-A<40)gL3u@R8v>MVxTws3D:}V85W!a^;w','devnull@','2014-10-24 22:15:42','2014-10-24 22:15:54',1,0,1,0,0,'0','2014-11-28 04:11:55','Ben Schofield');
+INSERT INTO `credentials` VALUES (1,'admin','b1738a3a00638c541d615fca37a1d99117e617cf6604401843b2123dca0b4b8bfe063afe8a10da31377736df1bb117dd5d86be511ab461355c56f56ca463a60e','<MQ4_0Y+ed!0V}jHBe6hzW>94/k}5W-A<40)gL3u@R8v>MVxTws3D:}V85W!a^;w','devnull@nwk1.com','2014-10-24 22:15:42','2014-10-24 22:15:54',1,0,1,0,0,'0','2014-11-28 04:11:55','Ben Schofield');
 /*!40000 ALTER TABLE `credentials` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -616,6 +616,7 @@ CREATE TABLE `distribution` (
   `status` varchar(1024) NOT NULL DEFAULT 'Not yet attempted connection.',
   `last_updated` datetime NOT NULL,
   `last_successful_transfer` datetime NOT NULL,
+  `last_checkin` datetime NOT NULL,
   `last_modified` datetime NOT NULL,
   `modified_by` varchar(128) NOT NULL,
   PRIMARY KEY (`host_id`),

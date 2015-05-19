@@ -256,7 +256,7 @@ sub html_output {
 	}
 
 	my $Table = new HTML::Table(
-		-cols=>14,
+		-cols=>15,
 		-align=>'center',
 		-border=>0,
 		-rules=>'cols',
@@ -267,14 +267,14 @@ sub html_output {
 		-padding=>1
 	);
 
-	$Table->addRow( "Host ID", "Host (IP)", "SFTP Port", "User", "Key Path", "Timeout", "Remote Sudoers Path", "Status Message", "Status", "Status Received", "Last Successful Transfer", "Last Modified", "Modified By", "Edit" );
+	$Table->addRow( "Host ID", "Host (IP)", "SFTP Port", "User", "Key Path", "Timeout", "Remote Sudoers Path", "Status Message", "Status", "Status Received", "Last Successful Transfer", "Last Successful Deployment", "Last Modified", "Modified By", "Edit" );
 	$Table->setRowClass (1, 'tbrow1');
 
 	my $Select_Host_Count = $DB_Sudoers->prepare("SELECT `id` FROM `hosts`");
 		$Select_Host_Count->execute( );
 		my $Total_Rows = $Select_Host_Count->rows();
 
-	my $Select_Parameters = $DB_Management->prepare("SELECT `host_id`, `sftp_port`, `user`, `key_path`, `timeout`, `remote_sudoers_path`, `status`, `last_updated`, `last_successful_transfer`, `last_modified`, `modified_by`
+	my $Select_Parameters = $DB_Management->prepare("SELECT `host_id`, `sftp_port`, `user`, `key_path`, `timeout`, `remote_sudoers_path`, `status`, `last_updated`, `last_successful_transfer`, `last_checkin`, `last_modified`, `modified_by`
 		FROM `distribution`
 		ORDER BY `last_updated` DESC
 		LIMIT 0 , $Rows_Returned");
@@ -304,9 +304,11 @@ sub html_output {
 			if ($Last_Updated eq '0000-00-00 00:00:00') {$Last_Updated = 'Never';}
 		my $Last_Successful_Transfer = $Select_Parameters[8];
 			if ($Last_Successful_Transfer eq '0000-00-00 00:00:00') {$Last_Successful_Transfer = 'Never';}
-		my $Last_Modified = $Select_Parameters[9];
+		my $Last_Successful_Checkin = $Select_Parameters[9];
+			if ($Last_Successful_Checkin eq '0000-00-00 00:00:00') {$Last_Successful_Checkin = 'Never';}
+		my $Last_Modified = $Select_Parameters[10];
 			if ($Last_Modified eq '0000-00-00 00:00:00') {$Last_Modified = 'Never';}
-		my $Modified_By = $Select_Parameters[10];
+		my $Modified_By = $Select_Parameters[11];
 
 
 		my $Select_Host = $DB_Sudoers->prepare("SELECT `hostname`, `ip`
@@ -330,6 +332,7 @@ sub html_output {
 				$Status_Light,
 				$Last_Updated,
 				$Last_Successful_Transfer,
+				$Last_Successful_Checkin,
 				$Last_Modified,
 				$Modified_By,
 				"<a href='distribution-status.cgi?Edit_Host_Parameters=$Host_ID'><img src=\"resources/imgs/edit.png\" alt=\"Edit Host Parameters $Host_ID\" ></a>"
@@ -347,7 +350,8 @@ sub html_output {
 			$Table->setColWidth(11, '110px');
 			$Table->setColWidth(12, '110px');
 			$Table->setColWidth(13, '110px');
-			$Table->setColWidth(14, '1px');
+			$Table->setColWidth(14, '110px');
+			$Table->setColWidth(15, '1px');
 	
 			$Table->setColAlign(1, 'center');
 			$Table->setColAlign(3, 'center');
@@ -358,6 +362,7 @@ sub html_output {
 			$Table->setColAlign(12, 'center');
 			$Table->setColAlign(13, 'center');
 			$Table->setColAlign(14, 'center');
+			$Table->setColAlign(15, 'center');
 		}
 	}
 
