@@ -144,7 +144,7 @@ sub write_host_groups {
 	{
 
 		my $DBID = $Select_Groups[0];
-		my $Group_Name = $Select_Groups[1];
+		my $Host_Group_Name = $Select_Groups[1];
 		my $Expires = $Select_Groups[2];
 		my $Last_Modified = $Select_Groups[3];
 		my $Modified_By = $Select_Groups[4];
@@ -156,7 +156,7 @@ sub write_host_groups {
 				$Expires = "expires on " . $Expires;
 			}
 
-		print FILE "## $Group_Name (ID: $DBID), $Expires, last modified $Last_Modified by $Modified_By\n";
+		print FILE "## $Host_Group_Name (ID: $DBID), $Expires, last modified $Last_Modified by $Modified_By\n";
 
 		my $Hosts;
 		my $Select_Links = $DB_Sudoers->prepare("SELECT `host`
@@ -195,14 +195,14 @@ sub write_host_groups {
 			}
 		}
 
-		$Group_Name = uc($Group_Name); # Turn to uppercase so that sudo can read it correctly
+		$Host_Group_Name = uc($Host_Group_Name); # Turn to uppercase so that sudo can read it correctly
 		$Hosts =~ s/,\s$//; # Remove trailing comma
 		if ($Hosts) {
-			print FILE "Host_Alias	HOST_GROUP_$Group_Name = $Hosts\n\n";
+			print FILE "Host_Alias	HOST_GROUP_$Host_Group_Name = $Hosts\n\n";
 		}
 		else {
 			print FILE "#######\n";
-			print FILE "####### $Group_Name (ID: $DBID) was not included because it does not have any attached Hosts. #######\n";
+			print FILE "####### $Host_Group_Name (ID: $DBID) was not included because it does not have any attached Hosts. #######\n";
 			print FILE "#######\n\n";
 		}
 	}
@@ -232,7 +232,7 @@ sub write_user_groups {
 	{
 
 		my $DBID = $Select_Groups[0];
-		my $Group_Name = $Select_Groups[1];
+		my $User_Group_Name = $Select_Groups[1];
 		my $System_Group = $Select_Groups[2];
 		my $Expires = $Select_Groups[3];
 		my $Last_Modified = $Select_Groups[4];
@@ -245,7 +245,7 @@ sub write_user_groups {
 			$Expires = "expires on " . $Expires;
 		}
 
-		print FILE "## $Group_Name (ID: $DBID), $Expires, last modified $Last_Modified by $Modified_By\n";
+		print FILE "## $User_Group_Name (ID: $DBID), $Expires, last modified $Last_Modified by $Modified_By\n";
 
 		my $Users;
 		my $Select_Links = $DB_Sudoers->prepare("SELECT `user`
@@ -278,17 +278,17 @@ sub write_user_groups {
 			}
 		}
 
-		if ($System_Group) {$Users = "%" . $Group_Name}
+		if ($System_Group) {$Users = "%" . $User_Group_Name}
 
-		$Group_Name = uc($Group_Name); # Turn to uppercase so that sudo can read it correctly
-		$Group_Name =~ s/[^A-Z0-9]/_/g;
+		$User_Group_Name = uc($User_Group_Name); # Turn to uppercase so that sudo can read it correctly
+		$User_Group_Name =~ s/[^A-Z0-9]/_/g;
 		$Users =~ s/,\s$//; # Remove trailing comma
 		if ($Users) {
-			print FILE "User_Alias	USER_GROUP_$Group_Name = $Users\n\n";
+			print FILE "User_Alias	USER_GROUP_$User_Group_Name = $Users\n\n";
 		}
 		else {
 			print FILE "#######\n";
-			print FILE "####### $Group_Name (ID: $DBID) was not included because it does not have any attached Users. #######\n";
+			print FILE "####### $User_Group_Name (ID: $DBID) was not included because it does not have any attached Users. #######\n";
 			print FILE "#######\n\n";
 		}
 	}
@@ -317,7 +317,7 @@ sub write_command_groups {
 	{
 
 		my $DBID = $Select_Groups[0];
-		my $Group_Name = $Select_Groups[1];
+		my $Command_Group_Name = $Select_Groups[1];
 		my $Expires = $Select_Groups[2];
 		my $Last_Modified = $Select_Groups[3];
 		my $Modified_By = $Select_Groups[4];
@@ -329,7 +329,7 @@ sub write_command_groups {
 			$Expires = "expires on " . $Expires;
 		}
 
-		print FILE "## $Group_Name (ID: $DBID), $Expires, last modified $Last_Modified by $Modified_By\n";
+		print FILE "## $Command_Group_Name (ID: $DBID), $Expires, last modified $Last_Modified by $Modified_By\n";
 
 		my $Commands;
 		my $Select_Links = $DB_Sudoers->prepare("SELECT `command`
@@ -362,15 +362,15 @@ sub write_command_groups {
 			}
 		}
 
-		$Group_Name = uc($Group_Name); # Turn to uppercase so that sudo can read it correctly
+		$Command_Group_Name = uc($Command_Group_Name); # Turn to uppercase so that sudo can read it correctly
 		$Commands = uc($Commands); # Turn to uppercase so that sudo can read it correctly
 		$Commands =~ s/,\s$//; # Remove trailing comma
 		if ($Commands) {
-			print FILE "Cmnd_Alias	COMMAND_GROUP_$Group_Name = $Commands\n\n";
+			print FILE "Cmnd_Alias	COMMAND_GROUP_$Command_Group_Name = $Commands\n\n";
 		}
 		else {
 			print FILE "#######\n";
-			print FILE "####### $Group_Name (ID: $DBID) was not included because it does not have any attached Commands. #######\n";
+			print FILE "####### $Command_Group_Name (ID: $DBID) was not included because it does not have any attached Commands. #######\n";
 			print FILE "#######\n\n";
 		}
 	}
@@ -456,9 +456,9 @@ sub create_host_rule_groups {
 
 			while ( my @Select_Group_Array = $Select_Groups->fetchrow_array() )
 			{
-				my $Group = $Select_Group_Array[0];
-				$Group = uc($Group); # Turn to uppercase so that sudo can read it correctly
-				$Group_to_Return = $Group_to_Return . 'HOST_GROUP_' . $Group . ', ';
+				my $Host_Group_Name = $Select_Group_Array[0];
+				$Host_Group_Name = uc($Host_Group_Name); # Turn to uppercase so that sudo can read it correctly
+				$Group_to_Return = $Group_to_Return . 'HOST_GROUP_' . $Host_Group_Name . ', ';
 			}
 		}
 		
@@ -485,8 +485,8 @@ sub create_host_rule_groups {
 
 			while ( my @Select_Hosts_Array = $Select_Hosts->fetchrow_array() )
 			{
-				my $Group = $Select_Hosts_Array[0];
-				$Group_to_Return = $Group_to_Return . $Group . ', ';
+				my $Host_Name = $Select_Hosts_Array[0];
+				$Group_to_Return = $Group_to_Return . $Host_Name . ', ';
 			}
 		}
 
@@ -523,10 +523,10 @@ sub create_user_rule_groups {
 
 			while ( my @Select_Group_Array = $Select_Groups->fetchrow_array() )
 			{
-				my $Group = $Select_Group_Array[0];
-				$Group = uc($Group); # Turn to uppercase so that sudo can read it correctly
-				$Group =~ s/[^A-Z0-9]/_/g;
-				$Group_to_Return = $Group_to_Return . 'USER_GROUP_' . $Group . ', ';
+				my $User_Group_Name = $Select_Group_Array[0];
+				$User_Group_Name = uc($User_Group_Name); # Turn to uppercase so that sudo can read it correctly
+				$User_Group_Name =~ s/[^A-Z0-9]/_/g;
+				$Group_to_Return = $Group_to_Return . 'USER_GROUP_' . $User_Group_Name . ', ';
 			}
 		}
 		
@@ -553,8 +553,8 @@ sub create_user_rule_groups {
 
 			while ( my @Select_Users_Array = $Select_Users->fetchrow_array() )
 			{
-				my $Group = $Select_Users_Array[0];
-				$Group_to_Return = $Group_to_Return . $Group . ', ';
+				my $User_Name = $Select_Users_Array[0];
+				$Group_to_Return = $Group_to_Return . $User_Name . ', ';
 			}
 		}
 
@@ -592,9 +592,9 @@ sub create_command_rule_groups {
 
 			while ( my @Select_Group_Array = $Select_Groups->fetchrow_array() )
 			{
-				my $Group = $Select_Group_Array[0];
-				$Group = uc($Group); # Turn to uppercase so that sudo can read it correctly
-				$Group_to_Return = $Group_to_Return . 'COMMAND_GROUP_' . $Group . ', ';
+				my $Commnand_Group = $Select_Group_Array[0];
+				$Commnand_Group = uc($Commnand_Group); # Turn to uppercase so that sudo can read it correctly
+				$Group_to_Return = $Group_to_Return . 'COMMAND_GROUP_' . $Commnand_Group . ', ';
 			}
 		}
 		
@@ -610,7 +610,7 @@ sub create_command_rule_groups {
 			
 			my $Command_ID = $Select_Links[0];
 
-			my $Select_Commands = $DB_Sudoers->prepare("SELECT `command`
+			my $Select_Commands = $DB_Sudoers->prepare("SELECT `command_alias`
 				FROM `commands`
 				WHERE `id` = ?
 				AND `active` = '1'
@@ -621,8 +621,9 @@ sub create_command_rule_groups {
 
 			while ( my @Select_Commands_Array = $Select_Commands->fetchrow_array() )
 			{
-				my $Group = $Select_Commands_Array[0];
-				$Group_to_Return = $Group_to_Return . $Group . ', ';
+				my $Command_Alias = $Select_Commands_Array[0];
+				$Command_Alias = uc($Command_Alias); # Turn to uppercase so that sudo can read it correctly
+				$Group_to_Return = $Group_to_Return . 'COMMAND_' . $Command_Alias . ', ';
 			}
 		}
 
