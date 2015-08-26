@@ -35,7 +35,7 @@ my $Sudoers_Location = Sudoers_Location();
 
 my $Select_Hosts = $DB_Sudoers->prepare("SELECT `id`, `hostname`, `ip`
 	FROM `hosts`
-	ORDER BY `hostname` ASC");
+	ORDER BY `last_modified` DESC");
 
 $Select_Hosts->execute();
 
