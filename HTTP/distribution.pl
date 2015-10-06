@@ -75,11 +75,14 @@ HOST: while ( my @Select_Hosts = $Select_Hosts->fetchrow_array() )
 		### Connection
 		print "Attempting to connect to $Hostname with $User\@$Host_String:$SFTP_Port and key $Key_Path...\n";
 
+		open my $DevNull, '>', '/dev/null' or die "unable to open /dev/null";
+
 		my $SFTP = Net::SFTP::Foreign->new(
 			"$User\@$Host_String",
-			port => "$SFTP_Port",
-			key_path => "$Key_Path",
-			timeout => "$Timeout"
+			port => $SFTP_Port,
+			key_path => $Key_Path,
+			timeout => $Timeout,
+			stderr_fh => $DevNull # Suppress banners
 		);
 		$SFTP->error and $Error = "Connection Failed: " . $SFTP->error;
 

@@ -36,6 +36,7 @@ sub html_output {
 
 	## Version 1.10.0
 	$Table->addRow('1.10.0', 'Added feedback system for hosts writing their own sudoers files (Last Successful Deployment).');
+	$Table->addRow('', 'Banners are now suppressed during distribution to make stdout clearer.');
 	$Table->addRow('<hr />', '');
 
 	## Version 1.9.0
