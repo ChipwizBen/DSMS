@@ -1,9 +1,11 @@
 1.10.0  - Added feedback system for hosts writing their own sudoers files (Last Successful Deployment).
         - Banners are now suppressed during distribution to make stdout clearer.
+----------------
 1.9.0   - Added host auto-registration process.
         - Added 'Last Successful Transfer' to Distribution Status.
         - Added the ability to use DHCP clients.
         - Fixed an alignment bug in Hosts and Sudo Users.
+----------------
 1.8.1   - Correctly escaped special sudoers characters (:,=) when the sudoers file is built.
         - Prevent escapes being added to commands.
         - Fixed an issue with account modification time not being updated on change.
@@ -16,11 +18,13 @@
         - New distribution locking mechanism prevents two distribution processes running at the same time. 
           Distribution lock is in addition to the existing build process lock.
         - Items without notes now do not show an empty note table.
+----------------
 1.7.0   - Added Automated DSMS System deployment process.
         - Added the ability to allow some users read-only administrative rights.
         - Made the Account Password Reset email use admin usernames and email addresses pulled from the 
           database, instead of using static values.
         - Added the ability to specify a sending email address for password recovery emails.
+----------------
 1.6.0   - Fixed a bug that stripped hyphens from hostnames. Also allowed user names to contain hyphens,
           periods and underscores to match POSIX requirements.
         - Fixed a bug which allowed empty Groups to be added to the CDSF.
@@ -28,6 +32,7 @@
           processes running at the same time.
         - Added ability to specify SFTP distribution port.
         - Added Noting System.
+----------------
 1.5.0   - Added MD5 checksum to Distribution Status for easier comparison with sudoers checksums 
           currently on different systems.
         - Added option to specify port in DB connection string in 'common.pl'.
@@ -66,6 +71,7 @@
         - Added Rule approval auto-revocation when any attached items are modified or deleted.
         - Added a Maintenance Mode to facilitate installations and upgrades. Maintenance Mode is 
           controlled through common.pl.
+----------------
 1.4.1:  - Offloaded the resolution of application paths to 'common.pl' through `which` or manual 
           override to make it more system independent.
         - Bundled required non-core modules with package (for easier installation in offline 
@@ -84,8 +90,8 @@
           parameters and override the defaults. 
         - Newly created hosts are now added to the new distribution table and default fail-safe 
           parameters are set.
-----------------
         - Moved 'changelog.cgi' out of the Management menu, because it isn't a management tool.
+----------------
 1.3.1:  - Fixed a bug in the audit section of the 'sudoers-build.pl' file where each time the system 
           generated a new sudoers file it would log the successful build to the Audit Log. If 
           'sudoers-build.pl' was run from cron, a new audit entry would be created even if no changes 
