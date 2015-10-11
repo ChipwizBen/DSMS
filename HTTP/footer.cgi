@@ -38,8 +38,7 @@ print <<ENDHTML;
 ENDHTML
 #DSMS
 #	<ul>
-#		<li><a href="https://www.one.com/community/-Developed%20Tools%20%28DDT%29/SitePages/DSMS%20-%20%20Sudoers%20Management%20System.aspx" target="_blank">DSMS DDT Page</a></li>
-#		<li><a href="https://udm-sudoers-01.alabs./" target="_blank">DSMS Test System</a></li>
+#		<li><a href=""></a></li>
 #	</ul>
 print <<ENDHTML;
 	</div> <!-- footerblocka1 -->
