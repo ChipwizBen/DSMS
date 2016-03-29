@@ -34,6 +34,10 @@ sub html_output {
 	$Table->addRow( "Version", "Change" );
 	$Table->setRowClass (1, 'tbrow1');
 
+	## Version 1.11.0
+	$Table->addRow('1.11.0', 'Added verbosity control to distribution.pl. Added override parameters for locked build and distribution systems.');
+	$Table->addRow('<hr />', '');
+
 	## Version 1.10.0
 	$Table->addRow('1.10.0', 'Added feedback system for hosts writing their own sudoers files (Last Successful Deployment).');
 	$Table->addRow('', 'Banners are now suppressed during distribution to make stdout clearer.');

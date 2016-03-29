@@ -1,3 +1,6 @@
+1.11.0  - Added verbosity control to distribution.pl. Added override parameters for locked build and 
+          distribution systems.
+----------------
 1.10.0  - Added feedback system for hosts writing their own sudoers files (Last Successful Deployment).
         - Banners are now suppressed during distribution to make stdout clearer.
 ----------------
