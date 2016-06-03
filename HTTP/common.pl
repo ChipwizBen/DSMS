@@ -39,7 +39,7 @@ sub Recovery_Email_Address {
 
 	# This is the email address that the DSMS System will appear to send emails from during password recoveries. It may be a legitimate address (such as the system administrator's address) or it could be a blocking address, such as noreply@nwk1.com.
 
-	my $Recovery_Email_Address = 'noreply@ben@nwk1.com';
+	my $Recovery_Email_Address = 'noreply@example.com';
 	return $Recovery_Email_Address;
 
 } # sub System_Short_Name
@@ -72,7 +72,7 @@ sub DB_Management {
 	my $Port = '3306';
 	my $DB = 'Management';
 	my $User = 'Management';
-	my $Password = '<Password>';
+	my $Password = '';
 
 	my $DB_Management = DBI->connect ("DBI:mysql:database=$DB:host=$Host:port=$Port",
 		$User,
@@ -92,7 +92,7 @@ sub DB_Sudoers {
 	my $Port = '3306';
 	my $DB = 'Sudoers';
 	my $User = 'Sudoers';
-	my $Password = '<Password>';
+	my $Password = '';
 
 	my $DB_Sudoers = DBI->connect ("DBI:mysql:database=$DB:host=$Host:port=$Port",
 		$User,
