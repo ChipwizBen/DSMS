@@ -122,7 +122,7 @@ sub html_output {
 			$Table->setCellClass (-1, 3, 'tbrowgreen');
 		}
 		elsif ($Method_Clean eq 'Delete') {
-			$Table->setCellClass (-1, 3, 'tbrowerror');
+			$Table->setCellClass (-1, 3, 'tbrowred');
 		}
 		elsif ($Method_Clean eq 'Modify') {
 			$Table->setCellClass (-1, 3, 'tbroworange');
@@ -131,13 +131,13 @@ sub html_output {
 			$Table->setCellClass (-1, 3, 'tbrowgreen');
 		}
 		elsif ($Method_Clean eq 'Deployment Failed') {
-			$Table->setCellClass (-1, 3, 'tbrowerror');
+			$Table->setCellClass (-1, 3, 'tbrowred');
 		}
 		elsif ($Method_Clean eq 'Approve') {
 			$Table->setCellClass (-1, 3, 'tbrowdarkgreen');
 		}
 		elsif ($Method_Clean eq 'Revoke') {
-			$Table->setCellClass (-1, 3, 'tbrowerror');
+			$Table->setCellClass (-1, 3, 'tbrowred');
 		}
 
 		$Table->setColWidth(1, '1px');

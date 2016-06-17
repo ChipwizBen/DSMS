@@ -1080,7 +1080,7 @@ sub html_output {
 			$Table->setCellClass ($Host_Row_Count, 5, 'tbrowgreen');
 		}
 		else {
-			$Table->setCellClass ($Host_Row_Count, 5, 'tbrowerror');
+			$Table->setCellClass ($Host_Row_Count, 5, 'tbrowred');
 		}
 
 		if ($Expires ne 'Never' && $Expires_Epoch < $Today_Epoch) {

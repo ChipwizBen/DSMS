@@ -3981,14 +3981,14 @@ sub html_output {
 			$Table->setCellClass ($Rule_Row_Count, 12, 'tbrowgreen');
 		}
 		else {
-			$Table->setCellClass ($Rule_Row_Count, 12, 'tbrowerror');
+			$Table->setCellClass ($Rule_Row_Count, 12, 'tbrowred');
 		}
 
 		if ($Approved eq 'Yes') {
 			$Table->setCellClass ($Rule_Row_Count, 13, 'tbrowgreen');
 		}
 		else {
-			$Table->setCellClass ($Rule_Row_Count, 13, 'tbrowerror');
+			$Table->setCellClass ($Rule_Row_Count, 13, 'tbrowred');
 		}
 
 	}

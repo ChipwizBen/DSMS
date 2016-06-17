@@ -972,7 +972,7 @@ while ( my @DB_User = $Select_Users->fetchrow_array() )
 		$Table->setCellClass ($User_Row_Count, 5, 'tbroworange');
 	}
 	elsif ($Admin_Extract eq 'Yes') {
-		$Table->setCellClass ($User_Row_Count, 5, 'tbrowerror');
+		$Table->setCellClass ($User_Row_Count, 5, 'tbrowred');
 	}
 
 	if ($Approver_Extract eq 'Yes') {
@@ -983,11 +983,11 @@ while ( my @DB_User = $Select_Users->fetchrow_array() )
 		$Table->setCellClass ($User_Row_Count, 7, 'tbrowgreen');
 	}
 	else {
-		$Table->setCellClass ($User_Row_Count, 7, 'tbrowerror');
+		$Table->setCellClass ($User_Row_Count, 7, 'tbrowred');
 	}
 
 	if ($Lockout_Extract eq 'Yes') {
-		$Table->setCellClass ($User_Row_Count, 8, 'tbrowerror');
+		$Table->setCellClass ($User_Row_Count, 8, 'tbrowred');
 	}
 	
 	for (5 .. 8) {

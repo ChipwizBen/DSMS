@@ -143,7 +143,7 @@ sub html_output {
 			$Table->setCellClass ($Row_Count, 9, 'tbrowgreen');
 		}
 		else {
-			$Table->setCellClass ($Row_Count, 9, 'tbrowerror');
+			$Table->setCellClass ($Row_Count, 9, 'tbrowred');
 		}
 
 	$Table->setColWidth(1, '1px');
