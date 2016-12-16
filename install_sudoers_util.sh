@@ -1,12 +1,5 @@
 #!/bin/bash
 
-# Script name: install_sudoers_util.sh
-# Script author: Ian Dennison (Oct 2014)
-# Script function: To verify and install sudoers utility components
-
-# Update: 24-Oct-2014 - script to be included as part of tar archive, so no need to 
-#	include uncompress and extract commands
-#
 function cleanup_temp_data
 {
 	if [[ -f /tmp/login_result.${PID} ]]
@@ -45,7 +38,7 @@ function network_selinux_setup
 			# Don't trim or remove lines below on sed command
 			sed -i /etc/sysconfig/iptables -e '/INPUT -j REJECT/i \
 \
-#  Sudoers Management System HTTPS Exception \
+# Distributed Sudoers Management System HTTPS Exception \
 -A INPUT -m state --state NEW -m tcp -p tcp --dport 443 -j ACCEPT \
 '
 			# Now restart network services
@@ -236,12 +229,12 @@ function generate_ssl_keys
 	# Generate SSL Key (leave the 2 lines empty before EOF, they are needed as placeholders)
 	openssl req -new -key DSMS.key -out DSMS.csr <<EOF
 NZ
- Systems (Wellington)
-DWLWG Unix Projects
- Sudoers Management System
+Distributed Sudoers Management System
+Distributed Sudoers Management System
+Distributed Sudoers Management System
 DSMS
 DSMS
-ben@nwk1.com
+you@example.com
 
 
 EOF
@@ -285,7 +278,7 @@ EOF
 	fi	
 
 	# Check if referencing SSL keys
-	export VALCNT=`grep -i "#  Sudoers Management System SSL Configuration" /etc/httpd/conf/httpd.conf |wc -l`
+	export VALCNT=`grep -i "# Distributed Sudoers Management System SSL Configuration" /etc/httpd/conf/httpd.conf |wc -l`
 	if (( $VALCNT > 0 ))
 	then
 		# Check if entries exist
@@ -304,7 +297,7 @@ EOF
 			echo "443 SSL Key Entry Lines are incomplete in /etc/httpd/conf/httpd.conf - please upodate manually"
 			export RCODE=$RCODE"1"
 		else
-			echo '#  Sudoers Management System SSL Configuration' >> /etc/httpd/conf/httpd.conf
+			echo '# Distributed Sudoers Management System SSL Configuration' >> /etc/httpd/conf/httpd.conf
 			echo '<VirtualHost *:443>' >> /etc/httpd/conf/httpd.conf
 			echo '    SSLEngine on' >> /etc/httpd/conf/httpd.conf
 			echo '    SSLCertificateFile /etc/pki/tls/certs/DSMS.crt' >> /etc/httpd/conf/httpd.conf
@@ -358,7 +351,7 @@ function update_apache_config
 	export VALCNT=`grep "^ServerAdmin" /etc/httpd/conf/httpd.conf |grep -i "root@localhost" |wc -l`
 	if (( $VALCNT > 0 ))
 	then
-		sed -e 's/^ServerAdmin */ServerAdmin ben@nwk1.com/' -i /etc/httpd/conf/httpd.conf
+		sed -e 's/^ServerAdmin */ServerAdmin you@example.com/' -i /etc/httpd/conf/httpd.conf
 		export RC=$?	
 		if [[ $RC != "0" ]]
 		then
@@ -390,11 +383,11 @@ function update_apache_config
 	fi	
 	
 	# Check for CGI handlers
-	export VALCNT=`grep -i " Sudoers Management System CGI Handlers" /etc/httpd/conf/httpd.conf |wc -l`
+	export VALCNT=`grep -i "Distributed Sudoers Management System CGI Handlers" /etc/httpd/conf/httpd.conf |wc -l`
 	if (( $VALCNT < 1 ))
 	then
 		# Append to httopd.conf
-		echo "#  Sudoers Management System CGI Handlers" >> /etc/httpd/conf/httpd.conf
+		echo "# Distributed Sudoers Management System CGI Handlers" >> /etc/httpd/conf/httpd.conf
 		echo "AddHandler cgi-script .cgi .pl" >> /etc/httpd/conf/httpd.conf
 		echo '<Files ~ "\.pl$">' >> /etc/httpd/conf/httpd.conf
 		echo '    Options +ExecCGI' >> /etc/httpd/conf/httpd.conf
